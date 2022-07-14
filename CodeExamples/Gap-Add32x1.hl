@@ -1,0 +1,48 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+#define FC_ENABLE  0x1B201400
+#define FC_FLUSH  0x1B201404
+#define CLUSTER_ENABLE  0x10201400
+#define CLUSTER_FLUSH  0x10201404
+
+typedef  float (*pifii)(float, float);
+
+pifii genAdd(h2_insn_t * ptr, int arch, int variant) // C compilette prototype
+{
+  #[
+	flt 32 1 add (flt 32 1 a, flt 32 1 b) // Generated function prototype
+    {
+      flt 32 1 r;
+      r = a + b;
+      return r; // Simple addition between variables which are 2 bytes
+    }
+  ]#
+  return (pifii)ptr;
+}
+
+int main(void)
+{
+    h2_insn_t * ptr;
+    float in0, in1, res;
+    pifii fPtr;
+
+    in0  = 3.5;  
+    in1  = 45.2;
+    ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+    fPtr = genAdd (ptr, RISCV, RV32I); // Generate instructions
+    printf("Instructions generated\n");
+    volatile unsigned int *fc_en, *fc_flush, *c_en, *c_flush;
+    fc_en = (unsigned int * ) FC_ENABLE;
+    *fc_en = 1;
+    fc_flush =(unsigned int * ) FC_FLUSH;
+    *fc_flush = 0;
+    c_en = (unsigned int * ) CLUSTER_ENABLE;
+    *c_en = 1;
+    c_flush = (unsigned int * ) CLUSTER_FLUSH;
+    *c_flush = 0;
+    res  = fPtr(in0, in1);  // Call generated code
+    printf("%f + %f = %f\n", in0, in1, res);
+    return 0;
+}

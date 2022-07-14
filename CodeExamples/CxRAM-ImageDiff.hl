@@ -1,0 +1,156 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+typedef  void (*pifiii)(h2_cxram_line_t *, h2_cxram_line_t *, h2_cxram_line_t *, int len);
+
+pifiii genSubImages(h2_insn_t * ptr)
+{
+#[
+  int 32 1 subImage(int[] 16 8 a, int[] 16 8 b, int[] 16 8 res, int 32 1 len)
+	{
+	  int 32 1 i;
+	  for (i = 0; i < len; i = i + 1)
+		{
+		  res[i] = a[i] - b[i];
+		}
+	}
+  return 0;
+]#
+  return (pifiii) ptr;
+}
+
+void printVec(h2_cxram_line_t *vectorLine, int len, char * mesg)
+{
+  int i;
+  printf ("%s :", mesg);
+  for (i=0; i < len; i++)
+	{
+	  printf(" %05d", vectorLine->i16[i]);
+	}
+  printf ("\n");
+}
+
+void parseError (char * reference, char * inputLine)
+{
+  int len = strlen (reference);
+  if (0 != strncmp (reference, inputLine, len))
+    {
+      printf("Pgm parse error, should be (%s) : %s\n", inputLine, inputLine);
+      exit(-1);
+    }
+}
+
+void readImage (char * fileName, h2_cxram_line_t *pixels)
+{
+  FILE * theFile;
+  char inputLine[80];
+  int height, width, lineNo, columnNo, index, dummyValue;
+  theFile = fopen (fileName, "r");
+  if (NULL == theFile)
+	{
+	  printf("Error for the file %s\n", fileName);
+	  exit(-1);
+	}
+  fgets (inputLine, sizeof (inputLine), theFile); // P2 format
+  parseError("P2", inputLine);
+  fgets (inputLine, sizeof (inputLine), theFile); // Gimp comment
+  parseError("# Created by GIMP version", inputLine);
+  fgets (inputLine, sizeof (inputLine), theFile);
+  sscanf (inputLine, "%d %d\n", &height, &width); // LxH
+  if ((height != 16) || (width != 16))
+    {
+      printf("Img size error (%dx%d) should be 16x16\n", width, height);
+      exit(-1);
+    }
+  fgets (inputLine, sizeof (inputLine), theFile);
+  sscanf (inputLine, "%d\n", &dummyValue); // Max grey value
+  parseError("255", inputLine);
+  printf("Read image file %s (%dx%d)\n", fileName, height, width);
+  index = 0;
+  for (lineNo = 0; lineNo < height; lineNo ++)
+
+    {
+      for (columnNo = 0; columnNo < width; columnNo ++)
+        {
+          fgets (inputLine, sizeof (inputLine), theFile);
+          sscanf (inputLine, "%hhd ", &pixels[0].i16[index++]);
+        }
+    }
+  fclose (theFile);
+}
+
+void writeImage (char * fileName, h2_cxram_line_t *pixels)
+{
+  FILE * theFile;
+  int height, width, lineNo, columnNo;
+
+  height = 16;
+  width  = 16;
+  theFile = fopen (fileName, "w");
+  fprintf (theFile, "P2\n");
+  fprintf (theFile, "# Computed with CxRAM\n");
+  fprintf (theFile, "%d %d\n", height, width);
+  fprintf (theFile, "%d\n", 255);
+  printf("Write image file %s (%dx%d)\n", fileName, height, width);
+  for (lineNo = 0; lineNo < height; lineNo ++)
+    {
+      for (columnNo = 0; columnNo < width; columnNo ++)
+        {
+          fprintf (theFile, "%d\n", pixels[lineNo].i16[columnNo]);
+        }
+    }
+  fclose (theFile);
+}
+
+int main(int argc, char * argv[])
+{
+  int resultOK, lineNo, columnNo;
+  h2_insn_t * ptr;
+  pifiii code;
+  h2_cxram_line_t *in1, *in2, *res;
+
+  h2_init_cxram ();
+  in1 = &h2_cxram_tiles[0]; // Images src1 16x16 pixels on 16 bits values =
+  in2 = &h2_cxram_tiles[32]; // src2
+  res = &h2_cxram_tiles[64]; // resultat
+  if (argc < 3)
+	{
+	  printf("Not enough arguments (%d)\n", argc);
+	  exit(-1);
+	}
+  readImage (argv[1], in1);
+  readImage (argv[2], in2);
+  ptr = h2_malloc (1024);
+  code = genSubImages(ptr); // Code generation
+  code (in1, in2, res, 32); // Code call
+#if 0
+  for (lineNo = 0; lineNo < 32; lineNo++)
+    printVec (&h2_cxram_tiles[lineNo], CXRAM_VECLEN/2, "A");
+  printf ("\n");
+  for (lineNo = 0; lineNo < 32; lineNo++)
+    printVec (&h2_cxram_tiles[32+lineNo], CXRAM_VECLEN/2, "B");
+  printf ("\n");
+  for (lineNo = 0; lineNo < 32; lineNo++)
+    printVec (&h2_cxram_tiles[64+lineNo], CXRAM_VECLEN/2, "R");
+  printf ("\n");
+#endif
+  resultOK = 0;
+  writeImage ("/tmp/out.pgm", &h2_cxram_tiles[32]);
+  for (lineNo=0; lineNo < 16; lineNo++) // Check if coherent result
+    {
+      for (columnNo = 0; columnNo < 16; columnNo++)
+        {
+          int index = lineNo*16+columnNo;
+          if (res->i16[index] != (in1->i16[index] - in2->i16[index]))
+            {
+              printf("Difference line %d column %d (%d %d %d %d)\n", lineNo, columnNo, in1->i16[index],in2->i16[index], res->i16[index], (in1->i16[index] - in2->i16[index]));
+              resultOK = -1;
+            }
+        }
+    }
+  return resultOK;
+}

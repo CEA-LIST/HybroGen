@@ -1,0 +1,81 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 1 pointer, an index and return int */
+typedef  int   (*pifii)(int   *, int);
+typedef  short (*pifsi)(short *, int);
+typedef  char  (*pifci)(char  *, int);
+
+/* C compilette prototype */
+h2_insn_t * genAdd(h2_insn_t * ptr, int wordSize)
+{
+  #[
+	int 32 1 add (int[] #(wordSize) 1 a, int 32 1 index)
+    {
+      int #(wordSize) 1 tmp;
+      tmp = a[index];
+      return tmp;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+#define PRINTARRAY(MSG, ARRAY, LIMIT)\
+  printf (MSG);						 \
+  for (int i = 0; i < LIMIT; i++) 	\
+	{ 								\
+      printf("%4d ", ARRAY[i]);     \
+	}								\
+  printf ("\n");
+
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, res, resultOK;
+  pifii fPtr32;
+  pifsi fPtr16;
+  pifci fPtr8;
+
+  int   a32[] = {0, 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000};
+  short a16[] = {0, 1, 10, 100, 1000, 10000, 1000, 100, 10, 1};
+  char   a8[] = {0, 1, 10, 100, 127, 127, 100, 10, 1, 0};
+
+  if (argc < 2)
+    {
+      printf("Give 1 values\n");
+      exit(-1);
+    }
+  in0  = atoi (argv[1]);       // Get the users values in1
+  resultOK = 0;
+  printf ("Size of 10 INTs %d, SHORTs %d, CHARs %d \n", sizeof (a32), sizeof (a16), sizeof (a8));
+  ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions
+  fPtr32 = (pifii) genAdd (ptr, 32); // Generate instructions
+  res  =  fPtr32(a32, in0);         	 // Call generated code
+  if (a32[in0] != res)
+    resultOK ++;
+  PRINTARRAY ("32 bits : ", a32, sizeof(a32) / sizeof (int));
+  printf ("res (32) a32[%d] = %d\n", in0, res);
+
+  ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions
+  fPtr16 = (pifsi) genAdd (ptr, 16); // Generate instructions
+  res  = fPtr16(a16, in0);         	 // Call generated code
+  PRINTARRAY ("16 bits : ", a16, sizeof(a16) / sizeof (short));
+  if (a16[in0] != res)
+    resultOK ++;
+  printf ("res (16) a16[%d] = %d\n", in0, res);
+
+  ptr  = h2_malloc (1024);     		// Allocate memory for 1024 instructions
+  fPtr8 = (pifci) genAdd (ptr, 8); 	// Generate instructions
+  res  = fPtr8(a8, in0);         	// Call generated code
+  if (a8[in0] != res)
+    resultOK ++;
+  PRINTARRAY ("8  bits : ", a8, sizeof(a8) / sizeof (char));
+  printf ("res (8)   a8[%d] = %d\n", in0, res);
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}

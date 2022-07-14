@@ -1,0 +1,1976 @@
+# IBM power 8 instruction set
+# Power ISA v3 2015
+
+ARCH power 32
+
+# add Add
+011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100| p1 i 1 32 add add r0 r1 r2
+# add. Add
+#011111 r0[4:0] r1[4:0] r2[4:0]  01000 010101| p1 i 1 32 add add. r0 r1 r2
+# addo Add
+#011111 r0[4:0] r1[4:0] r2[4:0]  11000 010100	| p1 i 1 32 add addo r0 r1 r2
+# addo. Add
+#011111 r0[4:0] r1[4:0] r2[4:0] 11000 010101	| p1 i 1 32 add addo. r0 r1 r2
+# addc[o][.] Add Carrying
+# 011111 ..... ..... ..... .0000 01010.| p1 addc[o][.]
+# adde[o][.] Add Extended
+# 011111 ..... ..... ..... .0100 01010.| p1 adde[o][.]
+# addg6s Add & Generate Sixes
+# 011111 ..... ..... ..... 00010 010100| power addg6s
+# addi Add Immediate
+001110 r0[4:0] r1[4:0] i0[15:0]	| p1  i 1 32 add addi r0 r1 i0
+# subi Add Immediate
+001110 r0[4:0] r1[4:0] (-i0[15:0])	| p1  i 1 32 sub subi r0 r1 i0
+# li load immediate
+001110 r0[4:0] 00000 i0[15:0]	| p1  i 1 32 mv li r0 i0
+# mv Add Immediate
+001110 r0[4:0] r1[4:0] 0000 0000 0000 0000 | p1  i 1 32 mv mv r0 r1
+# addic Add Immediate Carrying
+# 001100 ..... ..... ..... ..... ......| p1 addic
+# addic. Add Immediate Carrying & record
+# 001101 ..... ..... ..... ..... ......| p1 addic.
+# addis Add Immediate Shifted
+# 001111 ..... ..... ..... ..... ......| power addis
+# addme[o][.] Add to Minus One Extended
+# 011111 ..... ..... 00000 .0111 01010.| p1 addme[o][.]
+# addpcis Add PC Immediate Shifted
+# 010011 ..... ..... ..... ..... 00010.| p1 addpcis
+# addze[o][.] Add to Zero Extended
+# 011111 ..... ..... 00000 .0110 01010.| p1 addze[o][.]
+# and AND
+011111 r0[4:0] r1[4:0] r2[4:0]  00000 111000	| p1 i 1 32 and and r1 r0 r2
+# and[.] AND
+011111  r0[4:0] r1[4:0] r2[4:0] 00000 111001	| p1 i 1 32 and and. r1 r0 r2
+# andc[.] AND with Complement
+# 011111 ..... ..... ..... 00001 11100.| p1 andc[.]
+# andi. AND Immediate & record
+011100 r0[4:0] r1[4:0] i0[15:0]	    | p1 u 1 32 and andi. r1 r0 i0
+# andis. AND Immediate Shifted & record
+# 011101 ..... ..... ..... ..... ......| p1 andis.
+# b[l][a] Branch [& Link] [Absolute]
+# 010010 ..... ..... ..... ..... ......| p1 b[l][a]
+# b[l][a] Branch      
+010010 i0[23:0] 00    | p1 i 1 32 ba bl i0
+# bc Branch Conditional blt   
+010000 01100 00000 i0[13:0] 00	| p1 i 1 32 blt blt i0 
+# bc Branch Conditional    bgt
+010000 01100 00001 i0[13:0] 00	| p1 i 1 32 bgt bgt i0 
+# bc Branch Conditional    beq
+010000 01100 00010 i0[13:0] 00	| p1 i 1 32 beq beq i0 
+# bc Branch Conditional    ble
+010000 00100 00001 i0[13:0] 00	| p1 i 1 32 ble ble i0 
+# bc Branch Conditional    bne
+010000 00100 00010 i0[13:0] 00	| p1 i 1 32 bne bne i0 
+# bc Branch Conditional    bge
+010000 00100 00000 i0[13:0] 00	| p1 i 1 32 bge bge i0 
+# bca Branch Conditional Absolute 
+#010000 ..... ..... ..... ..... ....10	| p1 bca
+# bclBranch Conditional & Link
+#010000 ..... ..... ..... ..... ....01	| p1 bcl
+# bcla Branch Conditional & Link Absolute
+#010000 ..... ..... ..... ..... ....11	      | p1 bcla
+# bcctr[l] Branch Conditional to CTR [& Link]
+# 010011 ..... ..... 000.. 10000 10000.| p1 bcctr[l]
+# bcdadd. Decimal Add Modulo & record
+# 000100 ..... ..... ..... 1.000 000001| power bcdadd.
+# bcdcfn. Decimal Convert From National & record
+# 000100 ..... 00111 ..... 1.110 000001| power bcdcfn.
+# bcdcfsq. Decimal Convert From Signed Qword & record
+# 000100 ..... 00010 ..... 1.110 000001| power bcdcfsq.
+# bcdcfz. Decimal Convert From Zoned & record
+# 000100 ..... 00110 ..... 1.110 000001| power bcdcfz.
+# bcdcpsgn. Decimal CopySign & record
+# 000100 ..... ..... ..... 01101 000001| power bcdcpsgn.
+# bcdctn. Decimal Convert To National & record
+# 000100 ..... 00101 ..... 10110 000001| power bcdctn.
+# bcdctsq. Decimal Convert To Signed Qword & record
+# 000100 ..... 00000 ..... 10110 000001| power bcdctsq.
+# bcdctz. Decimal Convert To Zoned & record
+# 000100 ..... 00100 ..... 1.110 000001| power bcdctz.
+# bcds. Decimal Shift & record
+# 000100 ..... ..... ..... 1.011 000001| power bcds.
+# bcdsetsgn. Decimal Set Sign & record
+# 000100 ..... 11111 ..... 1.110 000001| power bcdsetsgn.
+# bcdsr. Decimal Shift & Round & record
+# 000100 ..... ..... ..... 1.111 000001| power bcdsr.
+# bcdsub. Decimal Subtract Modulo & record
+# 000100 ..... ..... ..... 1.001 000001| power bcdsub.
+# bcdtrunc. Decimal Truncate & record
+# 000100 ..... ..... ..... 1.100 000001| power bcdtrunc.
+# bcdus. Decimal Unsigned Shift & record
+# 000100 ..... ..... ..... 10010 000001| power bcdus.
+# bcdutrunc. Decimal Unsigned Truncate & record
+# 000100 ..... ..... ..... 10101 000001| power bcdutrunc.
+# bclr[l] Branch Conditional to LR unconditional
+010011 10100 00000 00000 00000 100000 | p1 i 1 32 ret blr
+# bclr[l] Branch Conditional to LR [& Link]
+# 010011 ..... ..... 000.. 00000 10000.| p1 bclr[l]
+# bctar[l] Branch Conditional to BTAR [& Link]
+# 010011 ..... ..... 000.. 10001 10000.| power bctar[l]
+# bpermd Bit Permute Dword
+# 011111 ..... ..... ..... 00111 111000| power bpermd
+# cbcdtd Convert Binary Coded Decimal To Declets
+# 011111 ..... ..... 00000 01001 110100| power cbcdtd
+# cdtbcd Convert Declets To Binary Coded Decimal
+# 011111 ..... ..... 00000 01000 110100| power cdtbcd
+# clrbhrb Clear BHRB
+# 011111 00000 00000 00000 01101 011100| power clrbhrb
+# cmp Compare   32bits
+011111 000 00 r0[4:0] r1[4:0] 00000 000000	| p1 i 1 32 cmp cmpw r0 r1
+#011111 i0[2:0] 00 r0[4:0] r1[4:0] 00000 000000	| p1 i 1 32 cmp cmpw r0 r1
+# cmp Compare   64bits
+011111 000 01 r0[4:0] r1[4:0] 00000 000000	| p1 i 1 64 cmp cmpd r0 r1
+#011111 i0[2:0] 01 r0[4:0] r1[4:0] 00000 000000	| p1 i 1 64 cmp cmpd r0 r1
+# cmpb Compare Bytes
+# 011111 ..... ..... ..... 01111 111000| power cmpb
+# cmpeqb Compare Equal Byte
+# 011111 ...00 ..... ..... 00111 000000| power cmpeqb
+# cmpi Compare Immediate 32bits
+001011 000 00 r0[4:0] i1[15:0] | p1 i 1 32 cmp cmpwi r0 i1
+#001011 i0[2:0] 00 r0[4:0] i1[15:0] | p1 i 1 32 cmp cmpwi r0 i1
+# cmpi Compare Immediate 64bits
+001011 000 01 r0[4:0] i1[15:0] | p1 i 1 64 cmp cmpdi  r0 i1
+#001011 i0[2:0] 01 r0[4:0] i1[15:0] | p1 i 1 64 cmp cmpdi  r0 i1
+# cmpl Compare Logical
+# 011111 ...0. ..... ..... 00001 000000| p1 cmpl
+# cmpli Compare Logical Immediate
+# 001010 ...0. ..... ..... ..... ......| p1 cmpli
+# cmprb Compare Ranged Byte
+# 011111 ...0. ..... ..... 00110 000000| power cmprb
+# cntlzd[.] Count Leading Zeros Dword
+# 011111 ..... ..... 00000 00001 11010.| ppc cntlzd[.]
+# cntlzw[.] Count Leading Zeros Word
+# 011111 ..... ..... 00000 00000 11010.| p1 cntlzw[.]
+# cnttzd[.] Count Trailing Zeros Dword
+# 011111 ..... ..... 00000 10001 11010.| power cnttzd[.]
+# cnttzw[.] Count Trailing Zeros Word
+# 011111 ..... ..... 00000 10000 11010.| power cnttzw[.]
+# copy Copy
+# 011111 0000. ..... ..... 11000 001100| power copy
+# cp_abort CP_Abort
+# 011111 00000 00000 00000 11010 001100| power cp_abort
+# crand CR AND
+# 010011 ..... ..... ..... 01000 000010| p1 crand
+# crandc CR AND with Complement
+# 010011 ..... ..... ..... 00100 000010| p1 crandc
+# creqv CR Equivalent
+# 010011 ..... ..... ..... 01001 000010| p1 creqv
+# crnand CR NAND
+# 010011 ..... ..... ..... 00111 000010| p1 crnand
+# crnor CR NOR
+# 010011 ..... ..... ..... 00001 000010| p1 crnor
+# cror CR OR
+# 010011 ..... ..... ..... 01110 000010| p1 cror
+# crorc CR OR with Complement
+# 010011 ..... ..... ..... 01101 000010| p1 crorc
+# crxor CR XOR
+# 010011 ..... ..... ..... 00110 000010| p1 crxor
+# dadd[.] DFP Add
+# 111011 ..... ..... ..... 00000 00010.| power dadd[.]
+# daddq[.] DFP Add Quad
+# 111111 ..... ..... ..... 00000 00010.| power daddq[.]
+# darn Deliver A Random Number
+# 011111 ..... 000.. 00000 10111 100110| power darn
+# dcbf Data Cache Block Flush
+# 011111 000.. ..... ..... 00010 101100| ppc dcbf
+# dcbst Data Cache Block Store
+# 011111 00000 ..... ..... 00001 101100| ppc dcbst
+# dcbt Data Cache Block Touch
+# 011111 ..... ..... ..... 01000 101100| ppc dcbt
+# dcbtst Data Cache Block Touch for Store
+# 011111 ..... ..... ..... 00111 101100| ppc dcbtst
+# dcbz Data Cache Block Zero
+# 011111 00000 ..... ..... 11111 101100| p1 dcbz
+# dcffix[.] DFP Convert From Fixed
+# 111011 ..... 00000 ..... 11001 00010.| power dcffix[.]
+# dcffixq[.] DFP Convert From Fixed Quad
+# 111111 ..... 00000 ..... 11001 00010.| power dcffixq[.]
+# dcmpo DFP Compare Ordered
+# 111011 ...00 ..... ..... 00100 000100| power dcmpo
+# dcmpoq DFP Compare Ordered Quad
+# 111111 ...00 ..... ..... 00100 000100| power dcmpoq
+# dcmpu DFP Compare Unordered
+# 111011 ...00 ..... ..... 10100 000100| power dcmpu
+# dcmpuq DFP Compare Unordered Quad
+# 111111 ...00 ..... ..... 10100 000100| power dcmpuq
+# dctdp[.] DFP Convert To DFP Long
+# 111011 ..... 00000 ..... 01000 00010.| power dctdp[.]
+# dctfix[.] DFP Convert To Fixed
+# 111011 ..... 00000 ..... 01001 00010.| power dctfix[.]
+# dctfixq[.] DFP Convert To Fixed Quad
+# 111111 ..... 00000 ..... 01001 00010.| power dctfixq[.]
+# dctqpq[.] DFP Convert To DFP Extended
+# 111111 ..... 00000 ..... 01000 00010.| power dctqpq[.]
+# ddedpd[.] DFP Decode DPD To BCD
+# 111011 ..... ..000 ..... 01010 00010.| power ddedpd[.]
+# ddedpdq[.] DFP Decode DPD To BCD Quad
+# 111111 ..... ..000 ..... 01010 00010.| power ddedpdq[.]
+# ddiv[.] DFP Divide
+# 111011 ..... ..... ..... 10001 00010.| power ddiv[.]
+# ddivq[.] DFP Divide Quad
+# 111111 ..... ..... ..... 10001 00010.| power ddivq[.]
+# denbcd[.] DFP Encode BCD To DPD
+# 111011 ..... .0000 ..... 11010 00010.| power denbcd[.]
+# denbcdq[.] DFP Encode BCD To DPD Quad
+# 111111 ..... .0000 ..... 11010 00010.| power denbcdq[.]
+# diex[.] DFP Insert Exponent
+# 111011 ..... ..... ..... 11011 00010.| power diex[.]
+# diexq[.] DFP Insert Exponent Quad
+# 111111 ..... ..... ..... 11011 00010.| power diexq[.]
+# divd[o][.] Divide Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 01111 010010| ppc i 1 64 div divd r0 r1 r2
+# divd[o][.] Divide Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 01111 010011| ppc i 1 64 div divd. r0 r1 r2
+# divd[o][.] Divide Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 11111 010010| ppc i 1 64 div divdo r0 r1 r2
+# divd[o][.] Divide Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 11111 010011| ppc i 1 64 div divdo. r0 r1 r2
+# divde[o][.] Divide Dword Extended
+# 011111 ..... ..... ..... .1101 01001.| power divde[o][.]
+# divdeu[o][.] Divide Dword Extended Unsigned
+# 011111 r0[4:0] r1[4:0] r2[4:0] 1100 01001.| power divdeu[o][.]
+# divdu[o][.] Divide Dword Unsigned
+# 011111 ..... ..... ..... .1110 01001.| ppc divdu[o][.]
+# divw[o][.] Divide Word
+011111 r0[4:0] r1[4:0] r2[4:0] 01111 010110| ppc i 1 32 div divw r0 r1 r2
+# divw[o][.] Divide Word
+#011111 r0[4:0] r1[4:0] r2[4:0] 01111 010111| ppc i 1 32 div divw. r0 r1 r2
+# divw[o][.] Divide Word
+#011111 r0[4:0] r1[4:0] r2[4:0] 11111 010110| ppc i 1 32 div divwo r0 r1 r2
+# divw[o][.] Divide Word
+#011111 r0[4:0] r1[4:0] r2[4:0] 11111 010111| ppc i 1 32 div divwo. r0 r1 r2
+# divwe[o][.] Divide Word Extended
+# 011111 ..... ..... ..... .1101 01011.| power divwe[o][.]
+# divweu[o][.] Divide Word Extended Unsigned
+# 011111 ..... ..... ..... .1100 01011.| power divweu[o][.]
+# divwu[o][.] Divide Word Unsigned
+# 011111 ..... ..... ..... .1110 01011.| ppc divwu[o][.]
+# dmul[.] DFP Multiply
+# 111011 ..... ..... ..... 00001 00010.| power dmul[.]
+# dmulq[.] DFP Multiply Quad
+# 111111 ..... ..... ..... 00001 00010.| power dmulq[.]
+# dqua[.] DFP Quantize
+# 111011 ..... ..... ..... ..000 00011.| power dqua[.]
+# dquai[.] DFP Quantize Immediate
+# 111011 ..... ..... ..... ..010 00011.| power dquai[.]
+# dquaiq[.] DFP Quantize Immediate Quad
+# 111111 ..... ..... ..... ..010 00011.| power dquaiq[.]
+# dquaq[.] DFP Quantize Quad
+# 111111 ..... ..... ..... ..000 00011.| power dquaq[.]
+# drdpq[.] DFP Round To DFP Long
+# 111111 ..... 00000 ..... 11000 00010.| power drdpq[.]
+# drintn[.] DFP Round To FP Integer Without Inexact
+# 111011 ..... 0000. ..... ..111 00011.| power drintn[.]
+# drintnq[.] DFP Round To FP Integer Without Inexact Quad
+# 111111 ..... 0000. ..... ..111 00011.| power drintnq[.]
+# drintx[.] DFP Round To FP Integer With Inexact
+# 111011 ..... 0000. ..... ..011 00011.| power drintx[.]
+# drintxq[.] DFP Round To FP Integer With Inexact Quad
+# 111111 ..... 0000. ..... ..011 00011.| power drintxq[.]
+# drrnd[.] DFP Reround
+# 111011 ..... ..... ..... ..001 00011.| power drrnd[.]
+# drrndq[.] DFP Reround Quad
+# 111111 ..... ..... ..... ..001 00011.| power drrndq[.]
+# drsp[.] DFP Round To DFP Short
+# 111011 ..... 00000 ..... 11000 00010.| power drsp[.]
+# dscli[.] DFP Shift Significand Left Immediate
+# 111011 ..... ..... ..... .0010 00010.| power dscli[.]
+# dscliq[.] DFP Shift Significand Left Immediate Quad
+# 111111 ..... ..... ..... .0010 00010.| power dscliq[.]
+# dscri[.] DFP Shift Significand Right Immediate
+# 111011 ..... ..... ..... .0011 00010.| power dscri[.]
+# dscriq[.] DFP Shift Significand Right Immediate Quad
+# 111111 ..... ..... ..... .0011 00010.| power dscriq[.]
+# dsub[.] DFP Subtract
+# 111011 ..... ..... ..... 10000 00010.| power dsub[.]
+# dsubq[.] DFP Subtract Quad
+# 111111 ..... ..... ..... 10000 00010.| power dsubq[.]
+# dtstdc DFP Test Data Class
+# 111011 ...00 ..... ..... .0110 000100| power dtstdc
+# dtstdcq DFP Test Data Class Quad
+# 111111 ...00 ..... ..... .0110 000100| power dtstdcq
+# dtstdg DFP Test Data Group
+# 111011 ...00 ..... ..... .0111 000100| power dtstdg
+# dtstdgq DFP Test Data Group Quad
+# 111111 ...00 ..... ..... .0111 000100| power dtstdgq
+# dtstex DFP Test Exponent
+# 111011 ...00 ..... ..... 00101 000100| power dtstex
+# dtstexq DFP Test Exponent Quad
+# 111111 ...00 ..... ..... 00101 000100| power dtstexq
+# dtstsf DFP Test Significance
+# 111011 ...00 ..... ..... 10101 000100| power dtstsf
+# dtstsfi DFP Test Significance Immediate
+# 111011 ...00 ..... ..... 10101 000110| power dtstsfi
+# dtstsfiq DFP Test Significance Immediate Quad
+# 111111 ...00 ..... ..... 10101 000110| power dtstsfiq
+# dtstsfq DFP Test Significance Quad
+# 111111 ...00 ..... ..... 10101 000100| power dtstsfq
+# dxex[.] DFP Extract Exponent
+# 111011 ..... 00000 ..... 01011 00010.| power dxex[.]
+# dxexq[.] DFP Extract Exponent Quad
+# 111111 ..... 00000 ..... 01011 00010.| power dxexq[.]
+# eieio Enforce In-order Execution of I0O
+# 011111 00000 00000 00000 11010 101100| ppc eieio
+# eqv[.] Equivalent
+# 011111 ..... ..... ..... 01000 11100.| p1 eqv[.]
+# extsb[.] Extend Sign Byte
+# 011111 ..... ..... 00000 11101 11010.| ppc extsb[.]
+# extsh[.] Extend Sign Hword
+# 011111 ..... ..... 00000 11100 11010.| p1 extsh[.]
+# extsw Extend Sign Word
+011111 r0[4:0] r1[4:0] 00000 11110 110100	| ppc i 1 64 ext extsw r1 r0
+# extsw. Extend Sign Word
+011111 r0[4:0] r1[4:0] 00000 11110 110101	| ppc i 1 64 ext extsw. r1 r0
+# extswsli[.] Extend Sign Word & Shift Left Immediate
+# 011111 ..... ..... ..... 11011 1101..| power extswsli[.]
+# fabs[.] Floating Absolute
+# 111111 ..... 00000 ..... 01000 01000.| p1 fabs[.]
+# fadd Floating Add   r0 = r1 + r2
+111111 r0[4:0] r1[4:0] r2[4:0] 00000 101010	| p1 f 1 64 add fadd r0 r1 r2
+# fadd. Floating Add
+111111 r0[4:0] r1[4:0] r2[4:0]  00000 101011	| p1 f 1 64 add fadd. r0 r1 r2
+# fadds Floating Add Single
+111011 r0[4:0] r1[4:0] r2[4:0] 00000 101010	| ppc f 1 32 add fadds r0 r1 r2
+# fadds. Floating Add Single
+111011 r0[4:0] r1[4:0] r2[4:0] 00000 101011	| ppc f 1 32 add fadds. r0 r1 r2
+# fcfid[.] Floating Convert From Integer Dword
+# 111111 ..... 00000 ..... 11010 01110.| ppc fcfid[.]
+# fcfids[.] Floating Convert From Integer Dword Single
+# 111011 ..... 00000 ..... 11010 01110.| power fcfids[.]
+# fcfidu[.] Floating Convert From Integer Dword Unsigned
+# 111111 ..... 00000 ..... 11110 01110.| power fcfidu[.]
+# fcfidus[.] Floating Convert From Integer Dword Unsigned Single
+# 111011 ..... 00000 ..... 11110 01110.| power fcfidus[.]
+# fcmpo Floating Compare Ordered
+# 111111 ...00 ..... ..... 00001 000000| p1 fcmpo
+# fcmpu Floating Compare Unordered
+# 111111 ...00 ..... ..... 00000 000000| p1 fcmpu
+# fcpsgn[.] Floating Copy Sign
+# 111111 ..... ..... ..... 00000 01000.| power fcpsgn[.]
+# fctid[.] Floating Convert To Integer Dword
+# 111111 ..... 00000 ..... 11001 01110.| ppc fctid[.]
+# fctidu[.] Floating Convert To Integer Dword Unsigned
+# 111111 ..... 00000 ..... 11101 01110.| power fctidu[.]
+# fctiduz[.] Floating Convert To Integer Dword Unsigned truncate
+# 111111 ..... 00000 ..... 11101 01111.| power fctiduz[.]
+# fctidz[.] Floating Convert To Integer Dword truncate
+# 111111 ..... 00000 ..... 11001 01111.| ppc fctidz[.]
+# fctiw[.] Floating Convert To Integer Word
+# 111111 ..... 00000 ..... 00000 01110.| power fctiw[.]
+# fctiwu[.] Floating Convert To Integer Word Unsigned
+# 111111 ..... 00000 ..... 00100 01110.| power fctiwu[.]
+# fctiwuz[.] Floating Convert To Integer Word Unsigned truncate
+# 111111 ..... 00000 ..... 00100 01111.| power fctiwuz[.]
+# fctiwz[.] Floating Convert To Integer Word truncate
+# 111111 ..... 00000 ..... 00000 01111.| power fctiwz[.]
+# fdiv[.] Floating Divide
+111111 r0[4:0] r1[4:0] r2[4:0] 00000 100100| p1 f 1 64 div fdiv r0 r1 r2
+# fdivs[.] Floating Divide Single
+111011 r0[4:0] r1[4:0] r2[4:0] 00000 100100| ppc f 1 32 div fdivs r0 r1 r2
+# fmadd[.] Floating Multiply-Add
+# 111111 ..... ..... ..... ..... 11101.| p1 fmadd[.]
+# fmadds[.] Floating Multiply-Add Single
+# 111011 ..... ..... ..... ..... 11101.| ppc fmadds[.]
+# fmr[.] Floating Move Register
+111111 r0[4:0] 00000 r1[4:0] 00010 010000| p1 f 1 64 mv fmr r0 r1
+# fmr[.] Floating Move Register
+111111 r0[4:0] 00000 r1[4:0] 00010 010000| p1 f 1 32 mv fmr r0 r1
+# fmrgew Floating Merge Even Word
+# 111111 ..... ..... ..... 11110 001100| power fmrgew
+# fmrgow Floating Merge Odd Word
+# 111111 ..... ..... ..... 11010 001100| power fmrgow
+# fmsub[.] Floating Multiply-Subtract
+# 111111 ..... ..... ..... ..... 11100.| p1 fmsub[.]
+# fmsubs[.] Floating Multiply-Subtract Single
+# 111011 ..... ..... ..... ..... 11100.| ppc fmsubs[.]
+# fmul[.] Floating Multiply
+111111 r0[4:0] r1[4:0] 00000 r2[4:0] 11001 0	| p1 f 1 64 MUL fmul  r0 r1 r2
+111111 r0[4:0] r1[4:0] 00000  r2[4:0] 11001 1 	| p1 f 1 64 MUL fmul. r0 r1 r2
+# fmuls[.] Floating Multiply Single
+111011 r0[4:0] r1[4:0] 00000 r2[4:0]110010	| ppc f 1 32 MUL fmuls r0 r1 r2
+111011 r0[4:0] r1[4:0] 00000 r2[4:0]110011	| ppc f 1 32 MUL fmuls. r0 r1 r2
+# fnabs[.] Floating Negative Absolute Value
+# 111111 ..... 00000 ..... 00100 01000.| p1 fnabs[.]
+# fneg[.] Floating Negate
+# 111111 ..... 00000 ..... 00001 01000.| p1 fneg[.]
+# fnmadd[.] Floating Negative Multiply-Add
+# 111111 ..... ..... ..... ..... 11111.| p1 fnmadd[.]
+# fnmadds[.] Floating Negative Multiply-Add Single
+# 111011 ..... ..... ..... ..... 11111.| ppc fnmadds[.]
+# fnmsub[.] Floating Negative Multiply-Subtract
+# 111111 ..... ..... ..... ..... 11110.| p1 fnmsub[.]
+# fnmsubs[.] Floating Negative Multiply-Subtract Single
+# 111011 ..... ..... ..... ..... 11110.| ppc fnmsubs[.]
+# fre[.] Floating Reciprocal Estimate
+# 111111 ..... 00000 ..... 00000 11000.| power fre[.]
+# fres[.] Floating Reciprocal Estimate Single
+# 111011 ..... 00000 ..... 00000 11000.| ppc fres[.]
+# frim[.] Floating Round To Integer Minus
+# 111111 ..... 00000 ..... 01111 01000.| power frim[.]
+# frin[.] Floating Round To Integer Nearest
+# 111111 ..... 00000 ..... 01100 01000.| power frin[.]
+# frip[.] Floating Round To Integer Plus
+# 111111 ..... 00000 ..... 01110 01000.| power frip[.]
+# friz[.] Floating Round To Integer Zero
+# 111111 ..... 00000 ..... 01101 01000.| power friz[.]
+# frsp[.] Floating Round to SP
+# 111111 ..... 00000 ..... 00000 01100.| p1 frsp[.]
+# frsqrte[.] Floating Reciprocal Square Root Estimate
+# 111111 ..... 00000 ..... 00000 11010.| ppc frsqrte[.]
+# frsqrtes[.] Floating Reciprocal Square Root Estimate Single
+# 111011 ..... 00000 ..... 00000 11010.| power frsqrtes[.]
+# fsel[.] Floating Select
+# 111111 r0[4:0] r1[4:0] r2[4:0] 10111.| ppc fsel[.]
+# fsqrt[.] Floating Square Root
+# 111111 ..... 00000 ..... 00000 10110.| power fsqrt[.]
+# fsqrts[.] Floating Square Root Single
+# 111011 ..... 00000 ..... 00000 10110.| ppc fsqrts[.]
+# fsub[.] Floating Subtract
+111111 r0[4:0] r1[4:0] r2[4:0] 00000 101000| p1 f 1 64 SUB fsub r0 r1 r2
+# fsub[.] Floating Subtract
+111111 r0[4:0] r1[4:0] r2[4:0] 00000 101001| p1 f 1 64 SUB fsub. r0 r1 r2
+# fsubs[.] Floating Subtract Single
+111011 r0[4:0] r1[4:0] r2[4:0] 00000 101000| ppc f 1 32 SUB fsubs r0 r1 r2
+# fsubs[.] Floating Subtract Single
+111011 r0[4:0] r1[4:0] r2[4:0] 00000 101001| ppc f 1 32 SUB fsubs. r0 r1 r2
+# ftdiv Floating Test for software Divide
+# 111111 ...00 ..... ..... 00100 000000| power ftdiv
+# ftsqrt Floating Test for software Square Root
+# 111111 ...00 00000 ..... 00101 000000| power ftsqrt
+# hrfid Return From Interrupt Dword Hypervisor
+# 010011 00000 00000 00000 01000 100100| power hrfid
+# icbi Instruction Cache Block Invalidate
+# 011111 00000 ..... ..... 11110 101100| ppc icbi
+# icbt Instruction Cache Block Touch
+# 011111 0.... ..... ..... 00000 101100| power icbt
+# isel Integer Select
+# 011111 ..... ..... ..... ..... 011110| power isel
+# isync Instruction Synchronize
+# 010011 00000 00000 00000 00100 101100| p1 isync
+# lbarx Load Byte And Reserve Indexed
+# 011111 ..... ..... ..... 00001 10100.| power lbarx
+# lbz Load Byte & Zero
+100010 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 8 r lbz r0 r1 i0
+# lbzcix Load Byte & Zero Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11010 101010| power lbzcix
+# lbzu Load Byte & Zero with Update
+#100011 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 8 r lbzu r0 r1 i0
+# lbzux Load Byte & Zero with Update Indexed
+#011111 r0[4:0] r1[4:0] r2[4:0] 00011 101110| p1 i 1 8 r lbzux r0 r1 r2
+# lbzx Load Byte & Zero Indexed
+011111 r0[4:0] r1[4:0] r2[4:0]  00010 101110| p1 i 1 8 r lbzx r0 r1 r2
+# ld Load Dword
+# 111010  r0[4:0] r1[4:0] i0[13:0] 00| ppc ld
+# ldarx Load Dword And Reserve Indexed
+# 011111 ..... ..... ..... 00010 101000| ppc ldarx
+# ldat Load Dword ATomic
+# 011111 ..... ..... ..... 10011 001100| power ldat
+# ldbrx Load Dword Byte-Reverse Indexed
+# 011111 ..... ..... ..... 10000 101000| power ldbrx
+# ldcix Load Dword Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11011 101010| power ldcix
+# PI ldmx Load Dword Monitored Indexed
+# 011111 ..... ..... ..... 01001 101010| power PI
+# ldu Load Dword with Update
+# 111010 ..... ..... ..... ..... ....01| ppc ldu
+# ldux Load Dword with Update Indexed
+# 011111 ..... ..... ..... 00001 101010| ppc ldux
+# ldx Load Dword Indexed
+# 011111 ..... ..... ..... 00000 101010| ppc ldx
+# lfd Load Floating Double
+# 110010 ..... ..... ..... ..... ......| p1 lfd
+# lfdp Load Floating Double Pair
+# 111001 ..... ..... ..... ..... ....00| power lfdp
+# lfdpx Load Floating Double Pair Indexed
+# 011111 ..... ..... ..... 11000 101110| power lfdpx
+# lfdu Load Floating Double with Update
+# 110011 ..... ..... ..... ..... ......| p1 lfdu
+# lfdux Load Floating Double with Update Indexed
+# 011111 ..... ..... ..... 10011 101110| p1 lfdux
+# lfdx Load Floating Double Indexed
+# 011111 ..... ..... ..... 10010 101110| p1 lfdx
+# lfiwax Load Floating as Integer Word Algebraic Indexed
+# 011111 ..... ..... ..... 11010 101110| power lfiwax
+# lfiwzx Load Floating as Integer Word & Zero Indexed
+# 011111 ..... ..... ..... 11011 101110| power lfiwzx
+# lfs Load Floating Single
+110000 r0[4:0] r1[4:0] i0[15:0]	| p1 f 1 32 r lfs r0 r1 i0
+# lfsu Load Floating Single with Update
+# 110001 ..... ..... ..... ..... ......| p1 lfsu
+# lfsux Load Floating Single with Update Indexed
+# 011111 ..... ..... ..... 10001 101110| p1 lfsux
+# lfsx Load Floating Single Indexed
+# 011111 ..... ..... ..... 10000 101110| p1 lfsx
+# lha Load Hword Algebraic
+# 101010 ..... ..... ..... ..... ......| p1 lha
+# lharx Load Hword And Reserve Indexed Xform
+# 011111 ..... ..... ..... 00011 10100.| power lharx
+# lhau Load Hword Algebraic with Update
+# 101011 ..... ..... ..... ..... ......| p1 lhau
+# lhaux Load Hword Algebraic with Update Indexed
+# 011111 ..... ..... ..... 01011 101110| p1 lhaux
+# lhax Load Hword Algebraic Indexed
+# 011111 ..... ..... ..... 01010 101110| p1 lhax
+# lhbrx Load Hword Byte-Reverse Indexed
+# 011111 ..... ..... ..... 11000 101100| p1 lhbrx
+# lhz Load Hword & Zero
+101000 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 16 r lhz r0 r1 i0
+# lhzcix Load Hword & Zero Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11001 101010| power lhzcix
+# lhzu Load Hword & Zero with Update
+# 101001 ..... ..... ..... ..... ......| p1 lhzu
+# lhzux Load Hword & Zero with Update Indexed
+# 011111 ..... ..... ..... 01001 101110| p1 lhzux
+# lhzx Load Hword & Zero Indexed
+# 011111 ..... ..... ..... 01000 101110| p1 lhzx
+# lmw Load Multiple Word
+# 101110 ..... ..... ..... ..... ......| p1 lmw
+# lq Load Qword
+# 111000 ..... ..... ..... ..... ......| power lq
+# lqarx Load Qword And Reserve Indexed
+# 011111 ..... ..... ..... 01000 10100.| power lqarx
+# lswi Load String Word Immediate
+# 011111 ..... ..... ..... 10010 101010| p1 lswi
+# lswx Load String Word Indexed
+# 011111 ..... ..... ..... 10000 101010| p1 lswx
+# lvebx Load Vector Element Byte Indexed
+# 011111 ..... ..... ..... 00000 001110| power lvebx
+# lvehx Load Vector Element Hword Indexed
+# 011111 ..... ..... ..... 00001 001110| power lvehx
+# lvewx Load Vector Element Word Indexed
+# 011111 ..... ..... ..... 00010 001110| power lvewx
+# lvsl Load Vector for Shift Left
+# 011111 ..... ..... ..... 00000 001100| power lvsl
+# lvsr Load Vector for Shift Right
+# 011111 ..... ..... ..... 00001 001100| power lvsr
+# lvx Load Vector Indexed
+# 011111 ..... ..... ..... 00011 001110| power lvx
+# lvxl Load Vector Indexed Last
+# 011111 ..... ..... ..... 01011 001110| power lvxl
+# lwa Load Word Algebraic
+# 111010 ..... ..... ..... ..... ....10| ppc lwa
+# lwarx Load Word & Reserve Indexed
+# 011111 ..... ..... ..... 00000 101000| ppc lwarx
+# lwat Load Word ATomic
+# 011111 ..... ..... ..... 10010 001100| power lwat
+# lwaux Load Word Algebraic with Update Indexed
+# 011111 ..... ..... ..... 01011 101010| ppc lwaux
+# lwax Load Word Algebraic Indexed
+# 011111 ..... ..... ..... 01010 101010| ppc lwax
+# lwbrx Load Word Byte-Reverse Indexed
+# 011111 ..... ..... ..... 10000 101100| p1 lwbrx
+# lwz Load Word & Zero
+100000 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 32 r lwz r0 r1 i0
+# lwzcix Load Word & Zero Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11000 101010| power lwzcix
+# lwzu Load Word & Zero with Update
+100001 r0[4:0] r1[4:0] i0[15:0]	 | p1 i 1 32 r lwzu r0 r1 i0
+# lwzux Load Word & Zero with Update Indexed
+011111 r0[4:0] r1[4:0] r2[4:0] 00001 101110| p1 i 1 32 r lwzux r0 r1 r2
+# lwzx Load Word & Zero Indexed
+011111 r0[4:0] r1[4:0] r2[4:0] 00000 101110| p1 i 1 32 r lwzx r0 r1 r2
+# lxsd Load VSX Scalar Dword
+# 111001 ..... ..... ..... ..... ....10| power lxsd
+# lxsdx Load VSX Scalar Dword Indexed
+# 011111 ..... ..... ..... 10010 01100.| power lxsdx
+# lxsibzx Load VSX Scalar as Integer Byte & Zero Indexed
+# 011111 ..... ..... ..... 11000 01101.| power lxsibzx
+# lxsihzx Load VSX Scalar as Integer Hword & Zero Indexed
+# 011111 ..... ..... ..... 11001 01101.| power lxsihzx
+# lxsiwax Load VSX Scalar as Integer Word Algebraic Indexed
+# 011111 ..... ..... ..... 00010 01100.| power lxsiwax
+# lxsiwzx Load VSX Scalar as Integer Word & Zero Indexed
+# 011111 ..... ..... ..... 00000 01100.| power lxsiwzx
+# lxssp Load VSX Scalar Single
+# 111001 ..... ..... ..... ..... ....11| power lxssp
+# lxsspx Load VSX Scalar SP Indexed
+# 011111 ..... ..... ..... 10000 01100.| power lxsspx
+# lxv Load VSX Vector
+# 111101 ..... ..... ..... ..... ...001| power lxv
+# lxvb16x Load VSX Vector Byte*16 Indexed
+# 011111 ..... ..... ..... 11011 01100.| power lxvb16x
+# lxvd2x Load VSX Vector Dword*2 Indexed
+# 011111 ..... ..... ..... 11010 01100.| power lxvd2x
+# lxvdsx Load VSX Vector Dword & Splat Indexed
+# 011111 ..... ..... ..... 01010 01100.| power lxvdsx
+# lxvh8x Load VSX Vector Hword*8 Indexed
+# 011111 ..... ..... ..... 11001 01100.| power lxvh8x
+# lxvl Load VSX Vector with Length
+# 011111 ..... ..... ..... 01000 01101.| power lxvl
+# lxvll Load VSX Vector Left-justified with Length
+# 011111 ..... ..... ..... 01001 01101.| power lxvll
+# lxvw4x Load VSX Vector Word*4 Indexed
+# 011111 ..... ..... ..... 11000 01100.| power lxvw4x
+# lxvwsx Load VSX Vector Word & Splat Indexed
+# 011111 ..... ..... ..... 01011 01100.| power lxvwsx
+# lxvx Load VSX Vector Indexed
+# 011111 ..... ..... ..... 01000 01100.| power lxvx
+# maddhd Multiply-Add High Dword
+# 000100 ..... ..... ..... ..... 110000| power maddhd
+# maddhdu Multiply-Add High Dword Unsigned
+# 000100 ..... ..... ..... ..... 110001| power maddhdu
+# maddld Multiply-Add Low Dword
+# 000100 ..... ..... ..... ..... 110011| power maddld
+# mcrf Move CR Field
+# 010011 ...00 ...00 00000 00000 000000| p1 mcrf
+# mcrfs Move To CR from FPSCR
+# 111111 ...00 ...00 00000 00010 000000| p1 mcrfs
+# mcrxrx Move XER to CR Extended
+# 011111 ...00 00000 00000 10010 000000| power mcrxrx
+# mfbhrbe Move From BHRB
+# 011111 ..... ..... ..... 01001 011100| power mfbhrbe
+# mfcr Move From CR
+# 011111 ..... 00000 00000 00000 100110| p1 mfcr
+# mffs[.] Move From FPSCR
+# 111111 ..... 00000 00000 10010 00111.| p1 mffs[.]
+# mfmsr Move From MSR
+# 011111 ..... 00000 00000 00010 100110| p1 mfmsr
+# mfocrf Move From One CR Field
+# 011111 ..... 1.... ....0 00000 100110| power mfocrf
+# mfspr Move From SPR
+# 011111 ..... ..... ..... 01010 100110| p1 mfspr
+# mftb Move From Time Base
+# 011111 ..... ..... ..... 01011 100110| ppc mftb
+# mfvscr Move From VSCR
+# 000100 ..... 00000 00000 11000 000100| power mfvscr
+# mfvsrd Move From VSR Dword
+# 011111 ..... ..... 00000 00001 10011.| power mfvsrd
+# mfvsrld Move From VSR Lower Dword
+# 011111 ..... ..... 00000 01001 10011.| power mfvsrld
+# mfvsrwz Move From VSR Word & Zero
+# 011111 ..... ..... 00000 00011 10011.| power mfvsrwz
+# modsd Modulo Signed Dword
+# 011111 ..... ..... ..... 11000 010010| power modsd
+# modsw Modulo Signed Word
+# 011111 ..... ..... ..... 11000 010110| power modsw
+# modud Modulo Unsigned Dword
+# 011111 ..... ..... ..... 01000 010010| power modud
+# moduw Modulo Unsigned Word
+# 011111 ..... ..... ..... 01000 010110| power moduw
+# msgclr Message Clear
+# 011111 00000 00000 ..... 00111 011100| power msgclr
+# msgclrp Message Clear Privileged
+# 011111 00000 00000 ..... 00101 011100| power msgclrp
+# msgsnd Message Send
+# 011111 00000 00000 ..... 00110 011100| power msgsnd
+# msgsndp Message Send Privileged
+# 011111 00000 00000 ..... 00100 011100| power msgsndp
+# msgsync Message Synchronize
+# 011111 00000 00000 00000 11011 101100| power msgsync
+# mtcrf Move To CR Fields
+# 011111 ..... 0.... ....0 00100 100000| p1 mtcrf
+# mtfsb0[.] Move To FPSCR Bit 0
+# 111111 ..... 00000 00000 00010 00110.| p1 mtfsb0[.]
+# mtfsb1[.] Move To FPSCR Bit 1
+# 111111 ..... 00000 00000 00001 00110.| p1 mtfsb1[.]
+# mtfsf[.] Move To FPSCR Fields
+# 111111 ..... ..... ..... 10110 00111.| p1 mtfsf[.]
+# mtfsfi[.] Move To FPSCR Field Immediate
+# 111111 ...00 0000. ....0 00100 00110.| p1 mtfsfi[.]
+# mtmsr Move To MSR
+# 011111 ..... 0000. 00000 00100 100100| p1 mtmsr
+# mtmsrd Move To MSR Dword
+# 011111 ..... 0000. 00000 00101 100100| ppc mtmsrd
+# mtocrf Move To One CR Field
+# 011111 ..... 1.... ....0 00100 100000| power mtocrf
+# mtspr Move To SPR
+# 011111 ..... ..... ..... 01110 100110| p1 mtspr
+# mtvscr Move To VSCR
+# 000100 00000 00000 ..... 11001 000100| power mtvscr
+# mtvsrd Move To VSR Dword
+# 011111 ..... ..... 00000 00101 10011.| power mtvsrd
+# mtvsrdd Move To VSR Double Dword
+# 011111 ..... ..... ..... 01101 10011.| power mtvsrdd
+# mtvsrwa Move To VSR Word Algebraic
+# 011111 ..... ..... 00000 00110 10011.| power mtvsrwa
+# mtvsrws Move To VSR Word & Splat
+# 011111 ..... ..... 00000 01100 10011.| power mtvsrws
+# mtvsrwz Move To VSR Word & Zero
+# 011111 ..... ..... 00000 00111 10011.| power mtvsrwz
+# mulhd[.] Multiply High Dword
+# 011111 ..... ..... ..... 00010 01001.| ppc mulhd[.]
+# mulhdu[.] Multiply High Dword Unsigned
+# 011111 ..... ..... ..... 00000 01001.| ppc mulhdu[.]
+# mulhw[.] Multiply High Word
+# 011111 ..... ..... ..... 00010 01011.| ppc mulhw[.]
+# mulhwu[.] Multiply High Word Unsigned
+# 011111 ..... ..... ..... 00000 01011.| ppc mulhwu[.]
+# mulld[o][.] Multiply Low Dword
+# 011111 ..... ..... ..... .0111 01001.| ppc mulld[o][.]
+# mulli Multiply Low Immediate
+000111 r0[4:0] r1[4:0] i0[15:0]	     | p1 i 1 64 mul mulli r0 r1 i0
+# mullw Multiply Low Word
+011111 r0[4:0] r1[4:0] r2[4:0]  00111 010110	| p1 i 1 32 mul mullw r0 r1 r2
+# mullw[o][.] Multiply Low Word
+# 011111 ..... ..... ..... .0111 01011.| p1 mullw[o][.]
+
+# nand[.] NAND
+011111 r0[4:0] r1[4:0] r2[4:0] 01110 111000	| p1 i 1 32 nand nand r1 r0 r2
+# nand[.] NAND
+011111 r0[4:0] r1[4:0] r2[4:0] 01110 111001	| p1 i 1 32 nand nand. r1 r0 r2
+# neg[o][.] Negate
+011111 r0[4:0] r1[4:0] 00000 00011 010000	| p1 i 1 32 neg neg r0 r1
+# neg[o][.] Negate
+011111 r0[4:0] r1[4:0] 00000 00011 010001	| p1 i 1 32 neg neg. r0 r1
+# neg[o][.] Negate
+011111 r0[4:0] r1[4:0] 00000 10011 010000	| p1 i 1 32 neg nego r0 r1
+# neg[o][.] Negate
+011111 r0[4:0] r1[4:0] 00000 10011 010001	| p1 i 1 32 neg nego. r0 r1
+# nor[.] NOR
+011111 r0[4:0] r1[4:0] r2[4:0] 00011 111000	| p1 i 1 32 nor nor r1 r0 r2
+# nor[.] NOR
+011111 r0[4:0] r1[4:0] r2[4:0] 00011 111001	| p1 i 1 32 nor nor. r1 r0 r2
+# or OR
+011111 r0[4:0] r1[4:0] r2[4:0] 01101 111000	| p1 i 1 32 or or r1 r0 r2
+# or. OR
+011111 r0[4:0] r1[4:0] r2[4:0] 01101 111001	| p1 i 1 32 or or. r1 r0 r2
+# orc[.] OR with Complement
+# 011111 ..... ..... ..... 01100 11100.| p1 orc[.]
+# ori OR Immediate
+011000 r0[4:0] r1[4:0] i0[15:0]	| p1 u 1 32 or ori r1 r0 i0
+# oris OR Immediate Shifted
+# 011001 ..... ..... ..... ..... ......| p1 oris
+# paste[.] Paste
+# 011111 0000. ..... ..... 11100 00110.| ppc paste[.]
+# popcntb Population Count Byte
+# 011111 ..... ..... 00000 00011 110100| ppc popcntb
+# popcntd Population Count Dword
+# 011111 ..... ..... 00000 01111 110100| ppc popcntd
+# popcntw Population Count Words
+# 011111 ..... ..... 00000 01011 110100| ppc popcntw
+# prtyd Parity Dword
+# 011111 ..... ..... 00000 00101 110100| ppc prtyd
+# prtyw Parity Word
+# 011111 ..... ..... 00000 00100 110100| ppc prtyw
+# rfebb Return from Event Based Branch
+# 010011 00000 00000 0000. 00100 100100| ppc rfebb
+# rfid Return from Interrupt Dword
+# 010011 00000 00000 00000 00000 100100| power rfid
+# rfscv Return From System Call Vectored
+# 010011 00000 00000 00000 00010 100100| power rfscv
+# rldcl[.] Rotate Left Dword then Clear Left
+# 011110 ..... ..... ..... ..... .1000.| ppc rldcl[.]
+# rldcr[.] Rotate Left Dword then Clear Right
+# 011110 ..... ..... ..... ..... .1001.| ppc rldcr[.]
+# rldic[.] Rotate Left Dword Immediate then Clear
+# 011110 ..... ..... ..... ..... .010..| ppc rldic[.]
+# rldicl[.] Rotate Left Dword Immediate then Clear Left
+# 011110 ..... ..... ..... ..... .000..| ppc rldicl[.]
+# rldicr[.] Rotate Left Dword Immediate then Clear Right
+# 011110 ..... ..... ..... ..... .001..| ppc rldicr[.]
+# rldimi[.] Rotate Left Dword Immediate then Mask Insert
+# 011110 ..... ..... ..... ..... .011..| ppc rldimi[.]
+# rlwimi[.] Rotate Left Word Immediate then Mask Insert
+# 010100 ..... ..... ..... ..... ......| p1 rlwimi[.]
+# rlwinm[.] Rotate Left Word Immediate then AND with Mask
+# 010101 ..... ..... ..... ..... ......| p1 rlwinm[.]
+# rlwnm[.] Rotate Left Word then AND with Mask
+# 010111 ..... ..... ..... ..... ......| p1 rlwnm[.]
+# sc System Call
+# 010001 00000 00000 0000. ..... .00010| ppc sc
+# scv System Call Vectored
+# 010001 00000 00000 0000. ..... .00001| power scv
+# setb Set Boolean
+# 011111 ..... ...00 00000 00100 000000| power setb
+# slbfee. SLB Find Entry ESID & record
+# 011111 ..... 00000 ..... 11110 100111| power slbfee.
+# slbia SLB Invalidate All
+# 011111 00... 00000 00000 01111 100100| ppc slbia
+# slbie SLB Invalidate Entry
+# 011111 00000 00000 ..... 01101 100100| ppc slbie
+# slbieg SLB Invalidate Entry Global
+# 011111 ..... 00000 ..... 01110 100100| power slbieg
+# v2.00 slbmfee SLB Move From Entry ESID
+# 011111 ..... 00000 ..... 11100 100110| power v2.00
+# v2.00 slbmfev SLB Move From Entry VSID
+# 011111 ..... 00000 ..... 11010 100110| power v2.00
+# v2.00 slbmte SLB Move To Entry
+# 011111 ..... 00000 ..... 01100 100100| power v2.00
+# slbsync SLB Synchronize
+# 011111 00000 00000 00000 01010 100100| power slbsync
+# sld[.] Shift Left Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 00000 110110	| ppc i 1 64 sl sld r1 r0 r2
+# sld[.] Shift Left Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 00000 110111	| ppc i 1 64 sl sld. r1 r0 r2
+# slw[.] Shift Left Word
+011111 r0[4:0] r1[4:0] r2[4:0] 00000 110000	| p1 i 1 32 sl slw r1 r0 r2
+# slw[.] Shift Left Word
+011111 r0[4:0] r1[4:0] r2[4:0] 00000 110001	| p1 i 1 32 sl slw. r1 r0 r2
+# srad[.] Shift Right Algebraic Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 11000 110100	| ppc i 1 64 sra srad r1 r0 r2
+# srad[.] Shift Right Algebraic Dword
+011111 r0[4:0] r1[4:0] r2[4:0] 11000 110101	| ppc i 1 64 sra srad. r1 r0 r2
+# sradi[.] Shift Right Algebraic Dword Immediate
+011111 r0[4:0] r1[4:0] i0[4:0] 11001 1101 i0[5:5]0 | ppc i 1 64 sra sradi r1 r0 i0
+# sradi[.] Shift Right Algebraic Dword Immediate
+011111 r0[4:0] r1[4:0] i0[4:0] 11001 1101 i0[5:5]1 | ppc i 1 64 sra sradi. r1 r0 i0
+# sraw[.] Shift Right Algebraic Word
+011111 r0[4:0] r1[4:0] r2[4:0] 11000 110000	| p1 i 1 32 sra sraw r1 r0 r2
+# sraw[.] Shift Right Algebraic Word
+011111 r0[4:0] r1[4:0] r2[4:0] 11000 110001	| p1 i 1 32 sra sraw. r1 r0 r2
+# srawi[.] Shift Right Algebraic Word Immediate
+011111 r0[4:0] r1[4:0] i0[4:0] 11001 110000	    | p1 i 1 32 sra srawi r1 r0 i0
+# srawi[.] Shift Right Algebraic Word Immediate
+011111 r0[4:0] r1[4:0] i0[4:0] 11001 110001	    | p1 i 1 32 sra srawi. r1 r0 i0
+# srd[.] Shift Right Dword
+011111r0[4:0] r1[4:0] r2[4:0] 10000 110110	| ppc i 1 64 srl srd r1 r0 r2
+# srd[.] Shift Right Dword
+011111r0[4:0] r1[4:0] r2[4:0] 10000 110111	| ppc i 1 64 srl srd. r1 r0 r2
+# srw[.] Shift Right Word
+011111 r0[4:0] r1[4:0] r2[4:0] 10000 110000	| p1 i 1 32 srl srw r1 r0 r2
+# srw[.] Shift Right Word
+011111 r0[4:0] r1[4:0] r2[4:0] 10000 110001	| p1 i 1 32 srl srw. r1 r0 r2
+# stb Store Byte
+100110 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 8 w stb r1 r0 i0
+# stbcix Store Byte Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11110 101010| power stbcix
+# stbcx. Store Byte Conditional Indexed & record
+# 011111 ..... ..... ..... 10101 101101| power stbcx.
+# stbu Store Byte with Update
+#100111 r0[4:0] r1[4:0] i0[15:0]	| p1  i 1 8 w stbu r1 r0 i0
+# stbux Store Byte with Update Indexed
+#011111  r0[4:0] r1[4:0] r2[4:0] 00111 101110| p1 i 1 8 w stbux r1 r0 r2
+# stbx Store Byte Indexed
+011111 r0[4:0] r1[4:0] r2[4:0] 00110 101110| p1 i 1 8 w stbx r1 r0 r2
+# std Store Dword
+111110 r0[4:0] r1[4:0] i0[13:0] 00| ppc i 1 64 w std r1 r0 i0
+# stdat Store Dword ATomic
+# 011111 ..... ..... ..... 10111 001100| power stdat
+# stdbrx Store Dword Byte-Reverse Indexed
+# 011111 ..... ..... ..... 10100 101000| power stdbrx
+# stdcix Store Dword Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11111 101010| power stdcix
+# stdcx. Store Dword Conditional Indexed & record
+# 011111 ..... ..... ..... 00110 101101| ppc stdcx.
+# stdu Store Dword with Update
+# 111110 ..... ..... ..... ..... ....01| ppc stdu
+# stdux Store Dword with Update Indexed
+# 011111 ..... ..... ..... 00101 101010| ppc stdux
+# stdx Store Dword Indexed
+# 011111 ..... ..... ..... 00100 101010| ppc stdx
+# stfd Store Floating Double
+# 110110 ..... ..... ..... ..... ......| p1 stfd
+# stfdp Store Floating Double Pair
+# 111101 ..... ..... ..... ..... ....00| power stfdp
+# stfdpx Store Floating Double Pair Indexed
+# 011111 ..... ..... ..... 11100 101110| power stfdpx
+# stfdu Store Floating Double with Update
+# 110111 ..... ..... ..... ..... ......| p1 stfdu
+# stfdux Store Floating Double with Update Indexed
+# 011111 ..... ..... ..... 10111 101110| p1 stfdux
+# stfdx Store Floating Double Indexed
+# 011111 ..... ..... ..... 10110 101110| p1 stfdx
+# stfiwx Store Floating as Integer Word Indexed
+# 011111 ..... ..... ..... 11110 101110| ppc stfiwx
+# stfs Store Floating Single
+110100 r0[4:0] r1[4:0] i0[15:0]	| p1 f 1 32 w stfs r1 r0 i0
+# stfsu Store Floating Single with Update
+# 110101 ..... ..... ..... ..... ......| p1 stfsu
+# stfsux Store Floating Single with Update Indexed
+# 011111 ..... ..... ..... 10101 101110| p1 stfsux
+# stfsx Store Floating Single Indexed
+# 011111 ..... ..... ..... 10100 101110| p1 stfsx
+# sth Store Hword
+101100 r0[4:0] r1[4:0] i0[15:0]	| p1 i 1 16 w sth r1 r0 i0
+# sthbrx Store Hword Byte-Reverse Indexed
+# 011111 ..... ..... ..... 11100 101100| p1 sthbrx
+# sthcix Store Hword Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11101 101010| power sthcix
+# sthcx. Store Hword Conditional Indexed & record
+# 011111 ..... ..... ..... 10110 101101| power sthcx.
+# sthu Store Hword with Update
+# 101101 ..... ..... ..... ..... ......| p1 sthu
+# sthux Store Hword with Update Indexed
+# 011111 ..... ..... ..... 01101 101110| p1 sthux
+# sthx Store Hword Indexed
+# 011111 r0[4:0] r1[4:0] r2[4:0] 01100 101110| i 1 16 w p1 sthx r1 r0 r2
+# stmw Store Multiple Word
+# 101111 ..... ..... ..... ..... ......| p1 stmw
+# stop Stop
+# 010011 00000 00000 00000 01011 100100| power stop
+# stq Store Qword
+# 111110 ..... ..... ..... ..... ....10| power stq
+# stqcx. Store Qword Conditional Indexed & record
+# 011111 ..... ..... ..... 00101 101101| power stqcx.
+# stswi Store String Word Immediate
+# 011111 ..... ..... ..... 10110 101010| p1 stswi
+# stswx Store String Word Indexed
+# 011111 ..... ..... ..... 10100 101010| p1 stswx
+# stvebx Store Vector Element Byte Indexed
+# 011111 ..... ..... ..... 00100 001110| power stvebx
+# stvehx Store Vector Element Hword Indexed
+# 011111 ..... ..... ..... 00101 001110| power stvehx
+# stvewx Store Vector Element Word Indexed
+# 011111 ..... ..... ..... 00110 001110| power stvewx
+# stvx Store Vector Indexed
+# 011111 ..... ..... ..... 00111 001110| power stvx
+# stvxl Store Vector Indexed Last
+# 011111 ..... ..... ..... 01111 001110| power stvxl
+# stw Store Word
+100100 r0[4:0] r1[4:0] i0[15:0] | p1 i 1 32 w stw r1 r0 i0
+# stwat Store Word ATomic
+# 011111 ..... ..... ..... 10110 001100| power stwat
+# stwbrx Store Word Byte-Reverse Indexed
+# 011111 ..... ..... ..... 10100 101100| p1 stwbrx
+# stwcix Store Word Caching Inhibited Indexed
+# 011111 ..... ..... ..... 11100 101010| power stwcix
+# stwcx. Store Word Conditional Indexed & record
+# 011111 ..... ..... ..... 00100 101101| ppc stwcx.
+# stwu Store Word with Update
+#100101 r0[4:0] r1[4:0] i0[15:0] | p1 i 1 32 w stwu r0 r1 i0
+# stwux Store Word with Update Indexed
+#011111 r0[4:0] r1[4:0] r2[4:0] 00101 101110| p1 i 1 32 w stwux r0 r1 r2
+# stwx Store Word Indexed
+011111 r0[4:0] r1[4:0] r2[4:0] 00100 101110| p1 i 1 32 w stwx r0 r1 r2
+# stxsd Store VSX Scalar Dword
+# 111101 ..... ..... ..... ..... ....10| power stxsd
+# stxsdx Store VSX Scalar Dword Indexed
+# 011111 ..... ..... ..... 10110 01100.| power stxsdx
+# stxsibx Store VSX Scalar as Integer Byte Indexed
+# 011111 ..... ..... ..... 11100 01101.| power stxsibx
+# stxsihx Store VSX Scalar as Integer Hword Indexed
+# 011111 ..... ..... ..... 11101 01101.| power stxsihx
+# stxsiwx Store VSX Scalar as Integer Word Indexed
+# 011111 ..... ..... ..... 00100 01100.| power stxsiwx
+# stxssp Store VSX Scalar SP
+# 111101 ..... ..... ..... ..... ....11| power stxssp
+# stxsspx Store VSX Scalar SP Indexed
+# 011111 ..... ..... ..... 10100 01100.| power stxsspx
+# stxv Store VSX Vector
+# 111101 ..... ..... ..... ..... ...101| power stxv
+# stxvb16x Store VSX Vector Byte*16 Indexed
+# 011111 ..... ..... ..... 11111 01100.| power stxvb16x
+# stxvd2x Store VSX Vector Dword*2 Indexed
+# 011111 ..... ..... ..... 11110 01100.| power stxvd2x
+# stxvh8x Store VSX Vector Hword*8 Indexed
+# 011111 ..... ..... ..... 11101 01100.| power stxvh8x
+# stxvl Store VSX Vector with Length
+# 011111 ..... ..... ..... 01100 01101.| power stxvl
+# stxvll Store VSX Vector Left-justified with Length
+# 011111 ..... ..... ..... 01101 01101.| power stxvll
+# stxvw4x Store VSX Vector Word*4 Indexed
+# 011111 ..... ..... ..... 11100 01100.| power stxvw4x
+# stxvx Store VSX Vector Indexed
+# 011111 ..... ..... ..... 01100 01100.| power stxvx
+# sub[o][.] Subtract  r0 = r2- r1
+011111 r0[4:0] r1[4:0] r2[4:0] 00001 010000	| ppc i 1 32 subf sub r0 r1 r2
+# sub[o][.] Subtract  r0 = r1 -r2
+011111 r0[4:0] r1[4:0] r2[4:0] 00001 010000	| ppc i 1 32 sub sub r0 r2 r1
+# sub[o][.] Subtract
+#011111 r0[4:0] r1[4:0] r2[4:0] 00001 010001	| ppc i 1 32 sub  sub. r0 r1 r2
+# sub[o][.] Subtract
+#011111 r0[4:0] r1[4:0] r2[4:0] 10001 010000	| ppc i 1 32 sub  subo r0 r1 r2
+# sub[o][.] Subtract
+#011111 r0[4:0] r1[4:0] r2[4:0] 10001 010001	| ppc  i 1 32 sub subo. r0 r1 r2
+# subf[o][.] Subtract From    r0 = -r1 +r2
+#011111 r0[4:0] r1[4:0] r2[4:0] 00001 010000	| ppc i 1 32 sub subf r0 r1 r2
+# subf[o][.] Subtract From
+#011111 r0[4:0] r1[4:0] r2[4:0] 00001 010001	| ppc i 1 32 sub  subf. r0 r1 r2
+# subf[o][.] Subtract From
+#011111 r0[4:0] r1[4:0] r2[4:0] 10001 010000	| ppc i 1 32 sub  subfo r0 r1 r2
+# subf[o][.] Subtract From
+#011111 r0[4:0] r1[4:0] r2[4:0] 10001 010001	| ppc  i 1 32 sub subfo. r0 r1 r2
+# subfc[o][.] Subtract From Carrying
+# 011111 ..... ..... ..... .0000 01000.| p1 subfc[o][.]
+# subfe[o][.] Subtract From Extended
+# 011111 ..... ..... ..... .0100 01000.| p1 subfe[o][.]
+# subfic Subtract From Immediate Carrying
+# 001000 ..... ..... ..... ..... ......| p1 subfic
+# subfme[o][.] Subtract From Minus One Extended
+# 011111 ..... ..... 00000 .0111 01000.| p1 subfme[o][.]
+# subfze[o][.] Subtract From Zero Extended
+# 011111 ..... ..... 00000 .0110 01000.| p1 subfze[o][.]
+# sync Synchronize
+# 011111 000.. 00000 00000 10010 101100| p1 sync
+# tabort. Transaction Abort & record
+# 011111 00000 ..... 00000 11100 011101| power tabort.
+# tabortdc. Transaction Abort Dword Conditional & record
+# 011111 ..... ..... ..... 11001 011101| power tabortdc.
+# tabortdci. Transaction Abort Dword Conditional Immediate & record
+# 011111 ..... ..... ..... 11011 011101| power tabortdci.
+# tabortwc. Transaction Abort Word Conditional & record
+# 011111 ..... ..... ..... 11000 011101| power tabortwc.
+# tabortwci. Transaction Abort Word Conditional Immediate & record
+# 011111 ..... ..... ..... 11010 011101| power tabortwci.
+# tbegin. Transaction Begin & record
+# 011111 .000. 00000 00000 10100 011101| power tbegin.
+# tcheck Transaction Check & record
+# 011111 ...00 00000 00000 10110 011100| power tcheck
+# td Trap Dword
+# 011111 ..... ..... ..... 00010 001000| ppc td
+# tdi Trap Dword Immediate
+# 000010 ..... ..... ..... ..... ......| ppc tdi
+# tend. Transaction End & record
+# 011111 .0000 00000 00000 10101 011100| power tend.
+# 64 tlbie TLB Invalidate Entry
+# 011111 0000. 00000 ..... 01001 100100| p1 64
+# 64 tlbiel TLB Invalidate Entry Local
+# 011111 00000 00000 ..... 01000 100100| power 64
+# tlbsync TLB Synchronize
+# 011111 00000 00000 00000 10001 101100| ppc tlbsync
+# trechkpt. Transaction Recheckpoint & record
+# 011111 00000 00000 00000 11111 011101| power trechkpt.
+# treclaim. Transaction Reclaim & record
+# 011111 00000 ..... 00000 11101 011101| power treclaim.
+# tsr. Transaction Suspend or Resume & record
+# 011111 0000. 00000 00000 10111 011100| power tsr.
+# tw Trap Word
+# 011111 ..... ..... ..... 00000 001000| p1 tw
+# twi Trap Word Immediate
+# 000011 ..... ..... ..... ..... ......| p1 twi
+# vabsdub Vector Absolute Difference Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 000011| v3.0 vabsdub
+# vabsduh Vector Absolute Difference Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 000011| v3.0 vabsduh
+# vabsduw Vector Absolute Difference Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10010 000011| v3.0 vabsduw
+# vaddcuq Vector Add & write Carry Unsigned Qword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00101 000000| v2.07 vaddcuq
+# vaddcuw Vector Add & Write Carry-Out Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 000000| v2.03 vaddcuw
+# vaddecuq Vector Add Extended & write Carry Unsigned Qword
+# 000100 ..... ..... ..... ..... 111101| v2.07 vaddecuq
+# vaddeuqm Vector Add Extended Unsigned Qword Modulo
+# 000100 ..... ..... ..... ..... 111100| v2.07 vaddeuqm
+# vaddfp Vector Add Floating-Point
+000100 r0[4:0] r1[4:0] r2[4:0] 00000 001010| v2.03 f 4 32 add vaddfp r0 r1 r2
+# vaddsbs Vector Add Signed Byte Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01100 000000| v2.03 i 16 8 add vaddsbs r0 r1 r2
+# vaddshs Vector Add Signed Hword Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01101 000000| v2.03 i 8 16 add vaddshs r0 r1 r2
+# vaddsws Vector Add Signed Word Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01110 000000| v2.03 i 4 32 add vaddsws r0 r1 r2
+# vaddubm Vector Add Unsigned Byte Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 000000| v2.03 i 16 8 add vaddubm r0 r1 r2
+# vaddubs Vector Add Unsigned Byte Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01000 000000| v2.03 i 16 8 add  vaddubs r0 r1 r2
+# vaddudm Vector Add Unsigned Dword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00011 000000| v2.07 i 2 64 add vaddudm r0 r1 r2
+# vadduhm Vector Add Unsigned Hword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 000000| v2.03 i 8 16 add vadduhm r0 r1 r2
+# vadduhs Vector Add Unsigned Hword Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01001 000000| v2.03 i 8 16 add vadduhs r0 r1 r2
+# vadduqm Vector Add Unsigned Qword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00100 000000| v2.07 i 1 128 add vadduqm r0 r1 r2
+# vadduwm Vector Add Unsigned Word Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 000000| v2.03 i 4 32 add vadduwm r0 r1 r2
+# vadduws Vector Add Unsigned Word Saturate
+000100 r0[4:0] r1[4:0] r2[4:0] 01010 000000| v2.03 i 4 32 add vadduws r0 r1 r2
+# vand Vector Logical AND
+000100 r0[4:0] r1[4:0] r2[4:0] 10000 000100| v2.03 i 1 128 and vand r0 r1 r2
+# vandc Vector Logical AND with Complement
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 000100| v2.03 vandc r0 r1 r2
+# vavgsb Vector Average Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10100 000010| v2.03 vavgsb r0 r1 r2
+# vavgsh Vector Average Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 000010| v2.03 vavgsh r0 r1 r2
+# vavgsw Vector Average Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10110 000010| v2.03 vavgsw r0 r1 r2
+# vavgub Vector Average Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 000010| v2.03 vavgub r0 r1 r2
+# vavguh Vector Average Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 000010| v2.03 vavguh r0 r1 r2
+# vavguw Vector Average Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10010 000010| v2.03 vavguw r0 r1 r2
+# vbpermd Vector Bit Permute Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10111 001100| v3.0 vbpermd r0 r1 r2
+# vbpermq Vector Bit Permute Qword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 001100| v2.07 vbpermq r0 r1 r2
+# vcfsx Vector Convert From Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01101 001010| v2.03 vcfsx r0 r1 r2
+# vcfux Vector Convert From Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01100 001010| v2.03 vcfux r0 r1 r2
+# vcipher Vector AES Cipher
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10100 001000| v2.07 vcipher r0 r1 r2
+# vcipherlast Vector AES Cipher Last
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10100 001001| v2.07 vcipherlast r0 r1 r2
+# vclzb Vector Count Leading Zeros Byte
+# 000100 ..... 00000 ..... 11100 000010| v2.07 vclzb
+# vclzd Vector Count Leading Zeros Dword
+# 000100 ..... 00000 ..... 11111 000010| v2.07 vclzd
+# vclzh Vector Count Leading Zeros Hword
+# 000100 ..... 00000 ..... 11101 000010| v2.07 vclzh
+# vclzlsbb Vector Count Leading Zero Least-Significant Bits Byte
+# 000100 ..... 00000 ..... 11000 000010| v3.0 vclzlsbb
+# vclzw Vector Count Leading Zeros Word
+# 000100 ..... 00000 ..... 11110 000010| v2.07 vclzw
+# vcmpbfp[.] Vector Compare Bounds Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1111 000110| v2.03 vcmpbfp[.] r0 r1 r2
+# vcmpeqfp[.] Vector Compare Equal To Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0011 000110| v2.03 vcmpeqfp[.] r0 r1 r2
+# vcmpequb[.] Vector Compare Equal Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0000 000110| v2.03 vcmpequb[.] r0 r1 r2
+# vcmpequd[.] Vector Compare Equal Unsigned Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0011 000111| v2.07 vcmpequd[.] r0 r1 r2
+# vcmpequh[.] Vector Compare Equal Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0001 000110| v2.03 vcmpequh[.] r0 r1 r2
+# vcmpequw[.] Vector Compare Equal Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0010 000110| v2.03 vcmpequw[.] r0 r1 r2
+# vcmpgefp[.] Vector Compare Greater Than or Equal To Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0111 000110| v2.03 vcmpgefp[.] r0 r1 r2
+# vcmpgtfp[.] Vector Compare Greater Than Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1011 000110| v2.03 vcmpgtfp[.] r0 r1 r2
+# vcmpgtsb[.] Vector Compare Greater Than Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1100 000110| v2.03 vcmpgtsb[.] r0 r1 r2
+# vcmpgtsd[.] Vector Compare Greater Than Signed Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1111 000111| v2.07 vcmpgtsd[.] r0 r1 r2
+# vcmpgtsh[.] Vector Compare Greater Than Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1101 000110| v2.03 vcmpgtsh[.] r0 r1 r2
+# vcmpgtsw[.] Vector Compare Greater Than Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1110 000110| v2.03 vcmpgtsw[.] r0 r1 r2
+# vcmpgtub[.] Vector Compare Greater Than Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1000 000110| v2.03 vcmpgtub[.] r0 r1 r2
+# vcmpgtud[.] Vector Compare Greater Than Unsigned Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1011 000111| v2.07 vcmpgtud[.] r0 r1 r2
+# vcmpgtuh[.] Vector Compare Greater Than Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1001 000110| v2.03 vcmpgtuh[.] r0 r1 r2
+# vcmpgtuw[.] Vector Compare Greater Than Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] .1010 000110| v2.03 vcmpgtuw[.] r0 r1 r2
+# vcmpneb[.] Vector Compare Not Equal Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0000 000111| v3.0 vcmpneb[.] r0 r1 r2
+# vcmpneh[.] Vector Compare Not Equal Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0001 000111| v3.0 vcmpneh[.] r0 r1 r2
+# vcmpnew[.] Vector Compare Not Equal Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0010 000111| v3.0 vcmpnew[.] r0 r1 r2
+# vcmpnezb[.] Vector Compare Not Equal or Zero Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0100 000111| v3.0 vcmpnezb[.] r0 r1 r2
+# vcmpnezh[.] Vector Compare Not Equal or Zero Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0101 000111| v3.0 vcmpnezh[.] r0 r1 r2
+# vcmpnezw[.] Vector Compare Not Equal or Zero Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] .0110 000111| v3.0 vcmpnezw[.] r0 r1 r2
+# vctsxs Vector Convert To Signed Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01111 001010| v2.03 vctsxs r0 r1 r2
+# vctuxs Vector Convert To Unsigned Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01110 001010| v2.03 vctuxs r0 r1 r2
+# vctzb Vector Count Trailing Zeros Byte
+# 000100 ..... 11100 ..... 11000 000010| v3.0 vctzb
+# vctzd Vector Count Trailing Zeros Dword
+# 000100 ..... 11111 ..... 11000 000010| v3.0 vctzd
+# vctzh Vector Count Trailing Zeros Hword
+# 000100 ..... 11101 ..... 11000 000010| v3.0 vctzh
+# vctzlsbb Vector Count Trailing Zero Least-Significant Bits Byte
+# 000100 ..... 00001 ..... 11000 000010| v3.0 vctzlsbb
+# vctzw Vector Count Trailing Zeros Word
+# 000100 ..... 11110 ..... 11000 000010| v3.0 vctzw
+# veqv Vector Logical Equivalence
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 000100| v2.07 veqv
+# vexptefp Vector 2 Raised to the Exponent Estimate Floating-Point
+# 000100 ..... 00000 ..... 00110 001010| v2.03 vexptefp
+# vextractd Vector Extract Dword
+# 000100 ..... 0.... ..... 01011 001101| v3.0 vextractd
+# vextractub Vector Extract Unsigned Byte
+# 000100 ..... 0.... ..... 01000 001101| v3.0 vextractub
+# vextractuh Vector Extract Unsigned Hword
+# 000100 ..... 0.... ..... 01001 001101| v3.0 vextractuh
+# vextractuw Vector Extract Unsigned Word
+# 000100 ..... 0.... ..... 01010 001101| v3.0 vextractuw
+# vextsb2d Vector Extend Sign Byte to Dword
+# 000100 ..... 11000 ..... 11000 000010| v3.0 vextsb2d
+# vextsb2w Vector Extend Sign Byte to Word
+# 000100 ..... 10000 ..... 11000 000010| v3.0 vextsb2w
+# vextsh2d Vector Extend Sign Hword to Dword
+# 000100 ..... 11001 ..... 11000 000010| v3.0 vextsh2d
+# vextsh2w Vector Extend Sign Hword to Word
+# 000100 ..... 10001 ..... 11000 000010| v3.0 vextsh2w
+# vextsw2d Vector Extend Sign Word to Dword
+# 000100 ..... 11010 ..... 11000 000010| v3.0 vextsw2d
+# vextublx Vector Extract Unsigned Byte Left-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11000 001101| v3.0 vextublx r0 r1 r2
+# vextubrx Vector Extract Unsigned Byte Right-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11100 001101| v3.0 vextubrx r0 r1 r2
+# vextuhlx Vector Extract Unsigned Hword Left-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11001 001101| v3.0 vextuhlx r0 r1 r2
+# vextuhrx Vector Extract Unsigned Hword Right-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11101 001101| v3.0 vextuhrx r0 r1 r2
+# vextuwlx Vector Extract Unsigned Word Left-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 001101| v3.0 vextuwlx r0 r1 r2
+# vextuwrx Vector Extract Unsigned Word Right-Indexed
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11110 001101| v3.0 vextuwrx r0 r1 r2
+# vgbbd Vector Gather Bits by Byte by Dword
+# 000100 ..... 00000 ..... 10100 001100| v2.07 vgbbd
+# vinsertb Vector Insert Byte
+# 000100 ..... 0.... ..... 01100 001101| v3.0 vinsertb
+# vinsertd Vector Insert Dword
+# 000100 ..... 0.... ..... 01111 001101| v3.0 vinsertd
+# vinserth Vector Insert Hword
+# 000100 ..... 0.... ..... 01101 001101| v3.0 vinserth
+# vinsertw Vector Insert Word
+# 000100 ..... 0.... ..... 01110 001101| v3.0 vinsertw
+# vlogefp Vector Log Base 2 Estimate Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00111 001010| v2.03 vlogefp
+# vmaddfp Vector Multiply-Add Floating-Point
+# 000100 ..... ..... ..... ..... 101110| v2.03 vmaddfp
+# vmaxfp Vector Maximum Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 001010| v2.03 vmaxfp r0 r1 r2
+# vmaxsb Vector Maximum Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00100 000010| v2.03 vmaxsb r0 r1 r2
+# vmaxsd Vector Maximum Signed Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00111 000010| v2.07 vmaxsd r0 r1 r2
+# vmaxsh Vector Maximum Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00101 000010| v2.03 vmaxsh r0 r1 r2
+# vmaxsw Vector Maximum Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 000010| v2.03 vmaxsw r0 r1 r2
+# vmaxub Vector Maximum Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 000010| v2.03 vmaxub r0 r1 r2
+# vmaxud Vector Maximum Unsigned Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00011 000010| v2.07 vmaxud r0 r1 r2
+# vmaxuh Vector Maximum Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 000010| v2.03 vmaxuh r0 r1 r2
+# vmaxuw Vector Maximum Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 000010| v2.03 vmaxuw r0 r1 r2
+# vmhaddshs Vector Multiply-High-Add Signed Hword Saturate
+# 000100 ..... ..... ..... ..... 100000| v2.03 vmhaddshs
+# vmhraddshs Vector Multiply-High-Round-Add Signed Hword Saturate
+# 000100 ..... ..... ..... ..... 100001| v2.03 vmhraddshs
+# vminfp Vector Minimum Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 001010| v2.03 vminfp r0 r1 r2
+# vminsb Vector Minimum Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01100 000010| v2.03 vminsb r0 r1 r2
+# vminsd Vector Minimum Signed Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01111 000010| v2.07 vminsd r0 r1 r2
+# vminsh Vector Minimum Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01101 000010| v2.03 vminsh r0 r1 r2
+# vminsw Vector Minimum Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01110 000010| v2.03 vminsw r0 r1 r2
+# vminub Vector Minimum Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01000 000010| v2.03 vminub r0 r1 r2
+# vminud Vector Minimum Unsigned Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01011 000010| v2.07 vminud r0 r1 r2
+# vminuh Vector Minimum Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01001 000010| v2.03 vminuh r0 r1 r2
+# vminuw Vector Minimum Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01010 000010| v2.03 vminuw r0 r1 r2
+# vmladduhm Vector Multiply-Low-Add Unsigned Hword Modulo
+# 000100 ..... ..... ..... ..... 100010| v2.03 vmladduhm
+# vmrgew Vector Merge Even Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11110 001100| v2.07 vmrgew r0 r1 r2
+# vmrghb Vector Merge High Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 001100| v2.03 vmrghb r0 r1 r2
+# vmrghh Vector Merge High Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 001100| v2.03 vmrghh r0 r1 r2
+# vmrghw Vector Merge High Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 001100| v2.03 vmrghw r0 r1 r2
+# vmrglb Vector Merge Low Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00100 001100| v2.03 vmrglb r0 r1 r2
+# vmrglh Vector Merge Low Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00101 001100| v2.03 vmrglh r0 r1 r2
+# vmrglw Vector Merge Low Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 001100| v2.03 vmrglw r0 r1 r2
+# vmrgow Vector Merge Odd Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 001100| v2.07 vmrgow
+# vmsummbm Vector Multiply-Sum Mixed Byte Modulo
+# 000100 ..... ..... ..... ..... 100101| v2.03 vmsummbm
+# vmsumshm Vector Multiply-Sum Signed Hword Modulo
+# 000100 ..... ..... ..... ..... 101000| v2.03 vmsumshm
+# vmsumshs Vector Multiply-Sum Signed Hword Saturate
+# 000100 ..... ..... ..... ..... 101001| v2.03 vmsumshs
+# vmsumubm Vector Multiply-Sum Unsigned Byte Modulo
+# 000100 ..... ..... ..... ..... 100100| v2.03 vmsumubm
+# vmsumudm Vector Multiply-Sum Unsigned Doubleword Modulo
+# 000100 ..... ..... ..... ..... 100011| v3.0b vmsumubm
+# vmsumuhm Vector Multiply-Sum Unsigned Hword Modulo
+# 000100 ..... ..... ..... ..... 100110| v2.03 vmsumuhm
+# vmsumuhs Vector Multiply-Sum Unsigned Hword Saturate
+# 000100 ..... ..... ..... ..... 100111| v2.03 vmsumuhs
+# vmul10cuq Vector Multiply-by-10 & write Carry Unsigned Qword
+# 000100 ..... ..... 00000 00000 000001| v3.0 vmul10cuq
+# vmul10ecuq Vector Multiply-by-10 Extended & write Carry Unsigned Qword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 000001| v3.0 vmul10ecuq
+# vmul10euq Vector Multiply-by-10 Extended Unsigned Qword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01001 000001| v3.0 vmul10euq
+# vmul10uq Vector Multiply-by-10 Unsigned Qword
+# 000100 ..... ..... 00000 01000 000001| v3.0 vmul10uq
+# vmulesb Vector Multiply Even Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01100 001000| v2.03 vmulesb r0 r1 r2
+# vmulesh Vector Multiply Even Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01101 001000| v2.03 vmulesh r0 r1 r2
+# vmulesw Vector Multiply Even Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01110 001000| v2.07 vmulesw r0 r1 r2
+# vmuleub Vector Multiply Even Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01000 001000| v2.03 vmuleub r0 r1 r2
+# vmuleuh Vector Multiply Even Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01001 001000| v2.03 vmuleuh r0 r1 r2
+# vmuleuw Vector Multiply Even Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01010 001000| v2.07 vmuleuw r0 r1 r2
+# vmulosb Vector Multiply Odd Signed Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00100 001000| v2.03 vmulosb r0 r1 r2
+# vmulosh Vector Multiply Odd Signed Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00101 001000| v2.03 vmulosh r0 r1 r2
+# vmulosw Vector Multiply Odd Signed Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 001000| v2.07 vmulosw r0 r1 r2
+# vmuloub Vector Multiply Odd Unsigned Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 001000| v2.03 vmuloub r0 r1 r2
+# vmulouh Vector Multiply Odd Unsigned Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 001000| v2.03 vmulouh r0 r1 r2
+# vmulouw Vector Multiply Odd Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 001000| v2.07 vmulouw r0 r1 r2
+# vmuluwm Vector Multiply Unsigned Word Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 001001| v2.07 vmuluwm r0 r1 r2
+# vnand Vector Logical NAND
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10110 000100| v2.07 vnand r0 r1 r2
+# vncipher Vector AES Inverse Cipher
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 001000| v2.07 vncipher r0 r1 r2
+# vncipherlast Vector AES Inverse Cipher Last
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 001001| v2.07 vncipherlast r0 r1 r2
+# vnegd Vector Negate Dword
+# 000100 ..... 00111 ..... 11000 000010| v3.0 vnegd
+# vnegw Vector Negate Word
+# 000100 ..... 00110 ..... 11000 000010| v3.0 vnegw
+# vnmsubfp Vector Negative Multiply-Subtract Floating-Point
+# 000100 ..... ..... ..... ..... 101111| v2.03 vnmsubfp
+# vnor Vector Logical NOR
+000100 r0[4:0] r1[4:0] r2[4:0] 10100 000100| v2.03 i 1 128 nor vnor r0 r1 r2
+# vor Vector Logical OR
+000100 r0[4:0] r1[4:0] r2[4:0] 10010 000100| v2.03 i 1 128 or vor r0 r1 r2
+# vorc Vector Logical OR with Complement
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 000100| v2.07 vorc r0 r1 r2
+# vperm Vector Permute
+# 000100 ..... ..... ..... ..... 101011| v2.03 vperm
+# vpermr Vector Permute Right-indexed
+# 000100 ..... ..... ..... ..... 111011| v3.0 vpermr
+# vpermxor Vector Permute & Exclusive-OR
+# 000100 ..... ..... ..... ..... 101101| v2.07 vpermxor
+# vpkpx Vector Pack Pixel
+# 000100 r0[4:0] r1[4:0] r2[4:0] 01100 001110| v2.03 vpkpx r0 r1 r2
+# vpksdss Vector Pack Signed Dword Signed Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10111 001110| v2.07 vpksdss r0 r1 r2
+# vpksdus Vector Pack Signed Dword Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 001110| v2.07 vpksdus r0 r1 r2
+# vpkshss Vector Pack Signed Hword Signed Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 001110| v2.03 vpkshss r0 r1 r2
+# vpkshus Vector Pack Signed Hword Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00100 001110| v2.03 vpkshus r0 r1 r2
+# vpkswss Vector Pack Signed Word Signed Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00111 001110| v2.03 vpkswss r0 r1 r2
+# vpkswus Vector Pack Signed Word Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00101 001110| v2.03 vpkswus r0 r1 r2
+# vpkudum Vector Pack Unsigned Dword Unsigned Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 001110| v2.07 vpkudum r0 r1 r2
+# vpkudus Vector Pack Unsigned Dword Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10011 001110| v2.07 vpkudus r0 r1 r2
+# vpkuhum Vector Pack Unsigned Hword Unsigned Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 001110| v2.03 vpkuhum r0 r1 r2
+# vpkuhus Vector Pack Unsigned Hword Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 001110| v2.03 vpkuhus r0 r1 r2
+# vpkuwum Vector Pack Unsigned Word Unsigned Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 001110| v2.03 vpkuwum r0 r1 r2
+# vpkuwus Vector Pack Unsigned Word Unsigned Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00011 001110| v2.03 vpkuwus r0 r1 r2
+# vpmsumb Vector Polynomial Multiply-Sum Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 001000| v2.07 vpmsumb r0 r1 r2
+# vpmsumd Vector Polynomial Multiply-Sum Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10011 001000| v2.07 vpmsumd r0 r1 r2
+# vpmsumh Vector Polynomial Multiply-Sum Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 001000| v2.07 vpmsumh r0 r1 r2
+# vpmsumw Vector Polynomial Multiply-Sum Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10010 001000| v2.07 vpmsumw r0 r1 r2
+# vpopcntb Vector Population Count Byte
+# 000100 ..... 00000 ..... 11100 000011| v2.07 vpopcntb
+# vpopcntd Vector Population Count Dword
+# 000100 ..... 00000 ..... 11111 000011| v2.07 vpopcntd
+# vpopcnth Vector Population Count Hword
+# 000100 ..... 00000 ..... 11101 000011| v2.07 vpopcnth
+# vpopcntw Vector Population Count Word
+# 000100 ..... 00000 ..... 11110 000011| v2.07 vpopcntw
+# vprtybd Vector Parity Byte Dword
+# 000100 ..... 01001 ..... 11000 000010| v3.0 vprtybd
+# vprtybq Vector Parity Byte Qword
+# 000100 ..... 01010 ..... 11000 000010| v3.0 vprtybq
+# vprtybw Vector Parity Byte Word
+# 000100 ..... 01000 ..... 11000 000010| v3.0 vprtybw
+# vrefp Vector Reciprocal Estimate Floating-Point
+# 000100 ..... 00000 ..... 00100 001010| v2.03 vrefp
+# vrfim Vector Round to Floating-Point Integral toward -Infinity
+# 000100 ..... 00000 ..... 01011 001010| v2.03 vrfim
+# vrfin Vector Round to Floating-Point Integral Nearest
+# 000100 ..... 00000 ..... 01000 001010| v2.03 vrfin
+# vrfip Vector Round to Floating-Point Integral toward +Infinity
+# 000100 ..... 00000 ..... 01010 001010| v2.03 vrfip
+# vrfiz Vector Round to Floating-Point Integral toward Zero
+# 000100 ..... 00000 ..... 01001 001010| v2.03 vrfiz
+# vrlb Vector Rotate Left Byte
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00000 000100| v2.03 vrlb r0 r1 r2
+# vrld Vector Rotate Left Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00011 000100| v2.07 vrld r0 r1 r2
+# vrldmi Vector Rotate Left Dword then Mask Insert
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00011 000101| v3.0 vrldmi r0 r1 r2
+# vrldnm Vector Rotate Left Dword then AND with Mask
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00111 000101| v3.0 vrldnm r0 r1 r2
+# vrlh Vector Rotate Left Hword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 000100| v2.03 vrlh r0 r1 r2
+# vrlw Vector Rotate Left Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 000100| v2.03 vrlw r0 r1 r2
+# vrlwmi Vector Rotate Left Word then Mask Insert
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00010 000101| v3.0 vrlwmi r0 r1 r2
+# vrlwnm Vector Rotate Left Word then AND with Mask
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00110 000101| v3.0 vrlwnm r0 r1 r2
+# vrsqrtefp Vector Reciprocal Square Root Estimate Floating-Point
+# 000100 ..... 00000 ..... 00101 001010| v2.03 vrsqrtefp
+# vsbox Vector AES SubBytes
+# 000100 ..... ..... 00000 10111 001000| v2.07 vsbox
+# vsel Vector Select
+# 000100 ..... ..... ..... ..... 101010| v2.03 vsel
+# vshasigmad Vector SHA-512 Sigma Dword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11011 000010| v2.07 vshasigmad r0 r1 r2
+# vshasigmaw Vector SHA-256 Sigma Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 000010| v2.07 vshasigmaw r0 r1 r2
+# vsl Vector Shift Left
+000100 r0[4:0] r1[4:0] r2[4:0] 00111 000100| v2.03 i 1 128 sl vsl r0 r1 r2
+# vslb Vector Shift Left Byte
+000100 r0[4:0] r1[4:0] r2[4:0] 00100 000100| v2.03 i 16 8 sl vslb r0 r1 r2
+# vsld Vector Shift Left Dword
+000100 r0[4:0] r1[4:0] r2[4:0] 10111 000100| v2.07 i 2 64 sl vsld r0 r1 r2
+# vsldoi Vector Shift Left Double by Octet Immediate
+# 000100 ..... ..... ..... 0.... 101100| v2.03 vsldoi
+# vslh Vector Shift Left Hword
+000100 r0[4:0] r1[4:0] r2[4:0] 00101 000100| v2.03 i 8 16 sl vslh r0 r1 r2
+# vslo Vector Shift Left by Octet
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 001100| v2.03 sl vslo r0 r1 r2
+# vslv Vector Shift Left Variable
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11101 000100| v3.0 sl vslv r0 r1 r2
+# vslw Vector Shift Left Word
+000100 r0[4:0] r1[4:0] r2[4:0] 00110 000100| v2.03 i 4 32 sl vslw r0 r1 r2
+# vspltb Vector Splat Byte
+# 000100 ..... 0.... ..... 01000 001100| v2.03 vspltb
+# vsplth Vector Splat Hword
+# 000100 ..... 00... ..... 01001 001100| v2.03 vsplth
+# vspltisb Vector Splat Immediate Signed Byte
+# 000100 ..... ..... 00000 01100 001100| v2.03 vspltisb
+# vspltish Vector Splat Immediate Signed Hword
+# 000100 ..... ..... 00000 01101 001100| v2.03 vspltish
+# vspltisw Vector Splat Immediate Signed Word
+# 000100 ..... ..... 00000 01110 001100| v2.03 vspltisw
+# vspltw Vector Splat Word
+# 000100 ..... 000.. ..... 01010 001100| v2.03 vspltw
+# vsr Vector Shift Right
+ 000100 r0[4:0] r1[4:0] r2[4:0] 01011 000100| v2.03 i 1 128 sr vsr r0 r1 r2
+# vsrab Vector Shift Right Algebraic Byte
+000100 r0[4:0] r1[4:0] r2[4:0] 01100 000100| v2.03 i 16 8 sra vsrab r0 r1 r2
+# vsrad Vector Shift Right Algebraic Dword
+000100 r0[4:0] r1[4:0] r2[4:0] 01111 000100| v2.07 i 2 64 sra vsrad r0 r1 r2
+# vsrah Vector Shift Right Algebraic Hword
+000100 r0[4:0] r1[4:0] r2[4:0] 01101 000100| v2.03 i 8 16 sra vsrah r0 r1 r2
+# vsraw Vector Shift Right Algebraic Word
+000100 r0[4:0] r1[4:0] r2[4:0] 01110 000100| v2.03 i 4 32 sra vsraw r0 r1 r2
+# vsrb Vector Shift Right Byte
+000100 r0[4:0] r1[4:0] r2[4:0] 01000 000100| v2.03 i 16 8 sr vsrb r0 r1 r2
+# vsrd Vector Shift Right Dword
+000100 r0[4:0] r1[4:0] r2[4:0] 11011 000100| v2.07 i 2 64 sr vsrd r0 r1 r2
+# vsrh Vector Shift Right Hword
+000100 r0[4:0] r1[4:0] r2[4:0] 01001 000100| v2.03 i 8 16 sr vsrh r0 r1 r2
+# vsro Vector Shift Right by Octet
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 001100| v2.03 sr vsro r0 r1 r2
+# vsrv Vector Shift Right Variable
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11100 000100| v3.0 sr vsrv r0 r1 r2
+# vsrw Vector Shift Right Word
+000100 r0[4:0] r1[4:0] r2[4:0] 01010 000100| v2.03 i 4 32 sr vsrw r0 r1 r2
+# vsubcuq Vector Subtract & write Carry Unsigned Qword
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10101 000000| v2.07 vsubcuq
+# vsubcuw Vector Subtract & Write Carry-Out Unsigned Word
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10110 000000| v2.03 vsubcuw
+# vsubecuq Vector Subtract Extended & write Carry Unsigned Qword
+# 000100 ..... ..... ..... ..... 111111| v2.07 vsubecuq
+# vsubeuqm Vector Subtract Extended Unsigned Qword Modulo
+# 000100 ..... ..... ..... ..... 111110| v2.07 vsubeuqm
+# vsubfp Vector Subtract Floating-Point
+# 000100 r0[4:0] r1[4:0] r2[4:0] 00001 001010| v2.03 f 4 32 sub vsubfp r0 r1 r2
+# vsubsbs Vector Subtract Signed Byte Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11100 000000| v2.03 i 16 8 sub vsubsbs r0 r1 r2
+# vsubshs Vector Subtract Signed Hword Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11101 000000| v2.03 i 8 16 sub vsubshs r0 r1 r2
+# vsubsws Vector Subtract Signed Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11110 000000| v2.03 i 4 32 sub vsubsws r0 r1 r2
+# vsububm Vector Subtract Unsigned Byte Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10000 000000| v2.03 i 16 8 sub vsububm r0 r1 r2
+# vsububs Vector Subtract Unsigned Byte Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11000 000000| v2.03 i 16 8 sub vsububs r0 r1 r2
+# vsubudm Vector Subtract Unsigned Dword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10011 000000| v2.07 i 2 64 sub vsubudm r0 r1 r2
+# vsubuhm Vector Subtract Unsigned Hword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10001 000000| v2.03 i 8 16 sub vsubuhm r0 r1 r2
+# vsubuhs Vector Subtract Unsigned Hword Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11001 000000| v2.03 i 8 16 sub vsubuhs r0 r1 r2
+# vsubuqm Vector Subtract Unsigned Qword Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10100 000000| v2.07 i 1 128 sub vsubuqm r0 r1 r2
+# vsubuwm Vector Subtract Unsigned Word Modulo
+# 000100 r0[4:0] r1[4:0] r2[4:0] 10010 000000| v2.03 i 4 32 sub vsubuwm r0 r1 r2
+# vsubuws Vector Subtract Unsigned Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 000000| v2.03 i 4 32 sub vsubuws r0 r1 r2
+# vsum2sws Vector Sum across Half Signed Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11010 001000| v2.03 vsum2sws r0 r1 r2
+# vsum4sbs Vector Sum across Quarter Signed Byte Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11100 001000| v2.03 vsum4sbs r0 r1 r2
+# vsum4shs Vector Sum across Quarter Signed Hword Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11001 001000| v2.03 vsum4shs r0 r1 r2
+# vsum4ubs Vector Sum across Quarter Unsigned Byte Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11000 001000| v2.03 vsum4ubs r0 r1 r2
+# vsumsws Vector Sum across Signed Word Saturate
+# 000100 r0[4:0] r1[4:0] r2[4:0] 11110 001000| v2.03 vsumsws r0 r1 r2
+# vupkhpx Vector Unpack High Pixel
+# 000100 ..... 00000 ..... 01101 001110| v2.03 vupkhpx
+# vupkhsb Vector Unpack High Signed Byte
+# 000100 ..... 00000 ..... 01000 001110| v2.03 vupkhsb
+# vupkhsh Vector Unpack High Signed Hword
+# 000100 ..... 00000 ..... 01001 001110| v2.03 vupkhsh
+# vupkhsw Vector Unpack High Signed Word
+# 000100 ..... 00000 ..... 11001 001110| v2.07 vupkhsw
+# vupklpx Vector Unpack Low Pixel
+# 000100 ..... 00000 ..... 01111 001110| v2.03 vupklpx
+# vupklsb Vector Unpack Low Signed Byte
+# 000100 ..... 00000 ..... 01010 001110| v2.03 vupklsb
+# vupklsh Vector Unpack Low Signed Hword
+# 000100 ..... 00000 ..... 01011 001110| v2.03 vupklsh
+# vupklsw Vector Unpack Low Signed Word
+# 000100 ..... 00000 ..... 11011 001110| v2.07 vupklsw
+# vxor Vector Logical XOR
+000100 r0[4:0] r1[4:0] r2[4:0] 10011 000100| v2.03 i 1 128 xor vxor r0 r1 r2
+# wait Wait for Interrupt
+# 011111 000.. 00000 00000 00000 111100| v3.0 wait
+# xnop Executed No Operation
+# 011010 00000 00000 00000 00000 000000| v2.05 xnop
+# xor[.] XOR
+011111 r0[4:0] r1[4:0] r2[4:0] 01001 111000	| p1 i 1 32 xor xor r1 r0 r2
+# xor[.] XOR
+011111 r0[4:0] r1[4:0] r2[4:0] 01001 111001	| p1 i 1 32 xor xor. r1 r0 r2
+# xori XOR Immediate
+011010 r0[4:0] r1[4:0] i0[15:0]	| p1 u 1 32 xor xori r1 r0 i0
+# xoris XOR Immediate Shifted
+# 011011 ..... ..... ..... ..... ......| p1 xoris
+# xsabsdp VSX Scalar Absolute DP
+# 111100 ..... 00000 ..... 10101 1001..| power xsabsdp
+# xsabsqp VSX Scalar Absolute QP
+# 111111 ..... 00000 ..... 11001 001000| power xsabsqp
+# xsadddp VSX Scalar Add DP
+# 111100 ..... ..... ..... 00100 000...| power xsadddp
+# xsaddqp[o] VSX Scalar Add QP
+# 111111 ..... ..... ..... 00000 00100.| power xsaddqp[o]
+# xsaddsp VSX Scalar Add SP
+# 111100 ..... ..... ..... 00000 000...| power xsaddsp
+# xscmpeqdp VSX Scalar Compare Equal Double-Precision
+# 111100 ..... ..... ..... 00000 011...| power xscmpeqdp
+# xscmpexpdp VSX Scalar Compare Exponents DP
+# 111100 ...00 ..... ..... 00111 011..0| power xscmpexpdp
+# xscmpexpqp VSX Scalar Compare Exponents QP
+# 111111 ...00 ..... ..... 00101 001000| power xscmpexpqp
+# xscmpgedp VSX Scalar Compare Greater Than or Equal Double-Precision
+# 111100 ..... ..... ..... 00010 011...| power xscmpgedp
+# xscmpgtdp VSX Scalar Compare Greater Than Double-Precision
+# 111100 ..... ..... ..... 00001 011...| power xscmpgtdp
+# xscmpnedp VSX Scalar Compare Not Equal Double-Precision
+# 111100 ..... ..... ..... 00011 011...| power xscmpnedp
+# xscmpodp VSX Scalar Compare Ordered DP
+# 111100 ...00 ..... ..... 00101 011..0| power xscmpodp
+# xscmpoqp VSX Scalar Compare Ordered QP
+# 111111 ...00 ..... ..... 00100 001000| power xscmpoqp
+# xscmpudp VSX Scalar Compare Unordered DP
+# 111100 ...00 ..... ..... 00100 011..0| power xscmpudp
+# xscmpuqp VSX Scalar Compare Unordered QP
+# 111111 ...00 ..... ..... 10100 001000| power xscmpuqp
+# xscpsgndp VSX Scalar Copy Sign DP
+# 111100 ..... ..... ..... 10110 000...| power xscpsgndp
+# xscpsgnqp VSX Scalar Copy Sign QP
+# 111111 ..... ..... ..... 00011 001000| power xscpsgnqp
+# xscvdphp VSX Scalar Convert DP to HP
+# 111100 ..... 10001 ..... 10101 1011..| power xscvdphp
+# xscvdpqp VSX Scalar Convert DP to QP
+# 111111 ..... 10110 ..... 11010 001000| power xscvdpqp
+# xscvdpsp VSX Scalar Convert DP to SP
+# 111100 ..... 00000 ..... 10000 1001..| power xscvdpsp
+# xscvdpspn VSX Scalar Convert DP to SP Non-signalling
+# 111100 ..... 00000 ..... 10000 1011..| power xscvdpspn
+# xscvdpsxds VSX Scalar Convert DP to Signed Dword truncate
+# 111100 ..... 00000 ..... 10101 1000..| power xscvdpsxds
+# xscvdpsxws VSX Scalar Convert DP to Signed Word truncate
+# 111100 ..... 00000 ..... 00101 1000..| power xscvdpsxws
+# xscvdpuxds VSX Scalar Convert DP to Unsigned Dword truncate
+# 111100 ..... 00000 ..... 10100 1000..| power xscvdpuxds
+# xscvdpuxws VSX Scalar Convert DP to Unsigned Word truncate
+# 111100 ..... 00000 ..... 00100 1000..| power xscvdpuxws
+# xscvhpdp VSX Scalar Convert HP to DP
+# 111100 ..... 10000 ..... 10101 1011..| power xscvhpdp
+# xscvqpdp[o] VSX Scalar Convert QP to DP
+# 111111 ..... 10100 ..... 11010 00100.| power xscvqpdp[o]
+# xscvqpsdz VSX Scalar Convert QP to Signed Dword truncate
+# 111111 ..... 11001 ..... 11010 001000| power xscvqpsdz
+# xscvqpswz VSX Scalar Convert QP to Signed Word truncate
+# 111111 ..... 01001 ..... 11010 001000| power xscvqpswz
+# xscvqpudz VSX Scalar Convert QP to Unsigned Dword truncate
+# 111111 ..... 10001 ..... 11010 001000| power xscvqpudz
+# xscvqpuwz VSX Scalar Convert QP to Unsigned Word truncate
+# 111111 ..... 00001 ..... 11010 001000| power xscvqpuwz
+# xscvsdqp VSX Scalar Convert Signed Dword to QP
+# 111111 ..... 01010 ..... 11010 001000| power xscvsdqp
+# xscvspdp VSX Scalar Convert SP to DP
+# 111100 ..... 00000 ..... 10100 1001..| power xscvspdp
+# xscvspdpn VSX Scalar Convert SP to DP Non-signalling
+# 111100 ..... 00000 ..... 10100 1011..| power xscvspdpn
+# xscvsxddp VSX Scalar Convert Signed Dword to DP
+# 111100 ..... 00000 ..... 10111 1000..| power xscvsxddp
+# xscvsxdsp VSX Scalar Convert Signed Dword to SP
+# 111100 ..... 00000 ..... 10011 1000..| power xscvsxdsp
+# xscvudqp VSX Scalar Convert Unsigned Dword to QP
+# 111111 ..... 00010 ..... 11010 001000| power xscvudqp
+# xscvuxddp VSX Scalar Convert Unsigned Dword to DP
+# 111100 ..... 00000 ..... 10110 1000..| power xscvuxddp
+# xscvuxdsp VSX Scalar Convert Unsigned Dword to SP
+# 111100 ..... 00000 ..... 10010 1000..| power xscvuxdsp
+# xsdivdp VSX Scalar Divide DP
+# 111100 ..... ..... ..... 00111 000...| power xsdivdp
+# xsdivqp[o] VSX Scalar Divide QP
+# 111111 ..... ..... ..... 10001 00100.| power xsdivqp[o]
+# xsdivsp VSX Scalar Divide SP
+# 111100 ..... ..... ..... 00011 000...| power xsdivsp
+# xsiexpdp VSX Scalar Insert Exponent DP
+# 111100 ..... ..... ..... 11100 10110.| power xsiexpdp
+# xsiexpqp VSX Scalar Insert Exponent QP
+# 111111 ..... ..... ..... 11011 001000| power xsiexpqp
+# xsmaddadp VSX Scalar Multiply-Add Type-A DP
+# 111100 ..... ..... ..... 00100 001...| power xsmaddadp
+# xsmaddasp VSX Scalar Multiply-Add Type-A SP
+# 111100 ..... ..... ..... 00000 001...| power xsmaddasp
+# xsmaddmdp VSX Scalar Multiply-Add Type-M DP
+# 111100 ..... ..... ..... 00101 001...| power xsmaddmdp
+# xsmaddmsp VSX Scalar Multiply-Add Type-M SP
+# 111100 ..... ..... ..... 00001 001...| power xsmaddmsp
+# xsmaddqp[o] VSX Scalar Multiply-Add QP
+# 111111 ..... ..... ..... 01100 00100.| power xsmaddqp[o]
+# xsmaxcdp VSX Scalar Maximum Type-C Double-Precision
+# 111100 ..... ..... ..... 10000 000...| power xsmaxcdp
+# xsmaxdp VSX Scalar Maximum DP
+# 111100 ..... ..... ..... 10100 000...| power xsmaxdp
+# xsmaxjdp VSX Scalar Maximum Type-J Double-Precision
+# 111100 ..... ..... ..... 10010 000...| power xsmaxjdp
+# xsmincdp VSX Scalar Minimum Type-C Double-Precision
+# 111100 ..... ..... ..... 10001 000...| power xsmincdp
+# xsmindp VSX Scalar Minimum DP
+# 111100 ..... ..... ..... 10101 000...| power xsmindp
+# xsminjdp VSX Scalar Minimum Type-J Double-Precision
+# 111100 ..... ..... ..... 10011 000...| power xsminjdp
+# xsmsubadp VSX Scalar Multiply-Subtract Type-A DP
+# 111100 ..... ..... ..... 00110 001...| power xsmsubadp
+# xsmsubasp VSX Scalar Multiply-Subtract Type-A SP
+# 111100 ..... ..... ..... 00010 001...| power xsmsubasp
+# xsmsubmdp VSX Scalar Multiply-Subtract Type-M DP
+# 111100 ..... ..... ..... 00111 001...| power xsmsubmdp
+# xsmsubmsp VSX Scalar Multiply-Subtract Type-M SP
+# 111100 ..... ..... ..... 00011 001...| power xsmsubmsp
+# xsmsubqp[o] VSX Scalar Multiply-Subtract QP
+# 111111 ..... ..... ..... 01101 00100.| power xsmsubqp[o]
+# xsmuldp VSX Scalar Multiply DP
+# 111100 ..... ..... ..... 00110 000...| power xsmuldp
+# xsmulqp[o] VSX Scalar Multiply QP
+# 111111 ..... ..... ..... 00001 00100.| power xsmulqp[o]
+# xsmulsp VSX Scalar Multiply SP
+# 111100 ..... ..... ..... 00010 000...| power xsmulsp
+# xsnabsdp VSX Scalar Negative Absolute DP
+# 111100 ..... 00000 ..... 10110 1001..| power xsnabsdp
+# xsnabsqp VSX Scalar Negative Absolute QP
+# 111111 ..... 01000 ..... 11001 001000| power xsnabsqp
+# xsnegdp VSX Scalar Negate DP
+# 111100 ..... 00000 ..... 10111 1001..| power xsnegdp
+# xsnegqp VSX Scalar Negate QP
+# 111111 ..... 10000 ..... 11001 001000| power xsnegqp
+# xsnmaddadp VSX Scalar Negative Multiply-Add Type-A DP
+# 111100 ..... ..... ..... 10100 001...| power xsnmaddadp
+# xsnmaddasp VSX Scalar Negative Multiply-Add Type-A SP
+# 111100 ..... ..... ..... 10000 001...| power xsnmaddasp
+# xsnmaddmdp VSX Scalar Negative Multiply-Add Type-M DP
+# 111100 ..... ..... ..... 10101 001...| power xsnmaddmdp
+# xsnmaddmsp VSX Scalar Negative Multiply-Add Type-M SP
+# 111100 ..... ..... ..... 10001 001...| power xsnmaddmsp
+# xsnmaddqp[o] VSX Scalar Negative Multiply-Add QP
+# 111111 ..... ..... ..... 01110 00100.| power xsnmaddqp[o]
+# xsnmsubadp VSX Scalar Negative Multiply-Subtract Type-A DP
+# 111100 ..... ..... ..... 10110 001...| power xsnmsubadp
+# xsnmsubasp VSX Scalar Negative Multiply-Subtract Type-A SP
+# 111100 ..... ..... ..... 10010 001...| power xsnmsubasp
+# xsnmsubmdp VSX Scalar Negative Multiply-Subtract Type-M DP
+# 111100 ..... ..... ..... 10111 001...| power xsnmsubmdp
+# xsnmsubmsp VSX Scalar Negative Multiply-Subtract Type-M SP
+# 111100 ..... ..... ..... 10011 001...| power xsnmsubmsp
+# xsnmsubqp[o] VSX Scalar Negative Multiply-Subtract QP
+# 111111 ..... ..... ..... 01111 00100.| power xsnmsubqp[o]
+# xsrdpi VSX Scalar Round DP to Integral to Nearest Away
+# 111100 ..... 00000 ..... 00100 1001..| power xsrdpi
+# xsrdpic VSX Scalar Round DP to Integral using Current rounding mode
+# 111100 ..... 00000 ..... 00110 1011..| power xsrdpic
+# xsrdpim VSX Scalar Round DP to Integral toward -Infinity
+# 111100 ..... 00000 ..... 00111 1001..| power xsrdpim
+# xsrdpip VSX Scalar Round DP to Integral toward +Infinity
+# 111100 ..... 00000 ..... 00110 1001..| power xsrdpip
+# xsrdpiz VSX Scalar Round DP to Integral toward Zero
+# 111100 ..... 00000 ..... 00101 1001..| power xsrdpiz
+# xsredp VSX Scalar Reciprocal Estimate DP
+# 111100 ..... 00000 ..... 00101 1010..| power xsredp
+# xsresp VSX Scalar Reciprocal Estimate SP
+# 111100 ..... 00000 ..... 00001 1010..| power xsresp
+# xsrqpi[x] VSX Scalar Round QP to Integral
+# 111111 ..... 0000. ..... ..000 00101.| power xsrqpi[x]
+# xsrqpxp VSX Scalar Round QP to XP
+# 111111 ..... 0000. ..... ..001 001010| power xsrqpxp
+# xsrsp VSX Scalar Round DP to SP
+# 111100 ..... 00000 ..... 10001 1001..| power xsrsp
+# xsrsqrtedp VSX Scalar Reciprocal Square Root Estimate DP
+# 111100 ..... 00000 ..... 00100 1010..| power xsrsqrtedp
+# xsrsqrtesp VSX Scalar Reciprocal Square Root Estimate SP
+# 111100 ..... 00000 ..... 00000 1010..| power xsrsqrtesp
+# xssqrtdp VSX Scalar Square Root DP
+# 111100 ..... 00000 ..... 00100 1011..| power xssqrtdp
+# xssqrtqp[o] VSX Scalar Square Root QP
+# 111111 ..... 11011 ..... 11001 00100.| power xssqrtqp[o]
+# xssqrtsp VSX Scalar Square Root SP
+# 111100 ..... 00000 ..... 00000 1011..| power xssqrtsp
+# xssubdp VSX Scalar Subtract DP
+# 111100 ..... ..... ..... 00101 000...| power xssubdp
+# xssubqp[o] VSX Scalar Subtract QP
+# 111111 ..... ..... ..... 10000 00100.| power xssubqp[o]
+# xssubsp VSX Scalar Subtract SP
+# 111100 ..... ..... ..... 00001 000...| power xssubsp
+# xstdivdp VSX Scalar Test for software Divide DP
+# 111100 ...00 ..... ..... 00111 101..0| power xstdivdp
+# xstsqrtdp VSX Scalar Test for software Square Root DP
+# 111100 ...00 00000 ..... 00110 1010.0| power xstsqrtdp
+# xststdcdp VSX Scalar Test Data Class DP
+# 111100 ..... ..... ..... 10110 1010.0| power xststdcdp
+# xststdcqp VSX Scalar Test Data Class QP
+# 111111 ..... ..... ..... 10110 001000| power xststdcqp
+# xststdcsp VSX Scalar Test Data Class SP
+# 111100 ..... ..... ..... 10010 1010.0| power xststdcsp
+# xsxexpdp VSX Scalar Extract Exponent DP
+# 111100 ..... 00000 ..... 10101 1011.0| power xsxexpdp
+# xsxexpqp VSX Scalar Extract Exponent QP
+# 111111 ..... 00010 ..... 11001 001000| power xsxexpqp
+# xsxsigdp VSX Scalar Extract Significand DP
+# 111100 ..... 00001 ..... 10101 1011.0| power xsxsigdp
+# xsxsigqp VSX Scalar Extract Significand QP
+# 111111 ..... 10010 ..... 11001 001000| power xsxsigqp
+# xvabsdp VSX Vector Absolute DP
+# 111100 ..... 00000 ..... 11101 1001..| power xvabsdp
+# xvabssp VSX Vector Absolute SP
+# 111100 ..... 00000 ..... 11001 1001..| power xvabssp
+# xvadddp VSX Vector Add DP
+# 111100 ..... ..... ..... 01100 000...| power xvadddp
+# xvaddsp VSX Vector Add SP
+# 111100 ..... ..... ..... 01000 000...| power xvaddsp
+# xvcmpeqdp[.] VSX Vector Compare Equal DP
+# 111100 ..... ..... ..... .1100 011...| power xvcmpeqdp[.]
+# xvcmpeqsp[.] VSX Vector Compare Equal SP
+# 111100 ..... ..... ..... .1000 011...| power xvcmpeqsp[.]
+# xvcmpgedp[.] VSX Vector Compare Greater Than or Equal DP
+# 111100 ..... ..... ..... .1110 011...| power xvcmpgedp[.]
+# xvcmpgesp[.] VSX Vector Compare Greater Than or Equal SP
+# 111100 ..... ..... ..... .1010 011...| power xvcmpgesp[.]
+# xvcmpgtdp[.] VSX Vector Compare Greater Than DP
+# 111100 ..... ..... ..... .1101 011...| power xvcmpgtdp[.]
+# xvcmpgtsp[.] VSX Vector Compare Greater Than SP
+# 111100 ..... ..... ..... .1001 011...| power xvcmpgtsp[.]
+# xvcmpnedp[.] VSX Vector Compare Not Equal Double-Precision
+# 111100 ..... ..... ..... .1111 011...| power xvcmpnedp[.]
+# xvcmpnesp[.] VSX Vector Compare Not Equal Single-Precision
+# 111100 ..... ..... ..... .1011 011...| power xvcmpnesp[.]
+# xvcpsgndp VSX Vector Copy Sign DP
+# 111100 ..... ..... ..... 11110 000...| power xvcpsgndp
+# xvcpsgnsp VSX Vector Copy Sign SP
+# 111100 ..... ..... ..... 11010 000...| power xvcpsgnsp
+# xvcvdpsp VSX Vector Convert DP to SP
+# 111100 ..... 00000 ..... 11000 1001..| power xvcvdpsp
+# xvcvdpsxds VSX Vector Convert DP to Signed Dword truncate
+# 111100 ..... 00000 ..... 11101 1000..| power xvcvdpsxds
+# xvcvdpsxws VSX Vector Convert DP to Signed Word truncate
+# 111100 ..... 00000 ..... 01101 1000..| power xvcvdpsxws
+# xvcvdpuxds VSX Vector Convert DP to Unsigned Dword truncate
+# 111100 ..... 00000 ..... 11100 1000..| power xvcvdpuxds
+# xvcvdpuxws VSX Vector Convert DP to Unsigned Word truncate
+# 111100 ..... 00000 ..... 01100 1000..| power xvcvdpuxws
+# xvcvhpsp VSX Vector Convert HP to SP
+# 111100 ..... 11000 ..... 11101 1011..| power xvcvhpsp
+# xvcvspdp VSX Vector Convert SP to DP
+# 111100 ..... 00000 ..... 11100 1001..| power xvcvspdp
+# xvcvsphp VSX Vector Convert SP to HP
+# 111100 ..... 11001 ..... 11101 1011..| power xvcvsphp
+# xvcvspsxds VSX Vector Convert SP to Signed Dword truncate
+# 111100 ..... 00000 ..... 11001 1000..| power xvcvspsxds
+# xvcvspsxws VSX Vector Convert SP to Signed Word truncate
+# 111100 ..... 00000 ..... 01001 1000..| power xvcvspsxws
+# xvcvspuxds VSX Vector Convert SP to Unsigned Dword truncate
+# 111100 ..... 00000 ..... 11000 1000..| power xvcvspuxds
+# xvcvspuxws VSX Vector Convert SP to Unsigned Word truncate
+# 111100 ..... 00000 ..... 01000 1000..| power xvcvspuxws
+# xvcvsxddp VSX Vector Convert Signed Dword to DP
+# 111100 ..... 00000 ..... 11111 1000..| power xvcvsxddp
+# xvcvsxdsp VSX Vector Convert Signed Dword to SP
+# 111100 ..... 00000 ..... 11011 1000..| power xvcvsxdsp
+# xvcvsxwdp VSX Vector Convert Signed Word to DP
+# 111100 ..... 00000 ..... 01111 1000..| power xvcvsxwdp
+# xvcvsxwsp VSX Vector Convert Signed Word to SP
+# 111100 ..... 00000 ..... 01011 1000..| power xvcvsxwsp
+# xvcvuxddp VSX Vector Convert Unsigned Dword to DP
+# 111100 ..... 00000 ..... 11110 1000..| power xvcvuxddp
+# xvcvuxdsp VSX Vector Convert Unsigned Dword to SP
+# 111100 ..... 00000 ..... 11010 1000..| power xvcvuxdsp
+# xvcvuxwdp VSX Vector Convert Unsigned Word to DP
+# 111100 ..... 00000 ..... 01110 1000..| power xvcvuxwdp
+# xvcvuxwsp VSX Vector Convert Unsigned Word to SP
+# 111100 ..... 00000 ..... 01010 1000..| power xvcvuxwsp
+# xvdivdp VSX Vector Divide DP
+# 111100 ..... ..... ..... 01111 000...| power xvdivdp
+# xvdivsp VSX Vector Divide SP
+# 111100 ..... ..... ..... 01011 000...| power xvdivsp
+# xviexpdp VSX Vector Insert Exponent DP
+# 111100 ..... ..... ..... 11111 000...| power xviexpdp
+# xviexpsp VSX Vector Insert Exponent SP
+# 111100 ..... ..... ..... 11011 000...| power xviexpsp
+# xvmaddadp VSX Vector Multiply-Add Type-A DP
+# 111100 ..... ..... ..... 01100 001...| power xvmaddadp
+# xvmaddasp VSX Vector Multiply-Add Type-A SP
+# 111100 ..... ..... ..... 01000 001...| power xvmaddasp
+# xvmaddmdp VSX Vector Multiply-Add Type-M DP
+# 111100 ..... ..... ..... 01101 001...| power xvmaddmdp
+# xvmaddmsp VSX Vector Multiply-Add Type-M SP
+# 111100 ..... ..... ..... 01001 001...| power xvmaddmsp
+# xvmaxdp VSX Vector Maximum DP
+# 111100 ..... ..... ..... 11100 000...| power xvmaxdp
+# xvmaxsp VSX Vector Maximum SP
+# 111100 ..... ..... ..... 11000 000...| power xvmaxsp
+# xvmindp VSX Vector Minimum DP
+# 111100 ..... ..... ..... 11101 000...| power xvmindp
+# xvminsp VSX Vector Minimum SP
+# 111100 ..... ..... ..... 11001 000...| power xvminsp
+# xvmsubadp VSX Vector Multiply-Subtract Type-A DP
+# 111100 ..... ..... ..... 01110 001...| power xvmsubadp
+# xvmsubasp VSX Vector Multiply-Subtract Type-A SP
+# 111100 ..... ..... ..... 01010 001...| power xvmsubasp
+# xvmsubmdp VSX Vector Multiply-Subtract Type-M DP
+# 111100 ..... ..... ..... 01111 001...| power xvmsubmdp
+# xvmsubmsp VSX Vector Multiply-Subtract Type-M SP
+# 111100 ..... ..... ..... 01011 001...| power xvmsubmsp
+# xvmuldp VSX Vector Multiply DP
+# 111100 ..... ..... ..... 01110 000...| power xvmuldp
+# xvmulsp VSX Vector Multiply SP
+# 111100 ..... ..... ..... 01010 000...| power xvmulsp
+# xvnabsdp VSX Vector Negative Absolute DP
+# 111100 ..... 00000 ..... 11110 1001..| power xvnabsdp
+# xvnabssp VSX Vector Negative Absolute SP
+# 111100 ..... 00000 ..... 11010 1001..| power xvnabssp
+# xvnegdp VSX Vector Negate DP
+# 111100 ..... 00000 ..... 11111 1001..| power xvnegdp
+# xvnegsp VSX Vector Negate SP
+# 111100 ..... 00000 ..... 11011 1001..| power xvnegsp
+# xvnmaddadp VSX Vector Negative Multiply-Add Type-A DP
+# 111100 ..... ..... ..... 11100 001...| power xvnmaddadp
+# xvnmaddasp VSX Vector Negative Multiply-Add Type-A SP
+# 111100 ..... ..... ..... 11000 001...| power xvnmaddasp
+# xvnmaddmdp VSX Vector Negative Multiply-Add Type-M DP
+# 111100 ..... ..... ..... 11101 001...| power xvnmaddmdp
+# xvnmaddmsp VSX Vector Negative Multiply-Add Type-M SP
+# 111100 ..... ..... ..... 11001 001...| power xvnmaddmsp
+# xvnmsubadp VSX Vector Negative Multiply-Subtract Type-A DP
+# 111100 ..... ..... ..... 11110 001...| power xvnmsubadp
+# xvnmsubasp VSX Vector Negative Multiply-Subtract Type-A SP
+# 111100 ..... ..... ..... 11010 001...| power xvnmsubasp
+# xvnmsubmdp VSX Vector Negative Multiply-Subtract Type-M DP
+# 111100 ..... ..... ..... 11111 001...| power xvnmsubmdp
+# xvnmsubmsp VSX Vector Negative Multiply-Subtract Type-M SP
+# 111100 ..... ..... ..... 11011 001...| power xvnmsubmsp
+# xvrdpi VSX Vector Round DP to Integral to Nearest Away
+# 111100 ..... 00000 ..... 01100 1001..| power xvrdpi
+# xvrdpic VSX Vector Round DP to Integral using Current rounding mode
+# 111100 ..... 00000 ..... 01110 1011..| power xvrdpic
+# xvrdpim VSX Vector Round DP to Integral toward -Infinity
+# 111100 ..... 00000 ..... 01111 1001..| power xvrdpim
+# xvrdpip VSX Vector Round DP to Integral toward +Infinity
+# 111100 ..... 00000 ..... 01110 1001..| power xvrdpip
+# xvrdpiz VSX Vector Round DP to Integral toward Zero
+# 111100 ..... 00000 ..... 01101 1001..| power xvrdpiz
+# xvredp VSX Vector Reciprocal Estimate DP
+# 111100 ..... 00000 ..... 01101 1010..| power xvredp
+# xvresp VSX Vector Reciprocal Estimate SP
+# 111100 ..... 00000 ..... 01001 1010..| power xvresp
+# xvrspi VSX Vector Round SP to Integral to Nearest Away
+# 111100 ..... 00000 ..... 01000 1001..| power xvrspi
+# xvrspic VSX Vector Round SP to Integral using Current rounding mode
+# 111100 ..... 00000 ..... 01010 1011..| power xvrspic
+# xvrspim VSX Vector Round SP to Integral toward -Infinity
+# 111100 ..... 00000 ..... 01011 1001..| power xvrspim
+# xvrspip VSX Vector Round SP to Integral toward +Infinity
+# 111100 ..... 00000 ..... 01010 1001..| power xvrspip
+# xvrspiz VSX Vector Round SP to Integral toward Zero
+# 111100 ..... 00000 ..... 01001 1001..| power xvrspiz
+# xvrsqrtedp VSX Vector Reciprocal Square Root Estimate DP
+# 111100 ..... 00000 ..... 01100 1010..| power xvrsqrtedp
+# xvrsqrtesp VSX Vector Reciprocal Square Root Estimate SP
+# 111100 ..... 00000 ..... 01000 1010..| power xvrsqrtesp
+# xvsqrtdp VSX Vector Square Root DP
+# 111100 ..... 00000 ..... 01100 1011..| power xvsqrtdp
+# xvsqrtsp VSX Vector Square Root SP
+# 111100 ..... 00000 ..... 01000 1011..| power xvsqrtsp
+# xvsubdp VSX Vector Subtract DP
+# 111100 ..... ..... ..... 01101 000...| power xvsubdp
+# xvsubsp VSX Vector Subtract SP
+# 111100 ..... ..... ..... 01001 000...| power xvsubsp
+# xvtdivdp VSX Vector Test for software Divide DP
+# 111100 ...00 ..... ..... 01111 101..0| power xvtdivdp
+# xvtdivsp VSX Vector Test for software Divide SP
+# 111100 ...00 ..... ..... 01011 101..0| power xvtdivsp
+# xvtsqrtdp VSX Vector Test for software Square Root DP
+# 111100 ...00 00000 ..... 01110 1010.0| power xvtsqrtdp
+# xvtsqrtsp VSX Vector Test for software Square Root SP
+# 111100 ...00 00000 ..... 01010 1010.0| power xvtsqrtsp
+# xvtstdcdp VSX Vector Test Data Class DP
+# 111100 ..... ..... ..... 1111. 101...| power xvtstdcdp
+# xvtstdcsp VSX Vector Test Data Class SP
+# 111100 ..... ..... ..... 1101. 101...| power xvtstdcsp
+# xvxexpdp VSX Vector Extract Exponent DP
+# 111100 ..... 00000 ..... 11101 1011..| power xvxexpdp
+# xvxexpsp VSX Vector Extract Exponent SP
+# 111100 ..... 01000 ..... 11101 1011..| power xvxexpsp
+# xvxsigdp VSX Vector Extract Significand DP
+# 111100 ..... 00001 ..... 11101 1011..| power xvxsigdp
+# xvxsigsp VSX Vector Extract Significand SP
+# 111100 ..... 01001 ..... 11101 1011..| power xvxsigsp
+# xxbrd VSX Vector Byte-Reverse Dword
+# 111100 ..... 10111 ..... 11101 1011..| power xxbrd
+# xxbrh VSX Vector Byte-Reverse Hword
+# 111100 ..... 00111 ..... 11101 1011..| power xxbrh
+# xxbrq VSX Vector Byte-Reverse Qword
+# 111100 ..... 11111 ..... 11101 1011..| power xxbrq
+# xxbrw VSX Vector Byte-Reverse Word
+# 111100 ..... 01111 ..... 11101 1011..| power xxbrw
+# xxextractuw VSX Vector Extract Unsigned Word
+# 111100 ..... 0.... ..... 01010 0101..| power xxextractuw
+# xxinsertw VSX Vector Insert Word
+# 111100 ..... 0.... ..... 01011 0101..| power xxinsertw
+# xxland VSX Vector Logical AND
+# 111100 ..... ..... ..... 10000 010...| power xxland
+# xxlandc VSX Vector Logical AND with Complement
+# 111100 ..... ..... ..... 10001 010...| power xxlandc
+# xxleqv VSX Vector Logical Equivalence
+# 111100 ..... ..... ..... 10111 010...| power xxleqv
+# xxlnand VSX Vector Logical NAND
+# 111100 ..... ..... ..... 10110 010...| power xxlnand
+# xxlnor VSX Vector Logical NOR
+# 111100 ..... ..... ..... 10100 010...| power xxlnor
+# xxlor VSX Vector Logical OR
+# 111100 ..... ..... ..... 10010 010...| power xxlor
+# xxlorc VSX Vector Logical OR with Complement
+# 111100 ..... ..... ..... 10101 010...| power xxlorc
+# xxlxor VSX Vector Logical XOR
+# 111100 ..... ..... ..... 10011 010...| power xxlxor
+# xxmrghw VSX Vector Merge Word High
+# 111100 ..... ..... ..... 00010 010...| power xxmrghw
+# xxmrglw VSX Vector Merge Word Low
+# 111100 ..... ..... ..... 00110 010...| power xxmrglw
+# xxperm VSX Vector Permute
+# 111100 ..... ..... ..... 00011 010...| power xxperm
+# xxpermdi VSX Vector Dword Permute Immediate
+# 111100 ..... ..... ..... 0..01 010...| power xxpermdi
+# xxpermr VSX Vector Permute Right-indexed
+# 111100 ..... ..... ..... 00111 010...| power xxpermr
+# xxsel VSX Vector Select
+# 111100 ..... ..... ..... ..... 11....| power xxsel
+# xxsldwi VSX Vector Shift Left Double by Word Immediate
+# 111100 ..... ..... ..... 0..00 010...| power xxsldwi
+# xxspltib VSX Vector Splat Immediate Byte
+# 111100 ..... 00... ..... 01011 01000.| power xxspltib
+# xxspltw VSX Vector Splat Word
+# 111100 ..... 000.. ..... 01010 0100..| power xxspltw

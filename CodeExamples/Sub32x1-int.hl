@@ -1,0 +1,44 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 1 int and return int */
+typedef  int (*pifii)(int);
+
+/* C compilette prototype */
+h2_insn_t * genSub(h2_insn_t * ptr, int value)
+{
+  #[
+    int 32 1 sub (int 32 1 a)
+    {
+      int 32 1 r;
+      r = a - #(value);
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int  in0, in1, res;
+  pifii fPtr;
+
+  if (argc < 3)
+    {
+      printf("Give 2 values\n");
+      exit(-1);
+    }
+  in0  = atoi (argv[1]);   // Get the users values in0
+  in1  = atoi (argv[2]);   // Get the users values in1
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr = (pifii) genSub (ptr, in1); // Generate instructions
+  res  = fPtr(in0);  // Call generated code
+  printf ("Simple code specialization sub %d:\n", in1);
+  printf("%d - %d = %d\n", in0, in1, res);
+  if (res == (in0 - in1))
+	return 0;
+  else
+	return -1;
+}

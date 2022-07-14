@@ -1,0 +1,73 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 1 pointer, an index and return int */
+typedef  float   (*pifii)(float  *, int);
+typedef  double (*pifsi)(double *, int);
+
+/* C compilette prototype */
+h2_insn_t * genLoad(h2_insn_t * ptr, int wordSize)
+{
+  #[
+	flt 32 1 add (flt[] #(wordSize) 1 a, int 32 1 index)
+    {
+      flt #(wordSize) 1 tmp;
+      tmp = a[index];
+      return tmp;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+#define PRINTARRAY(MSG, ARRAY, LIMIT)\
+  printf (MSG);						 \
+  for (int i = 0; i < LIMIT; i++) 	\
+	{ 								\
+      printf("%4f ", ARRAY[i]);     \
+	}								\
+  printf ("\n");
+
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, resultOK;
+  float res32;
+  double res64;
+  pifii fPtr32;
+  pifsi fPtr64;
+
+
+  float  f32[] = {0, 1, 2.2, 3.33, 4.444, 5.5555, 6.66666, 7.777777};
+  double f64[] = {0, 1, 10, 100, 1000, 10000, 1000, 100, 10, 1};
+
+  if (argc < 2)
+    {
+      printf("Give 1 values\n");
+      exit(-1);
+    }
+  in0  = atoi (argv[1]);       // Get the users values in1
+  resultOK = 0;
+  
+  ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions
+  fPtr32 = (pifii) genLoad (ptr, 32); // Generate instructions
+  res32  =  fPtr32(f32, in0);         	 // Call generated code
+  if (f32[in0] != res32)
+    resultOK ++;
+  PRINTARRAY ("32 bits : ", f32, sizeof(f32) / sizeof (float));
+  printf ("res (32) f32[%d] = %f\n", in0, res32);
+
+  /* ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions */
+  /* fPtr64 = (pifsi) genLoad (ptr, 64); // Generate instructions */
+  /* res64  =  fPtr64(f64, in0);         	 // Call generated code */
+  /* if (f64[in0] != res64) */
+  /*   resultOK ++; */
+  /* PRINTARRAY ("64 bits : ", f64, sizeof(f64) / sizeof (double)); */
+  /* printf ("res (64) f64[%d] = %f\n", in0, res64); */
+  
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}

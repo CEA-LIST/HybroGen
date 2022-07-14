@@ -1,0 +1,85 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 1 pointer, an index and return int */
+typedef  float   (*pifii)(float  *, int, float);
+typedef  double (*pifsi)(double *, int, float);
+
+/* C compilette prototype */
+h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
+{
+  #[
+    int 32 1 Array_St (flt[] #(wordSize) 1 a, int 32 1 index, flt #(wordSize) 1 value)
+    {
+	a[index] = value;
+      return 1;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+#define CHECK(ARRAY, INDICE, RESULT, LIMIT, VALUE)	\
+  for (int i = 0; i < LIMIT; i++) 			\
+	{ 									\
+      if (INDICE == i) 					\
+		{								\
+		  if (ARRAY[INDICE] != VALUE)	\
+			{ 							\
+			  RESULT ++; 				\
+			} 							\
+		}		 						\
+      else		 						\
+		{		 						\
+		  if (ARRAY[i] != i)		 	\
+			{		 					\
+			  RESULT ++;		 		\
+			}		 					\
+		}		 						\
+	}
+
+#define PRINTARRAY(MSG, ARRAY, LIMIT)\
+  printf (MSG);						 \
+  for (int i = 0; i < LIMIT; i++) 	\
+	{ 								\
+      printf("%4f ", ARRAY[i]);     \
+	}								\
+  printf ("\n");
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, resultOK, loopLimit;
+  float in1;
+  float res32;
+  double res64;
+  pifii fPtr32;
+  pifsi fPtr64;
+
+  float  f32[] = {0, 1, 2, 3, 4, 5, 6, 7};
+  double f64[] = {0, 1, 10, 100, 1000, 10000, 1000, 100, 10, 1};
+
+  if (argc < 3)
+    {
+      printf("Give 1 values\n");
+      exit(-1);
+    }
+
+  in0  = atoi (argv[1]);   // Get the users values in1
+  in1  = atof (argv[2]);   // Get the users values in2
+  resultOK = 0;
+  loopLimit = sizeof(f32) / sizeof (float);
+
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr32 = (pifii) gen_Array_St(ptr, 32); // Generate instructions
+  res32  = fPtr32(f32, in0, in1);  // Call generated code
+  printf("%f, %f\n", f32[in0], in1);
+  
+  CHECK (f32, in0, resultOK, loopLimit, in1);
+  PRINTARRAY("32 bits : ", f32, loopLimit);
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}

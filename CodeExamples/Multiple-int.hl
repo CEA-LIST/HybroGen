@@ -1,0 +1,112 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 2 ints and return int */
+typedef  int (*pifii)(int, int);
+
+/* C compilette prototype */
+h2_insn_t * genAddf(h2_insn_t * ptr)
+{
+  #[
+	int 32 1 add (int 32 1 a, int 32 1 b)
+    {
+      int 32 1 r;
+      r = a + b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genMulf(h2_insn_t * ptr)
+{
+  #[
+	int 32 1 mul (int 32 1 a, int 32 1 b)
+    {
+      int 32 1 r;
+      r = a * b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genSubf(h2_insn_t * ptr)
+{
+  #[
+	int 32 1 sub (int 32 1 a, int 32 1 b)
+    {
+      int 32 1 r;
+      r = a - b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genDivf(h2_insn_t * ptr)
+{
+  #[
+	int 32 1 div (int 32 1 a, int 32 1 b)
+    {
+      int 32 1 r;
+      r = a / b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, in1, res, resultOK;
+  pifii fPtrf;
+
+  if (argc < 3)
+    {
+      printf("Give 2 values\n");
+      exit(-1);
+    }
+  resultOK = 0;
+  in0  = atoi (argv[1]);   // Get the users values in1 & in2 (int)
+  in1  = atoi (argv[2]);
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifii) genAddf (ptr);
+  res  = fPtrf(in0, in1);
+  printf ("Simple addition of 2 int  values:\n");
+  printf("%d + %d = %d\n", in0, in1, res);
+  if (res != (in0 + in1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifii) genSubf (ptr);
+  res  = fPtrf(in0, in1);
+  printf ("Simple subraction of 2 int  values:\n");
+  printf("%d - %d = %d\n", in0, in1, res);
+  if (res != (in0 - in1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifii) genMulf (ptr);
+  res  = fPtrf(in0, in1);
+  printf ("Simple multiplication of 2 int  values:\n");
+  printf("%d * %d = %d\n", in0, in1, res);
+  if (res != (in0 * in1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifii) genDivf (ptr);
+  res  = fPtrf(in0, in1);
+  printf ("Simple division of 2 int  values:\n");
+  printf("%d / %d = %d\n", in0, in1, res);
+  if (res != (in0 / in1))
+	resultOK += 1;
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}

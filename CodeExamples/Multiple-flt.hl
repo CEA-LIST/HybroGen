@@ -1,0 +1,113 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 2 floats and return float */
+typedef  float (*pifff)(float, float);
+
+/* C compilette prototype */
+h2_insn_t * genAddf(h2_insn_t * ptr)
+{
+  #[
+	flt 32 1 add (flt 32 1 a, flt 32 1 b)
+    {
+      flt 32 1 r;
+      r = a + b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genMulf(h2_insn_t * ptr)
+{
+  #[
+	flt 32 1 mul (flt 32 1 a, flt 32 1 b)
+    {
+      flt 32 1 r;
+      r = a * b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genSubf(h2_insn_t * ptr)
+{
+  #[
+	flt 32 1 sub (flt 32 1 a, flt 32 1 b)
+    {
+      flt 32 1 r;
+      r = a - b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+h2_insn_t * genDivf(h2_insn_t * ptr)
+{
+  #[
+	flt 32 1 div (flt 32 1 a, flt 32 1 b)
+    {
+      flt 32 1 r;
+      r = a / b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  float fin0, fin1, fres;
+  pifff fPtrf;
+  int resultOK;
+
+  if (argc < 3)
+    {
+      printf("Give 2 values\n");
+      exit(-1);
+    }
+  resultOK = 0;
+  fin0  = atof (argv[1]);   // Get the users values in1 & in2 (flt)
+  fin1  = atof (argv[2]);
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifff) genAddf (ptr);
+  fres  = fPtrf(fin0, fin1);
+  printf ("Simple addition of 2 floating point  values:\n");
+  printf("%f + %f = %f\n", fin0, fin1, fres);
+  if (fres != (fin0 + fin1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifff) genSubf (ptr);
+  fres  = fPtrf(fin0, fin1);
+  printf ("Simple subraction of 2 floating point  values:\n");
+  printf("%f - %f = %f\n", fin0, fin1, fres);
+  if (fres != (fin0 - fin1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifff) genMulf (ptr);
+  fres  = fPtrf(fin0, fin1);
+  printf ("Simple multiplication of 2 floating point  values:\n");
+  printf("%f * %f = %f\n", fin0, fin1, fres);
+  if (fres != (fin0 * fin1))
+	resultOK += 1;
+
+  ptr  = h2_malloc (1024);
+  fPtrf = (pifff) genDivf (ptr);
+  fres  = fPtrf(fin0, fin1);
+  printf ("Simple division of 2 floating point  values:\n");
+  printf("%f / %f = %f\n", fin0, fin1, fres);
+  if (fres != (fin0 / fin1))
+	resultOK += 1;
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}
