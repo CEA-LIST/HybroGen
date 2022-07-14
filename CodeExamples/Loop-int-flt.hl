@@ -1,0 +1,47 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  float (*pifii)(float, int);
+
+h2_insn_t * genLoop(h2_insn_t * ptr) /* C compilette prototype */
+{
+  #[
+  flt 32 1 loopForMul(flt 32 1 increment, int 32 1 len)
+  {
+	flt 32 1 res;
+    int 32 1 i;
+	res = 0;
+	for (i = 0; i < len; i = i + 1)
+	  {
+		res = res + increment;
+	  }
+	return res;
+  }
+  ]#
+ return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int  in1, resultOK;
+  float in0, res;
+  pifii fPtr;
+
+  if (argc < 3)
+    {
+      printf("Give 2 increment values\n");
+      exit(-1);
+    }
+  in0 = atof (argv[1]);
+  in1 = atoi (argv[2]);
+  ptr  = h2_malloc (1024);     	 // Allocate memory for 1024 instructions
+  fPtr = (pifii) genLoop (ptr);   // Generate instructions
+  res = fPtr(in0, in1);  	     // Call generated code
+  printf("%f * %d = %f\n", in0, in1, res);
+  if (res == (in0 * in1))
+	return 0;
+  else
+	return -1;
+}

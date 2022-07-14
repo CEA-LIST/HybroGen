@@ -1,0 +1,34 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  float (*pifii)(float, float);
+
+pifii genAdd(h2_insn_t * ptr, int arch, int variant) // C compilette prototype
+{
+  #[
+	flt 16 1 add (flt 16 1 a, flt 16 1 b) // Generated function prototype
+    {
+      flt 16 1 r;
+      r = a + b;
+      return r; // Simple addition between variables which are 2 bytes
+    }
+  ]#
+  return (pifii)ptr;
+}
+
+int main(void)
+{
+    h2_insn_t * ptr;
+    float in0, in1, res;
+    pifii fPtr;
+
+    in0  = 3.5;  
+    in1  = 45.2;
+    ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+    fPtr = genAdd (ptr, RISCV, RV32I); // Generate instructions
+    printf("Instructions generated\n");
+    res  = fPtr(in0, in1);  // Call generated code
+    printf("%f + %f = %f\n", in0, in1, res);
+    return 0;
+}

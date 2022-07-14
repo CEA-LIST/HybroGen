@@ -1,0 +1,55 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  void (*pvfiiii)(int   *, int   *, int   *, int);
+
+
+h2_insn_t * genAdd(h2_insn_t * ptr) /* C compilette prototype */
+{
+  #[
+  int 32 1 addArrays(int[] 32 1 a, int[] 32 1 b, int[] 32 1 res, int 32 1 len)
+  {
+	int 8 1 i;
+	// #pragma (static|dynamic|heuristic)
+	i = len + 4;
+	for (i = 0; i < len; i = i + 1)
+	  {
+		res[i] = a[i] + b[i];
+	  }
+  }
+  ]#
+ return (h2_insn_t *)ptr;
+}
+// Simple addition between variables which are
+// 2 array of vectors composed of 16 values of 8 bits integer numbers
+// static unrolling,
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, resultOK, loopLimit;
+  pvfiiii fPtr;
+
+  int   a32[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  int   b32[] = {9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
+  int   res[10];
+
+  loopLimit = sizeof(a32) / sizeof (int);
+  ptr  = h2_malloc (1024);     		// Allocate memory for 1024 instructions
+  fPtr = (pvfiiii) genAdd (ptr); 	    // Generate instructions
+  fPtr(a32, b32, res, 10);  	// Call generated code
+
+  for (int i = 0; i < loopLimit; i++)
+	printf("%4d ", res[i]);
+  printf ("\n");
+  for (int i = 0; i < loopLimit; i++)
+	if (res[i] != (a32[i] + b32[i]))
+	  resultOK++;
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+
+}

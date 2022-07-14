@@ -1,0 +1,8 @@
+2022-07-14  Henri-Pierre Charles  <hc227932@gre061041>
+
+	* Target platforms : partial part of the ISA of RISCV, Power,
+	Kalray, CxRAM platforms
+
+	* Release 2.0: First public release
+
+

@@ -1,0 +1,44 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Pointer on function which take 2 floats and return float */
+typedef  float (*pifff)(float, float);
+
+/* C compilette prototype */
+h2_insn_t * genMult(h2_insn_t * ptr, int arch, int variant)
+{
+  #[
+	flt 32 1 mult (flt 32 1 a, flt 32 1 b)
+    {
+      flt 32 1 r;
+      r = a * b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  float in0, in1, res;
+  pifff fPtr;
+
+  if (argc < 3)
+    {
+      printf("Give 2 values\n");
+      exit(-1);
+    }
+  in0  = atof (argv[1]);   // Get the users values in1 & in2
+  in1  = atof (argv[2]);
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr = (pifff) genMult (ptr, RISCV, RV32I); // Generate instructions
+  res  = fPtr(in0, in1);  // Call generated code
+  printf ("Simple multiplication of 2 floating point values:\n");
+  printf("%f * %f = %f\n", in0, in1, res);
+  if (res == (in0 * in1))
+	return 0;
+  else
+	return -1;
+}

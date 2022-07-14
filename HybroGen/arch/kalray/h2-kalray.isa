@@ -1,0 +1,1556 @@
+# Kalray 2019
+ARCH kalray 32 64
+
+# 6.4 BCU Instructions (branch)
+# BCU NOB ERROP 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# BCU SDVR SPLATV∗ 0 0 0 0 0 0 0 0 r0[5:0] 0 0 0 0 0 0 0 0 0 0 0 1 r1[5:0]
+# BCU AOEOI ALIGNO 0 0 0 0 0 0 0 0 r0[3:0] 1 0 r1[4:0] 1 r2[4:0] 0 byteshift
+# BCU AOEOR ALIGNO 0 0 0 0 0 0 0 0 r0[3:0] 1 0 r1[4:0] 1 r2[4:0] 1 r3[5:0]
+# BCU AOOEI ALIGNO 0 0 0 0 0 0 0 0 r0[3:0] 1 1 r1[4:0] 1 r2[4:0] 0 byteshift
+# BCU AOOER ALIGNO 0 0 0 0 0 0 0 0 r0[3:0] 1 1 r1[4:0] 1 r2[4:0] 1 r3[5:0]
+# BCU AVEOI ALIGNV 0 0 0 0 0 0 0 1 r0[5:0] r1[4:0] 0 r2[4:0] 0 byteshift
+# BCU AVEOR ALIGNV 0 0 0 0 0 0 0 1 r0[5:0] r1[4:0] 0 r2[4:0] 1 r3[5:0]
+# BCU AVOEI ALIGNV 0 0 0 0 0 0 0 1 r0[5:0] r1[4:0] 1 r2[4:0] 0 byteshift
+# BCU AVOER ALIGNV 0 0 0 0 0 0 0 1 r0[5:0] r1[4:0] 1 r2[4:0] 1 r3[5:0]
+# TCA MM4AW0 MM4ABW 0 0 0 0 0 0 1 0 r0[5:0] 0 r1[4:0] 0 r2[5:0] r3[5:0]
+# TCA MM4AW1 MM4AUBW 0 0 0 0 0 0 1 0 r0[5:0] 0 r1[4:0] 1 r2[5:0] r3[5:0]
+# TCA MM4AW2 MM4ASUBW 0 0 0 0 0 0 1 0 r0[5:0] 1 r1[4:0] 0 r2[5:0] r3[5:0]
+# TCA MM4AW3 MM4AUSBW 0 0 0 0 0 0 1 0 r0[5:0] 1 r1[4:0] 1 r2[5:0] r3[5:0]
+# TCA FMM4AHW0FMM4AHW0 0 0 0 0 0 0 1 1 r0[5:0]0 0 r1[4:0] 0 r2[5:0] r3[5:0]
+# TCA FMM4AHW1FMM4AHW1 0 0 0 0 0 0 1 1 r0[5:0] 0 r1[4:0] 1 r2[5:0] r3[5:0]
+# TCA FMM4AHW2FMM4AHW2 0 0 0 0 0 0 1 1 r0[5:0] 1 r1[4:0] 0 r2[5:0] r3[5:0]
+# TCA FMM4AHW3FMM4AHW3 0 0 0 0 0 0 1 1 r0[5:0] 1 r1[4:0] 1 r2[5:0] r3[5:0]
+# TCA MM4AHBD0MM4AHBD0 0 0 0 0 0 1 0 0 r0[5:0] 0 0 r1[3:0] 0 0 r2[5:0] r3[5:0]
+# MM4AUHBD0 0 0 0 0 0 1 0 0 r0[5:0] 0 0 r1[3:0] 0 1 r2[5:0] r3[5:0]
+# MM4ASUHBD0 0 0 0 0 0 1 0 0 r0[5:0] 0 0 r1[3:0] 1 0 r2[5:0] r3[5:0]
+# MM4AUSHBD0 0 0 0 0 0 1 0 0 r0[5:0] 0 0 r1[3:0] 1 1 r2[5:0] r3[5:0]
+# TCA MM4AHBD1
+# MM4AHBD1 0 0 0 0 0 1 0 0 r0[5:0] 0 1 r1[3:0] 0 0 r2[5:0] r3[5:0]
+# MM4AUHBD1 0 0 0 0 0 1 0 0 r0[5:0] 0 1 r1[3:0] 0 1 r2[5:0] r3[5:0]
+# MM4ASUHBD1 0 0 0 0 0 1 0 0 r0[5:0] 0 1 r1[3:0] 1 0 r2[5:0] r3[5:0]
+# MM4AUSHBD1 0 0 0 0 0 1 0 0 r0[5:0] 0 1 r1[3:0] 1 1 r2[5:0] r3[5:0]
+# TCAMM4AHD2 M
+#M4AHD 0 0 0 0 0 1 0 0 r0[5:0] 1 0 r1[3:0] 0 0 r2[5:0] r3[5:0]
+# MM4AUHD 0 0 0 0 0 1 0 0 r0[5:0] 1 0 r1[3:0] 0 1 r2[5:0] r3[5:0]
+# MM4ASUHD 0 0 0 0 0 1 0 0 r0[5:0] 1 0 r1[3:0] 1 0 r2[5:0] r3[5:0]
+# MM4AUSHD 0 0 0 0 0 1 0 0 r0[5:0] 1 0 r1[3:0] 1 1 r2[5:0] r3[5:0]
+# TCA MT4X4D
+#MT4X4D 0 0 0 0 0 1 0 0 r0[5:0] 1 1 r1[3:0] 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# TCA CDHVL CONVDHV0 0 0 0 0 0 1 0 1 r0[5:0] r1[3:0] 0 0 0 roundint saturate 0 0 0 0 0 0 0
+# TCA CDHVH CONVDHV1 0 0 0 0 0 1 0 1 r0[5:0] r1[3:0] 0 1 0 roundint saturate 0 0 0 0 0 0 0
+# TCA CWBV0 CONVWBV0 0 0 0 0 0 1 1 0 r0[5:0] r1[3:0] 0 0 0 roundint saturate 0 0 0 0 0 0 0
+# TCA CWBV1 CONVWBV1 0 0 0 0 0 1 1 0 r0[5:0] r1[3:0] 0 1 0 roundint saturate 0 0 0 0 0 0 0
+# TCA CWBV2 CONVWBV2 0 0 0 0 0 1 1 0 r0[5:0] r1[3:0] 1 0 0 roundint saturate 0 0 0 0 0 0 0
+# TCA CWBV3 CONVWBV3 0 0 0 0 0 1 1 0 r0[5:0] r1[3:0] 1 1 0 roundint saturate 0 0 0 0 0 0 0
+# TCA FSWV FSCALEWV 0 0 0 0 0 1 1 1 r0[5:0] r1[5:0] silent2xrnd rectify
+#  0 0 0 0 0 0 0
+# TCA FNWHV FNARROWWHVP 0 0 0 0 1 1 1 r0[5:0] r1[4:0] 0 silent2xrnd 0 1 0 0 0 0 0 0
+
+# # BCU CB
+# # CB: Double Not Equal to Zero
+00001 0000 i0[16:0] r0[5:0]	| kalray i 1 64 bnez cb.DNEZ r0 i0
+# # CB: Double Equal to Zero
+00001 0001 i0[16:0] r0[5:0]	| kalray i 1 64 beqz cb.DEQZ r0 i0
+# # CB: Double Less Than Zero
+00001 0010 i0[16:0] r0[5:0]	| kalray i 1 64 bltz cb.DLTZ r0 i0
+# # CB: Double Greater Than or Equal to Zero
+00001 0011 i0[16:0] r0[5:0]	| kalray i 1 64 bgez cb.DGEZ r0 i0
+# # CB: Double Less Than or Equal to Zero
+00001 0100 i0[16:0] r0[5:0]	| kalray i 1 64 blez cb.DLEZ r0 i0
+# # CB: Double Greater Than Zero
+00001 0101 i0[16:0] r0[5:0]	| kalray i 1 64 bgtz cb.DGTZ r0 i0
+# # CB: Odd (LSB Set)
+#00001 0110 i0[16:0] r0[5:0]	| kalray i 1 32 j cb.ODD r0 i0
+# # CB: Even (LSB Clear)
+#00001 0111 i0[16:0] r0[5:0]	| kalray i 1 32 j cb.EVEN r0 i0
+# # CB: Word Not Equal to Zero
+00001 1000 i0[16:0] r0[5:0]	| kalray i 1 32 bnez cb.WNEZ r0 i0
+# # CB: Word Equal to Zero
+00001 1001 i0[16:0] r0[5:0]	| kalray i 1 32 beqz cb.WEQZ r0 i0
+# # CB: Word Less Than Zero
+00001 1010 i0[16:0] r0[5:0]	| kalray i 1 32 bltz cb.WLTZ r0 i0
+# # CB: Word Greater Than or Equal to Zero
+00001 1011 i0[16:0] r0[5:0]	| kalray i 1 32 bgez cb.WGEZ r0 i0
+# # CB: Word Less Than or Equal to Zero
+00001 1100 i0[16:0] r0[5:0]	| kalray i 1 32 blez cb.WLEZ r0 i0
+# # CB: Word Greater Than Zero
+00001 1101 i0[16:0] r0[5:0]	| kalray i 1 32 bgtz cb.WGTZ r0 i0
+# BCU HLS LOOPDO00001 1 1 1 0 i0[16:0] r0[5:0]
+# BCU TLB TLBREAD00001 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# TLBPROBE00001 1 1 1 100001 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# TLBWRITE00001 1 1 1 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# TLBDINVAL00001 1 1 1 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# TLBIINVAL00001 1 1 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# BCU IPC AWAIT00001 1 1 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# SLEEP00001 1 1 1 1 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# STOP00001 1 1 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# BARRIER00001 1 1 1 1 0 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 00 0 0 0
+# BCU PGI WAITIT00001 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+# SYNCGROUP00001 1 1 1 1 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+# BCU WFX WFXL00001 1 1 1 1 0 1 1 1 0 0 0 0 systemT2 r0[5:0]
+# WFXM00001 1 1 1 1 0 1 1 1 1 0 0 0 systemT2 r0[5:0]
+# BCU WFXALONEWFXL00001 1 1 1 1 0 1 1 1 0 0 0 0 systemAlone r0[5:0]
+# WFXM00001 1 1 1 1 0 1 1 1 1 0 0 0 systemAlone r0[5:0]
+# BCU SET SET00001 1 1 1 1 1 0 0 0 0 0 0 0 systemT3 r0[5:0]
+# BCU SETALONESET00001 1 1 1 1 1 0 0 0 0 0 0 0 systemAlone r0[5:0]
+# BCU SETRA SET00001 1 1 1 1 1 0 0 0 0 0 0 0 systemRA r0[5:0]
+# BCU GSR
+# GET: Get System Register
+0 0 0 0 1 1 1 1 1 1 0 0 0 1 0 0 0 r0[8:0] r1[5:0]	| kalray i 1 32 get get r1 r0
+# BCU RSWAP RSWAP00001 1 1 1 1 1 0 0 1 0 0 0 0 systemS4 r0[5:0]
+# BCU RSWAPALONE
+# RSWAP 0 0 0 0 1 1 1 1 1 1 0 0 1 0 0 0 0 systemAlone r0[5:0]
+# BCU IGSR IGET 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+#RET: Return from Call
+0 00 01 1111 10100 000000 000000 000000	| kalray i 1 32 ret ret
+# RFE 0 0 0 0 1 1 1 1 1 1 0 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# BCU IBC IGOTO 0 0 0 0 1 1 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+# ICALL 0 0 0 0 1 1 1 1 1 1 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+# BCU SCI SCALL 0 0 0 0 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 sysnumber
+# BCU SCR SCALL 0 0 0 0 1 1 1 1 1 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 r0[5:0]
+# BCU UB
+# GOTO: Branch Unconditional PC-Relative
+0 0 0 1 0 i0[26:0]	| kalray i 1 32 ba goto i0
+# # CALL: Call Subroutine PC-Relative
+# 0 0 0 1 1 i0[26:0]	| kalray i 1 32 call call i0
+# LSU LSBO LBZ 0 0 1 0 0 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LBS 0 0 1 0 0 1 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LHZ 0 0 1 0 1 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LHS 0 0 1 0 1 1 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LWZ: Load Word Zero Extended cached
+0 0 1 1 0 0 00 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray f 1 32 r lwzf. r0  r1 i0
+# LWZ: Load Word Zero Extended cached
+0 0 1 1 0 0 00 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lwz. r0  r1 i0
+# LWZ: Load Word Zero Extended speculative
+0 0 1 1 0 0 01 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lwz.S r0 r1 i0
+# LWZ: Load Word Zero Extended uncached
+0 0 1 1 0 0 10 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lwz.U r0 r1 i0
+# LWZ: Load Word Zero Extended uncached speculative
+0 0 1 1 0 0 11 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lwz.US r0 r1 i0
+# LWS: Load Word Sign Extended cached
+0 0 1 1 0 1 00 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lws. r0 r1 i0
+# LWS: Load Word Sign Extended speculative
+0 0 1 1 0 1 01 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lws.S r0 r1 i0
+# LWS: Load Word Sign Extended uncached
+0 0 1 1 0 1 10 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lws.U r0 r1 i0
+# LWS: Load Word Sign Extended uncached speculative
+0 0 1 1 0 1 11 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 r lws.US r0 r1 i0
+# LD: LOAD cached
+ 0 01 110 00 r0[5:0] 00 i0[9:0] r1[5:0]	| kalray i 1 64 r ld. r0 r1 i0
+# LD: LOAD speculative
+ 0 01 110 01 r0[5:0] 00 i0[9:0] r1[5:0]	| kalray i 1 64 r ld.S r0  r1 i0
+# LD: LOAD uncached
+ 0 01 110 10 r0[5:0] 00 i0[9:0] r1[5:0]	| kalray i 1 64 r ld.U r0 r1 i0
+# LD: LOAD uncached speculative
+ 0 01 110 11 r0[5:0] 00 i0[9:0] r1[5:0]	| kalray i 1 64 r ld.US r0 r1 i0
+# LSU LPBO LQ 0 0 1 1 1 1 variant r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# LSU LQBO LO 0 0 1 1 1 1 variant r0[3:0] 0 1 0 0 i0[9:0] r1[5:0]
+# LSU FXBO DTOUCHL 0 0 1 1 1 1 variant 0 0 0 0 1 1 0 0 i0[9:0] r0[5:0]
+# DINVALL 0 0 1 1 1 1 variant 0 0 0 1 1 1 0 0 i0[9:0] r0[5:0]
+# DPURGEL∗ 0 0 1 1 1 1 variant 0 0 1 0 1 1 0 0 i0[9:0] r0[5:0]
+# DFLUSHL∗ 0 0 1 1 1 1 variant 0 0 1 1 1 1 0 0 i0[9:0] r0[5:0]
+# ITOUCHL∗ 0 0 1 1 1 1 variant 0 1 0 0 1 1 0 0 i0[9:0] r0[5:0]
+# IINVALS 0 0 1 1 1 1 variant 0 1 0 1 1 1 0 0 i0[9:0] r0[5:0]
+# LSU LVBO LV 0 0 1 0 0 0 0 speculate r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU LVTBO LV 0 0 1 0 0 0 1 speculate r0[5:0] columnsel 0 1 i0[9:0] r1[5:0]
+# LSU SSBO
+# SB: Store Byte
+0 0 1 0 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 8 w sb  r1 r0 i0
+# SH: Store Half Word
+0 0 1 0 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 16 w sh  r1 r0 i0
+# SW: Store Word
+0 0 1 0 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray f 1 32 w sw r1  r0  i0
+# SW: Store Word
+0 0 1 0 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 32 w sw r1  r0  i0
+# SD: Store Double Word
+0 0 1 0 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 w sd  r1 r0 i0
+# LSU SPBO
+# SQ: Store Quadruple Word
+0 0 1 0 1 0 0 0 r0[4:0] 0 0 1 i0[9:0] r1[5:0]	| kalray i 1 256 w sd  r1 r0 i0
+# LSU SQBO
+# SO: Store Octuple Word
+0 0 1 0 1 0 0 0 r0[3:0] 0 1 0 1 i0[9:0] r1[5:0]	| kalray i 1 128 w sd  r1 r0 i0
+# LSU FZBO DZEROL 0 0 1 0 1 0 0 0 0 0 0 0 1 1 0 1 i0[9:0] r1[5:0]
+# LSU SVBO SV 0 0 1 0 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU ASBO ALCLRW 0 0 1 0 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ALCLRD 0 0 1 0 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU AABO
+# ASWAPW∗ 0 0 1 0 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ASWAPD∗ 0 0 1 0 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFADDW 0 0 1 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFADDD 0 0 1 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFANDW∗ 0 0 1 1 0 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFANDD∗ 0 0 1 1 0 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFORW∗ 0 0 1 1 0 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFORD∗ 0 0 1 1 0 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFXORW∗ 0 0 1 1 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFXORD∗ 0 0 1 1 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINW∗ 0 0 1 1 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMIND∗ 0 0 1 1 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXW∗ 0 0 1 1 1 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXD∗ 0 0 1 1 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINUW∗ 0 0 1 1 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINUD∗ 0 0 1 1 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXUW∗ 0 0 1 1 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXUD∗ 0 0 1 1 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU APBO ACSWAPW 0 0 1 1 1 1 1 0 r0[4:0] 0 0 1 i0[9:0] r1[5:0]
+# 6.5 LSU Instructions
+# ACSWAPD 0 0 1 1 1 1 1 1 r0[4:0] 0 0 1 i0[9:0] r1[5:0]
+# LSU COPYO COPYO 0 0 1 1 1 1 1 0 r0[3:0] 0 1 0 1 0 0 0 0 0 0 0 0 0 0 r1[3:0] 0 0
+# LSU MCC
+# DINVAL 0 0 1 1 1 1 1 1 1 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# IINVAL 0 0 1 1 1 1 1 1 1 0 0 1 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# FENCE 0 0 1 1 1 1 1 1 1 1 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+# LSU LSPB
+# LBZ 0 0 1 0 0 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LBS 0 0 1 0 0 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LHZ 0 0 1 0 1 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LHS 0 0 1 0 1 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LWZ 0 0 1 1 0 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LWS 0 0 1 1 0 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+#LD: LOAD cached Double Not Equal to Zero
+0 01 110 00 r0[5:0] 10 0000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..DNEZ r1 r0 r2
+#LD: LOAD speculative Double Not Equal to Zero
+0 01 110 01 r0[5:0] 10 0000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DNEZ r1 r0 r2
+#LD: LOAD uncached Double Not Equal to Zero
+0 01 110 10 r0[5:0] 10 0000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DNEZ r1 r0 r2
+#LD: LOAD uncached speculative Double Not Equal to Zero
+0 01 110 11 r0[5:0] 10 0000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DNEZ r1 r0 r2
+#LD: LOAD cached Double Equal to Zero
+0 01 110 00 r0[5:0] 10 0001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..DEQZ r1 r0 r2
+#LD: LOAD speculative Double Equal to Zero
+0 01 110 01 r0[5:0] 10 0001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DEQZ r1 r0 r2
+#LD: LOAD uncached Double Equal to Zero
+0 01 110 10 r0[5:0] 10 0001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DEQZ r1 r0 r2
+#LD: LOAD uncached speculative Double Equal to Zero
+0 01 110 11 r0[5:0] 10 0001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DEQZ r1 r0 r2
+#LD: LOAD cached Double Less Than Zero
+0 01 110 00 r0[5:0] 10 0010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..DLTZ r1 r0 r2
+#LD: LOAD speculative Double Less Than Zero
+0 01 110 01 r0[5:0] 10 0010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DLTZ r1 r0 r2
+#LD: LOAD uncached Double Less Than Zero
+0 01 110 10 r0[5:0] 10 0010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DLTZ r1 r0 r2
+#LD: LOAD uncached speculative Double Less Than Zero
+0 01 110 11 r0[5:0] 10 0010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DLTZ r1 r0 r2
+#LD: LOAD cached Double Greater Than or Equal to Zero
+0 01 110 00 r0[5:0] 10 0011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.DGEZ. r1 r0 r2
+#LD: LOAD speculative Double Greater Than or Equal to Zero
+0 01 110 01 r0[5:0] 10 0011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DGEZ r1 r0 r2
+#LD: LOAD uncached Double Greater Than or Equal to Zero
+0 01 110 10 r0[5:0] 10 0011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DGEZ r1 r0 r2
+#LD: LOAD uncached speculative Double Greater Than or Equal to Zero
+0 01 110 11 r0[5:0] 10 0011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DGEZ r1 r0 r2
+#LD: LOAD cached Double Less Than or Equal to Zero
+0 01 110 00 r0[5:0] 10 0100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..DLEZ r1 r0 r2
+#LD: LOAD speculative Double Less Than or Equal to Zero
+0 01 110 01 r0[5:0] 10 0100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DLEZ r1 r0 r2
+#LD: LOAD uncached Double Less Than or Equal to Zero
+0 01 110 10 r0[5:0] 10 0100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DLEZ r1 r0 r2
+#LD: LOAD uncached speculative Double Less Than or Equal to Zero
+0 01 110 11 r0[5:0] 10 0100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DLEZ r1 r0 r2
+#LD: LOAD cached Double Greater Than Zero
+0 01 110 00 r0[5:0] 10 0101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..DGTZ r1 r0 r2
+#LD: LOAD speculative Double Greater Than Zero
+0 01 110 01 r0[5:0] 10 0101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.DGTZ r1 r0 r2
+#LD: LOAD uncached Double Greater Than Zero
+0 01 110 10 r0[5:0] 10 0101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.DGTZ r1 r0 r2
+#LD: LOAD uncached speculative Double Greater Than Zero
+0 01 110 11 r0[5:0] 10 0101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.DGTZ r1 r0 r2
+#LD: LOAD cached Odd (LSB Set)
+0 01 110 00 r0[5:0] 10 0110 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.ODD. r1 r0 r2
+#LD: LOAD speculative Odd (LSB Set)
+0 01 110 01 r0[5:0] 10 0110 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.ODD r1 r0 r2
+#LD: LOAD uncached Odd (LSB Set)
+0 01 110 10 r0[5:0] 10 0110 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.ODD r1 r0 r2
+#LD: LOAD uncached speculative Odd (LSB Set)
+0 01 110 11 r0[5:0] 10 0110 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.ODD r1 r0 r2
+#LD: LOAD cached Even (LSB Clear)
+0 01 110 00 r0[5:0] 10 0111 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..EVEN r1 r0 r2
+#LD: LOAD speculative Even (LSB Clear)
+0 01 110 01 r0[5:0] 10 0111 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.EVEN r1 r0 r2
+#LD: LOAD uncached Even (LSB Clear)
+0 01 110 10 r0[5:0] 10 0111 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.EVEN r1 r0 r2
+#LD: LOAD uncached speculative Even (LSB Clear)
+0 01 110 11 r0[5:0] 10 0111 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.EVEN r1 r0 r2
+#LD: LOAD cached Word Not Equal to Zero
+0 01 110 00 r0[5:0] 10 1000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WNEZ r1 r0 r2
+#LD: LOAD speculative Word Not Equal to Zero
+0 01 110 01 r0[5:0] 10 1000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WNEZ r1 r0 r2
+#LD: LOAD uncached Word Not Equal to Zero
+0 01 110 10 r0[5:0] 10 1000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WNEZ r1 r0 r2
+#LD: LOAD uncached speculative Word Not Equal to Zero
+0 01 110 11 r0[5:0] 10 1000 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WNEZ r1 r0 r2
+#LD: LOAD cached Word Equal to Zero
+0 01 110 00 r0[5:0] 10 1001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WEQZ r1 r0 r2
+#LD: LOAD speculative Word Equal to Zero
+0 01 110 01 r0[5:0] 10 1001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WEQZ r1 r0 r2
+#LD: LOAD uncached Word Equal to Zero
+0 01 110 10 r0[5:0] 10 1001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WEQZ r1 r0 r2
+#LD: LOAD uncached speculative Word Equal to Zero
+0 01 110 11 r0[5:0] 10 1001 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WEQZ r1 r0 r2
+#LD: LOAD cached Word Less Than Zero
+0 01 110 00 r0[5:0] 10 1010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WLTZ r1 r0 r2
+#LD: LOAD speculative Word Less Than Zero
+0 01 110 01 r0[5:0] 10 1010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WLTZ r1 r0 r2
+#LD: LOAD uncached Word Less Than Zero
+0 01 110 10 r0[5:0] 10 1010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WLTZ r1 r0 r2
+#LD: LOAD uncached speculative Word Less Than Zero
+0 01 110 11 r0[5:0] 10 1010 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WLTZ r1 r0 r2
+#LD: LOAD cached Word Greater Than or Equal to Zero
+0 01 110 00 r0[5:0] 10 1011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WGEZ r1 r0 r2
+#LD: LOAD speculative Word Greater Than or Equal to Zero
+0 01 110 01 r0[5:0] 10 1011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WGEZ r1 r0 r2
+#LD: LOAD uncached Word Greater Than or Equal to Zero
+0 01 110 10 r0[5:0] 10 1011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WGEZ r1 r0 r2
+#LD: LOAD uncached speculative Word Greater Than or Equal to Zero
+0 01 110 11 r0[5:0] 10 1011 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WGEZ r1 r0 r2
+#LD: LOAD cached Word Less Than or Equal to Zero
+0 01 110 00 r0[5:0] 10 1100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WLEZ r1 r0 r2
+#LD: LOAD speculative Word Less Than or Equal to Zero
+0 01 110 01 r0[5:0] 10 1100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WLEZ r1 r0 r2
+#LD: LOAD uncached Word Less Than or Equal to Zero
+0 01 110 10 r0[5:0] 10 1100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WLEZ r1 r0 r2
+#LD: LOAD uncached speculative Word Less Than or Equal to Zero
+0 01 110 11 r0[5:0] 10 1100 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WLEZ r1 r0 r2
+#LD: LOAD cached Word Greater Than Zero
+0 01 110 00 r0[5:0] 10 1101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld..WGTZ r1 r0 r2
+#LD: LOAD speculative Word Greater Than Zero
+0 01 110 01 r0[5:0] 10 1101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.S.WGTZ r1 r0 r2
+#LD: LOAD uncached Word Greater Than Zero
+0 01 110 10 r0[5:0] 10 1101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.U.WGTZ r1 r0 r2
+#LD: LOAD uncached speculative Word Greater Than Zero
+0 01 110 11 r0[5:0] 10 1101 r1[5:0] r2[5:0]	| kalray i 1 64 r ld.US.WGTZ r1 r0 r2
+# LSU LPPB LQ 0 0 1 1 1 1 variant r0[4:0] 0 1 0 lsucond r1[5:0] r2[5:0]
+# LSU LPPB1 LO 0 0 1 1 1 1 variant r0[3:0] 0 1 1 0 lsucond r1[5:0] r2[5:0]
+# LSU FXCB DTOUCHL 0 0 1 1 1 1 variant 0 0 0 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DINVALL 0 0 1 1 1 1 variant 0 0 0 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DPURGEL∗ 0 0 1 1 1 1 variant 0 0 1 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DFLUSHL∗ 0 0 1 1 1 1 variant 0 0 1 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# ITOUCHL∗ 0 0 1 1 1 1 variant 0 1 0 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# IINVALS 0 0 1 1 1 1 variant 0 1 0 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# LSU LVPB LV 0 0 1 0 0 0 0 speculate r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU LVTPB LV 0 0 1 0 0 0 1 speculate r0[5:0] columnsel 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SSPB SB: Store Byte 0 0 1 0 0 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SH 0 0 1 0 0 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SW 0 0 1 0 0 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SD 0 0 1 0 0 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SPPB SQ 0 0 1 0 1 0 0 0 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SQPB SO 0 0 1 0 1 0 0 0 r0[3:0] 0 1 1 1 lsucond r1[5:0] r2[5:0]
+# LSU FZCB DZEROL 0 0 1 0 1 0 0 0 0 0 0 0 1 1 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SVPB SV 0 0 1 0 1 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU ASPB ALCLRW 0 0 1 0 1 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# ALCLRD 0 0 1 0 1 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU AAPB ASWAPW∗ 0 0 1 0 1 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# ASWAPD∗ 0 0 1 0 1 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFADDW 0 0 1 0 1 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFADDD 0 0 1 0 1 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFANDW∗ 0 0 1 1 0 0 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFANDD∗ 0 0 1 1 0 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFORW∗ 0 0 1 1 0 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFORD∗ 0 0 1 1 0 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFXORW∗ 0 0 1 1 0 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFXORD∗ 0 0 1 1 0 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINW∗ 0 0 1 1 0 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMIND∗ 0 0 1 1 0 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXW∗ 0 0 1 1 1 0 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXD∗ 0 0 1 1 1 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINUW∗ 0 0 1 1 1 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINUD∗ 0 0 1 1 1 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXUW∗ 0 0 1 1 1 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXUD∗ 0 0 1 1 1 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU APPB ACSWAPW 0 0 1 1 1 1 1 0 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# ACSWAPD 0 0 1 1 1 1 1 1 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# LSU LSBI LBZ 0 0 1 0 0 0 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LBS 0 0 1 0 0 1 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LHZ 0 0 1 0 1 0 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LHS 0 0 1 0 1 1 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LWZ 0 0 1 1 0 0 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LWS 0 0 1 1 0 1 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LD 0 0 1 1 1 0 variant r0[5:0] 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LSU LPBI LQ 0 0 1 1 1 1 variant r0[4:0] 0 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LSU LPBI1 LO 0 0 1 1 1 1 variant r0[3:0] 0 1 1 0 1 1 1 scal r1[5:0] r2[5:0]
+# LSU FXBI DTOUCHL 0 0 1 1 1 1 variant 0 0 0 0 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# DINVALL 0 0 1 1 1 1 variant 0 0 0 1 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# DPURGEL∗ 0 0 1 1 1 1 variant 0 0 1 0 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# DFLUSHL∗ 0 0 1 1 1 1 variant 0 0 1 1 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# ITOUCHL∗ 0 0 1 1 1 1 variant 0 1 0 0 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# IINVALS 0 0 1 1 1 1 variant 0 1 0 1 1 1 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# LSU LVBI LV 0 0 1 0 0 0 0 speculate r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU LVTBI LV 0 0 1 0 0 0 1 speculate r0[5:0] columnsel 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU SSBI SB: Store Byte 0 0 1 0 0 1 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# SH 0 0 1 0 0 1 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# SW 0 0 1 0 0 1 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# SD 0 0 1 0 0 1 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU SPBI SQ 0 0 1 0 1 0 0 0 r0[4:0] 0 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU SQBI SO 0 0 1 0 1 0 0 0 r0[3:0] 0 1 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU FZBI DZEROL 0 0 1 0 1 0 0 0 0 0 0 0 1 1 1 1 1 1 1 0 r1[5:0] r2[5:0]
+# LSU SVBI SV 0 0 1 0 1 0 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU ASBI ALCLRW 0 0 1 0 1 0 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# ALCLRD 0 0 1 0 1 0 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU AABI
+# ASWAPW∗ 0 0 1 0 1 1 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# ASWAPD∗ 0 0 1 0 1 1 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFADDW 0 0 1 0 1 1 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFADDD 0 0 1 0 1 1 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFANDW∗ 0 0 1 1 0 0 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFANDD∗ 0 0 1 1 0 0 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFORW∗ 0 0 1 1 0 0 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFORD∗ 0 0 1 1 0 0 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFXORW∗ 0 0 1 1 0 1 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFXORD∗ 0 0 1 1 0 1 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMINW∗ 0 0 1 1 0 1 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMIND∗ 0 0 1 1 0 1 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMAXW∗ 0 0 1 1 1 0 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMAXD∗ 0 0 1 1 1 0 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMINUW∗ 0 0 1 1 1 0 1 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMINUD∗ 0 0 1 1 1 0 1 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMAXUW∗ 0 0 1 1 1 1 0 0 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# AFMAXUD∗ 0 0 1 1 1 1 0 1 r0[5:0] 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# LSU APBI
+# ACSWAPW 0 0 1 1 1 1 1 0 r0[4:0] 0 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# ACSWAPD 0 0 1 1 1 1 1 1 r0[4:0] 0 1 1 1 1 1 scal r1[5:0] r2[5:0]
+# ALU WI
+# MAKE: Make Word from Immediate
+0 11 0 0000 r0[5:0] 00 i0[15:0]	| kalray i 1 32 mv make r0 i0
+# ALU WRI
+# ADDD: Add Double Word to Double Word
+0 1 1 0 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 add addd r0 r1 i0
+# MV: Double Word to Double Word
+0 1 1 0 0 0 0 1 r0[5:0] 0 0 0000000000 r1[5:0]	| kalray i 1 64 mv mv r0 r1
+0 1 1 0 0 0 0 1 r0[5:0] 0 0 0000000000 r1[5:0]	| kalray i 4 16 mv mv r0 r1
+# MIND: Minimum of Double Words
+0 1 1 0 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 min mind r0 r1 i0
+# MAXD: Maximum of Double Words
+0 1 1 0 0 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 max maxd r0 r1 i0
+# 6.6 ALU instructions
+# ABDD: Absolute Difference of Double Words
+0 1 1 0 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 abd abdd r0 r1 i0
+# SBFD: Subtract Double Word From Double Word
+0 1 1 0 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 subf sbfd r0 r1 i0
+# MINUD: Minimum of Unsigned Double Words
+0 1 1 0 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 min minud r0 r1 i0
+# MAXUD: Maximum of Unsigned Double Words
+0 1 1 0 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 max maxud r0 r1 i0
+# ANDD: Bitwise And Between Double Words
+0 1 1 0 1 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 and andd r0 r1 i0
+# NANDD: Bitwise Not And Between Double Words
+0 1 1 0 1 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 nand nandd r0 r1 i0
+# ORD: Bitwise Or Between Double Words
+0 1 1 0 1 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 or ord r0 r1 i0
+# NORD: Bitwise Not Or Between Double Words
+0 1 1 0 1 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 nor nord r0 r1 i0
+# XORD: Bitwise Exclusive Or Between Double Words
+0 1 1 0 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 xor xord r0 r1 i0
+# NXORD: Bitwise Not Exclusive Or Between Double Words
+0 1 1 0 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 nxor nxord r0 r1 i0
+# ANDND: Bitwise And with Not Operand Between Double Words
+0 1 1 0 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 and andnd r0 r1 i0
+# ORND: Bitwise Or with Not Operand Between Double Words
+0 1 1 0 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 64 or ornd r0 r1 i0
+# ALU CWRI
+#COMPD: Compare Double Words Not Equal
+0 1 1 0 0000 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpne cmpd.NE r0 r1 i0
+#COMPD: Compare Double Words Equal
+0 1 1 0 0001 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpeq cmpd.EQ r0 r1 i0
+#COMPD: Compare Double Words Less Than
+0 1 1 0 0010 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmplt cmpd.LT r0 r1 i0
+#COMPD: Compare Double Words Greater Than or Equal
+0 1 1 0 0011 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpge cmpd.GE r0 r1 i0
+#COMPD: Compare Double Words Less Than or Equal
+0 1 1 0 0100 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmple cmpd.LE r0 r1 i0
+#COMPD: Compare Double Words Greater Than
+0 1 1 0 0101 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpgt cmpd.GT r0 r1 i0
+#COMPD: Compare Double Words Less Than Unsigned
+0 1 1 0 0110 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpltu cmpd.LTU r0 r1 i0
+#COMPD: Compare Double Words Greater Than or Equal Unsigned
+0 1 1 0 0111 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpgeu cmpd.GEU r0 r1 i0
+#COMPD: Compare Double Words Less Than or Equal Unsigned
+0 1 1 0 1000 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpleu cmpd.LEU r0 r1 i0
+#COMPD: Compare Double Words Greater Than Unsigned
+0 1 1 0 1001 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpgtu cmpd.GTU r0 r1 i0
+#COMPD: Compare Double Words All Bits Set in Mask
+0 1 1 0 1010 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpall cmpd.ALL r0 r1 i0
+#COMPD: Compare Double Words Not All Bits Set in Mask
+0 1 1 0 1011 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpnall cmpd.NALL r0 r1 i0
+#COMPD: Compare Double Words Any Bits Set in Mask
+0 1 1 0 1100 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpany cmpd.ANY r0 r1 i0
+#COMPD: Compare Double Words Not Any Bits Set in Mask
+0 1 1 0 1101 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray i 1 64 cmpnone cmpd.NONE r0 r1 i0
+# ALU WRIS
+#ADDSD 0 1 1 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# SBFSD 0 1 1 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ALU MWRI
+#CMOVED 0 1 1 0 scalarcond r0[5:0] 1 0 i0[9:0] r1[5:0]
+# ALU BWRI
+#SBMM8 0 1 1 0 1 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# SBMMT8 0 1 1 0 1 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# ALU WRB
+# INSF: Insert Bit Field into Word
+0 1 1 0 0 0 i0[5:4] r0[5:0] 1 1 i0[3:0] i1[5:0] r1[5:0]	| kalray i 1 64 insert insfz r0 r1 i0 i1
+# EXTFZ: Extract Bit Field and Zero Extend to Word
+0 1 1 0 0 1 i0[5:4] r0[5:0] 1 1 i0[3:0] i1[5:0] r1[5:0]	| kalray i 1 64 ext extfz r0 r1 i0 i1
+# EXTFS: Extract Bit Field and Sign Extend to Word
+0 1 1 0 1 0 i0[5:4] r0[5:0] 1 1 i0[3:0] i1[5:0] r1[5:0]	| kalray i 1 64 ext extfs r0 r1 i0 i1
+# CLRF: Clear Field
+0 1 1 0 1 1 i0[5:4] r0[5:0] 1 1 i0[3:0] i1[5:0] r1[5:0]	| kalray i 1 64 clear clrf r0 r1 i0 i1
+# ALU WIPC
+#PCREL 0 1 1 1 0 0 0 0 r0[5:0] 0 0i0[15:0]
+# ALU WRIW
+#ADDW: Add Word to Word
+0 1 1 1 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 add addw r0 r1 i0
+#ADDW: Add Word to Word
+0 1 1 1 0 0 0 1 r0[5:0] 0 0 0000000000 r1[5:0]	| kalray i 1 32 mv mv r0 r1
+#SUBW: r0 = r1 - i0
+0 1 1 1 0 0 0 1 r0[5:0] 0 0 (-i0[9:0]) r1[5:0]	| kalray i 1 32 sub subw r0 r1 i0
+# MINW: Minimum of Words
+0 1 1 1 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 min minw r0 r1 i0
+# MAXW: Maximum of Words
+0 1 1 1 0 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 max maxw r0 r1 i0
+# ABDW: Absolute Value of Word
+0 1 1 1 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 abd abdw r0 r1 i0
+# SBFW: Subtract Word from Word
+0 1 1 1 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 subf sbfw r0 r1 i0
+# MINUW: Minimum of Unsigned Words
+0 1 1 1 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 min minuw r0 r1 i0
+# MAXUW: Maximum of Unsigned Words
+0 1 1 1 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 max maxuw r0 r1 i0
+# ANDW: Bitwise And Between Words
+0 1 1 1 1 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 and andw r0 r1 i0
+# NANDW: Bitwise Not And Between Words
+0 1 1 1 1 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 nand nandw r0 r1 i0
+# ORW: Bitwise Or Between Words
+0 1 1 1 1 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 or orw r0 r1 i0
+# NORW: Bitwise Not Or Between Words
+0 1 1 1 1 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 nor norw r0 r1 i0
+# XORW: Bitwise Exclusive Or Between Words
+0 1 1 1 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 xor xorw r0 r1 i0
+# NXORW: Bitwise Not Exclusive Or Between Words
+0 1 1 1 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 nxor nxorw r0 r1 i0
+# ANDNW: Bitwise And with Not Operand Between Double Words
+0 1 1 1 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 and andnw r0 r1 i0
+# ORNW: Bitwise Or with Not Operand Between Double Words
+0 1 1 1 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]	| kalray i 1 32 or ornw r0 r1 i0
+# ALU WRR0
+#STSUD 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]
+# ADDD: Add Double Word to Double Word
+0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 add addd r0 r2 r1
+# MIND: Minimum of Double Words
+0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 min mind r0 r2 r1
+# MAXD: Maximum of Double Words
+0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 max maxd r0 r2 r1
+# ABDD: Absolute Difference of Double Words
+0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 abd abdd r0 r2 r1
+# SBFD: Subtract Double Word From Double Word
+0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 sub sbfd r0 r1 r2
+# MINUD: Minimum of Unsigned Double Words
+0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 min minud r0 r2 r1
+# MAXUD: Maximum of Unsigned Double Words
+0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 max maxud r0 r2 r1
+# ANDD: Bitwise And Between Double Words
+0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 and andd r0 r2 r1
+# NANDD: Bitwise Not And Between Double Words
+0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 nand nandd r0 r2 r1
+# ORD: Bitwise Or Between Double Words
+0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 or ord r0 r2 r1
+# NORD: Bitwise Not Or Between Double Words0
+0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 nor nord r0 r2 r1
+# XORD: Bitwise Exclusive Or Between Double Words
+0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 xor xord r0 r2 r1
+# NXORD: Bitwise Not Exclusive Or Between Double Words
+0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 nxor nxord r0 r2 r1
+# ANDND: Bitwise And with Not Operand Between Double Words
+0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 and andnd r0 r2 r1
+# ORND: Bitwise Or with Not Operand Between Double Words
+0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 0 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 or ornd r0 r2 r1
+# ALU DWRR0
+#STSUW 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]
+# ADDW: Add Word to Word
+0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 add addw r0 r2 r1
+# MINW: Minimum of Words
+0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 min minw r0 r2 r1
+# MAXW: Maximum of Words
+0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 max maxw r0 r2 r1
+# ABDW: Absolute Difference of Words
+0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 abd abdw r0 r2 r1
+# SBFW: Subtract Word from Word
+0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 sub sbfw r0 r1 r2
+# MINUW: Minimum of Unsigned Words
+0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 min minuw r0 r2 r1
+# MAXUW: Maximum of Unsigned Words
+0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 max maxuw r0 r2 r1
+# ANDW: Bitwise And Between Words
+0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 and andw r0 r2 r1
+# NANDW: Bitwise Not And Between Words
+0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 nand nandw r0 r2 r1
+# ORW: Bitwise Or Between Words
+0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 or orw r0 r2 r1
+# NORW: Bitwise Not  Or Between Words
+0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 nor norw r0 r2 r1
+# XORW: Bitwise Exclusive Or Between Words
+0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 xor xorw r0 r2 r1
+# NXORW: Bitwise Not Exclusive Or Between Words
+0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 nxor nxorw r0 r2 r1
+# ANDNW: Bitwise And with Not Operand Between Double Words
+0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 and andnw r0 r2 r1
+# ORNW: Bitwise Or with Not Operand Between Double Words
+0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 0 0 1 r1[5:0] r2[5:0]	| kalray i 1 32 or ornw r0 r2 r1
+# ALU WRRWP0
+# ADDWP 0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# MINWP 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# MAXWP 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# ABDWP 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# SBFWP 0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# MINUWP 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# MAXUWP 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# ADDCWC 0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# SBFCWC 0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 1 0 r1[5:0] r2[5:0]
+# ALU WRRHQ0
+#ADDHQ Add Half Words Quadruple
+0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]	| kalray i 4 16 add addhq r0 r2 r1
+# MINHQ 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# MAXHQ 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# ABDHQ 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# SBFHQ Subtract Half Words Quadruple
+0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]	| kalray i 4 16 sub subfhq r0 r1 r2
+# MINUHQ 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# MAXUHQ 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# ADDCHCP 0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# SBFCHCP 0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 1 1 r1[5:0] r2[5:0]
+# ALU WRR1
+#ADDX2D 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFX2D 0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ADDX4D 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFX4D 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ADDX8D 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFX8D 0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ADDX16D 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFX16D 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ADDWD 0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFWD 0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ADDUWD 0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# SBFUWD 0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# LANDD 0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# LNANDD 0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# LORD 0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# LNORD 0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 0 0 r1[5:0] r2[5:0]
+# ALU DWRR1
+#ADDX2W 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# SBFX2W 0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# ADDX4W 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# SBFX4W 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# ADDX8W 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# SBFX8W 0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# ADDX16W 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# SBFX16W 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# AVGW 0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# AVGUW 0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# AVGRW 0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# AVGRUW 0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# LANDW 0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# LNANDW 0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# LORW 0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# LNORW 0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 0 1 r1[5:0] r2[5:0]
+# ALU WRRWP1
+#ADDX2WP 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# SBFX2WP 0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# ADDX4WP 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# SBFX4WP 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# ADDX8WP 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# SBFX8WP 0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# ADDX16WP 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# SBFX16WP 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# AVGWP 0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# AVGUWP 0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# AVGRWP 0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# AVGRUWP 0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# LANDWP 0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# LNANDWP 0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# LORWP 0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# LNORWP 0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 1 0 r1[5:0] r2[5:0]
+# ALU WRRHQ1
+#ADDX2HQ 0 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# SBFX2HQ 0 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# ADDX4HQ 0 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# SBFX4HQ 0 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# ADDX8HQ 0 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# SBFX8HQ 0 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# ADDX16HQ 0 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# SBFX16HQ 0 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# AVGHQ 0 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# AVGUHQ 0 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# AVGRHQ 0 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# AVGRUHQ 0 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]
+# LANDHQ Logical And of Half Words Quadruple
+0 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0] | kalray i 4 16 and landhq r0 r2 r1
+# LNANDHQLogical Not And of Half Words Quadruple
+0 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]| kalray i 4 16 nand lnandhq r0 r2 r1
+# LORHQ Logical Or of Half Words Quadruple
+0 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]| kalray i 4 16 or lorhq r0 r2 r1
+# LNORHQ Logical Not Or of Half Words Quadruple
+0 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 1 1 r1[5:0] r2[5:0]| kalray i 4 16 nor lnorhq r0 r2 r1
+# ALU DWRR2
+#ADDX2WD 0 1 1 1 0 0 0 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX2WD 0 1 1 1 0 0 0 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX4WD 0 1 1 1 0 0 1 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX4WD 0 1 1 1 0 0 1 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX8WD 0 1 1 1 0 1 0 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX8WD 0 1 1 1 0 1 0 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX16WD 0 1 1 1 0 1 1 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX16WD 0 1 1 1 0 1 1 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX2UWD 0 1 1 1 1 0 0 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX2UWD 0 1 1 1 1 0 0 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX4UWD 0 1 1 1 1 0 1 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX4UWD 0 1 1 1 1 0 1 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX8UWD 0 1 1 1 1 1 0 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX8UWD 0 1 1 1 1 1 0 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ADDX16UWD 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# SBFX16UWD 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 0 0 0 r1[5:0] r2[5:0]
+# ALU CWRR
+#COMPD 0 1 1 1 comp r0[5:0] 0 1 1 0 1 0 r1[5:0] r2[5:0]
+# ALU WRRS
+#ADDSD 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 0 1 0 r1[5:0] r2[5:0]
+# SBFSD 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 0 1 0 r1[5:0] r2[5:0]
+# ALU DCWRR
+#COMPW: Compare Words Not Equal
+0 1 1 1 0000 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpne compw.NE r0 r1 r2
+#COMPW: Compare Words Equal
+0 1 1 1 0001 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpeq compw.EQ r0 r1 r2
+#COMPW: Compare Words Less Than
+0 1 1 1 0010 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmplt compw.LT r0 r1 r2
+#COMPW: Compare Words Greater Than or Equal
+0 1 1 1 0011 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpge compw.GE r0 r1 r2
+#COMPW: Compare Words Less Than or Equal
+0 1 1 1 0100 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmple compw.LE r0 r1 r2
+#COMPW: Compare Words Greater Than
+0 1 1 1 0101 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpgt compw.GT r0 r1 r2
+#COMPW: Compare Words Less Than Unsigned
+0 1 1 1 0110 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpltu compw.LTU r0 r1 r2
+#COMPW: Compare Words Greater Than or Equal Unsigned
+0 1 1 1 0111 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpgeu compw.GEU r0 r1 r2
+#COMPW: Compare Words Less Than or Equal Unsigned
+0 1 1 1 1000 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpleu compw.LEU r0 r1 r2
+#COMPW: Compare Words Greater Than Unsigned
+0 1 1 1 1001 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpgtu compw.GTU r0 r1 r2
+#COMPW: Compare Words All Bits Set in Mask
+0 1 1 1 1010 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpall compw.ALL r0 r1 r2
+#COMPW: Compare Words Not All Bits Set in Mask
+0 1 1 1 1011 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpnall compw.NALL r0 r1 r2
+#COMPW: Compare Words Any Bits Set in Mask
+0 1 1 1 1100 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpany compw.ANY r0 r1 r2
+#COMPW: Compare Words Not Any Bits Set in Mask
+0 1 1 1 1101 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 cmpnone compw.NONE r0 r1 r2
+# COMPWD 0 1 1 1 comp r0[5:0] 0 1 1 1 0 0 r1[5:0] r2[5:0]
+# COMPUWD 0 1 1 1 comp r0[5:0] 0 1 1 1 0 1 r1[5:0] r2[5:0]
+# ALU AWRRW
+#ADDSW 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]
+# SBFSW 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 0 1 1 r1[5:0] r2[5:0]
+# ALU DCWRRC
+# ADDCD: Add Double Word to Double Word with Carry
+0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 0 0 r1[5:0] r2[5:0]	| kalray i 1 64 add addcd r0 r2 r1
+# SBFCD 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 0 0 r1[5:0] r2[5:0]
+# ALU DCWRRCI
+#ADDCID 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 0 1 r1[5:0] r2[5:0]
+# SBFCID 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 0 1 r1[5:0] r2[5:0]
+# ALU CWRRWP
+#COMPNWP 0 1 1 1 comp r0[5:0] 0 1 1 1 1 0 r1[5:0] r2[5:0]
+# ALU AWRRWP
+#ADDSWP 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 1 0 r1[5:0] r2[5:0]
+# SBFSWP 0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 1 0 r1[5:0] r2[5:0]
+# ALU CWRRHQ
+#COMPNHQ 0 1 1 1 comp r0[5:0] 0 1 1 1 1 1 r1[5:0] r2[5:0]
+# ALU AWRRHQ
+#ADDSHQ 0 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 1 1 r1[5:0] r2[5:0]
+# SBFSHQ Subtract Saturated Half Words Quadruple
+0 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 1 1 r1[5:0] r2[5:0]	| kalray i 4 16 subs sbfshq r0 r2 r1
+# ALU MWRR0
+#CMOVED 0 1 1 1 scalarcond r0[5:0] 1 0 0 0 0 0 r1[5:0] r2[5:0]
+# ALU BWRR
+#SBMM8 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 0 0 0 r1[5:0] r2[5:0]
+# SBMMT8 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 0 0 0 r1[5:0] r2[5:0]
+# ALU MWRRWP
+#CMOVEWP 0 1 1 1 0 simdcond r0[5:0] 1 0 0 0 0 1 r1[5:0] r2[5:0]
+# ALU MWRRHQ
+#CMOVEHQ 0 1 1 1 1 simdcond r0[5:0] 1 0 0 0 0 1 r1[5:0] r2[5:0]
+# ALU DBWR
+#CLZD 0 1 1 1 0 0 0 0 r0[5:0] 1 0 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# CLSD 0 1 1 1 0 0 0 1 r0[5:0] 1 0 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# CBSD 0 1 1 1 0 0 1 0 r0[5:0] 1 0 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# CTZD 0 1 1 1 0 0 1 1 r0[5:0] 1 0 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# ALU DSWRI
+#SRSD: Shift Right Symmetric Double Word
+0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]	| kalray i 1 64 sr srsd r0 r1 i0
+# SLLD: Shift Left Logical Double Word
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]	| kalray i 1 64 srl slld r0 r1 i0
+# SRAD: Shift Right Arithmetic Double Word
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]	| kalray i 1 64 sra srad r0 r1 i0
+# SRLD: Shift Right Logical Double Word
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]	| kalray i 1 64 sra srld r0 r1 i0
+# SLSD: Shift Left Saturated Double Word
+0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]	| kalray i 1 64 sl slsd r0 r1 i0
+# SATD 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]
+# SATUD 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 0 1 0 i0[5:0] r1[5:0]
+# ALU BWR
+#CLZW 0 1 1 1 0 0 0 0 r0[5:0] 1 0 0 0 1 1 0 0 0 0 0 0 r1[5:0]
+# CLSW 0 1 1 1 0 0 0 1 r0[5:0] 1 0 0 0 1 1 0 0 0 0 0 0 r1[5:0]
+# CBSW 0 1 1 1 0 0 1 0 r0[5:0] 1 0 0 0 1 1 0 0 0 0 0 0 r1[5:0]
+# CTZW 0 1 1 1 0 0 1 1 r0[5:0] 1 0 0 0 1 1 0 0 0 0 0 0 r1[5:0]
+# ALU SWRI
+#SRSW: Shift Right Symmetric Word
+0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]	| kalray i 1 32 sr srsw r0 r1 i0
+# SLLW: Shift Left Logical Word
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]	| kalray i 1 32 sl sllw r0 r1 i0
+# SRAW: Shift Right Arithmetic Word
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]	| kalray i 1 32 sra sraw r0 r1 i0
+# SRLW: Shift Right Logical Word
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]	| kalray i 1 32 srl srlw r0 r1 i0
+# SLSW: Shift Left Saturated Word
+0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]	| kalray i 1 32 sl slsw r0 r1 i0
+# ROLW 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]
+# RORW 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 0 1 1 i0[5:0] r1[5:0]
+# ALU BWRWP
+#CLZWP 0 1 1 1 0 0 0 0 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# CLSWP 0 1 1 1 0 0 0 1 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# CBSWP 0 1 1 1 0 0 1 0 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# CTZWP 0 1 1 1 0 0 1 1 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# ZXLHWP∗ 0 1 1 1 0 1 0 0 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# ZXMHWP∗ 0 1 1 1 0 1 0 1 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# SXLHWP 0 1 1 1 0 1 1 0 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# SXMHWP 0 1 1 1 0 1 1 1 r0[5:0] 1 0 0 1 0 0 0 0 0 0 0 0 r1[5:0]
+# ALU DSWRIWP
+#SRSWPS 0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# SLLWPS 0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# SRAWPS 0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# SRLWPS 0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# SLSWPS 0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# ROLWPS 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# RORWPS 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 1 0 0 i0[5:0] r1[5:0]
+# ALU AWRHQ
+#ZXLBHQ∗ 0 1 1 1 0 1 0 0 r0[5:0] 1 0 0 1 0 1 0 0 0 0 0 0 r1[5:0]
+# ZXMBHQ∗ 0 1 1 1 0 1 0 1 r0[5:0] 1 0 0 1 0 1 0 0 0 0 0 0 r1[5:0]
+# SXLBHQ 0 1 1 1 0 1 1 0 r0[5:0] 1 0 0 1 0 1 0 0 0 0 0 0 r1[5:0]
+# SXMBHQ 0 1 1 1 0 1 1 1 r0[5:0] 1 0 0 1 0 1 0 0 0 0 0 0 r1[5:0]
+# ALU SWRIHQ
+#SRSHQS 0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 1 0 1 i0[5:0] r1[5:0]
+# SLLHQS Shift Left Logical Half Word Quadruple by Scalar
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 1 0 1 i0[5:0] r1[5:0]	| kalray i 4 16 sl sllhqs r0 r1 i1
+# SRAHQS Shift Right Arithmetic Half Word Quadruple by Scalar
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 1 0 1 i0[5:0] r1[5:0] | kalray i 4 16 sra srahqs r0 r1 i1
+# SRLHQS Shift Right Logical Half Word Quadruple by Scalar
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 1 0 1 i0[5:0] r1[5:0] | kalray i 4 16 srl srlhqs r0 r1 i1
+# SLSHQS 0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 1 0 1 i0[5:0] r1[5:0]
+# ALU DSWRR
+# SRSD: Shift Right Symmetric Double Word
+0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]	| kalray i 1 64 sr srsd r0 r2 r1
+# SLLD: Shift Left Logical Double Word
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]	| kalray i 1 64 sl slld r0 r2 r1
+# SRAD: Shift Right Arithmetic Double Word
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]	| kalray i 1 64 sra srad r0 r2 r1
+# SRLD: Shift Right Logical Double Word
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]	| kalray i 1 64 srl srld r0 r2 r1
+# SLSD: Shift Left Saturated Double Word
+0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]	| kalray i 1 64 sl slsd r0 r2 r1
+# SATD 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]
+# SATUD 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 1 1 0 r1[5:0] r2[5:0]
+# ALU SWRR
+#SRSW: Shift Right Symmetric Double Word
+0 1 1 1 1 0 0 0 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 sr srsw r0 r2 r1
+# SLLW: Shift Left Logical Double Word
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 sl sllwd r0 r2 r1
+# SRAW: Shift Right Arithmetic Double Word
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 sra sraw r0 r2 r1
+# SRLW: Shift Right Logical Double Word
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 srl srlw r0 r2 r1
+# SLSW: Shift Left Saturated Double Word
+0 1 1 1 1 1 0 0 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 sl slsw r0 r2 r1
+# ROLW 0 1 1 1 1 1 1 0 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]
+# RORW 0 1 1 1 1 1 1 1 r0[5:0] 1 0 0 1 1 1 r1[5:0] r2[5:0]
+# ALU DSWRRWP
+#SRSWPS 0 1 1 1 1 0 0 0 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# SLLWPS 0 1 1 1 1 0 0 1 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# SRAWPS 0 1 1 1 1 0 1 0 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# SRLWPS 0 1 1 1 1 0 1 1 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# SLSWPS 0 1 1 1 1 1 0 0 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# ROLWPS 0 1 1 1 1 1 1 0 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# RORWPS 0 1 1 1 1 1 1 1 r0[5:0] 1 0 1 0 0 0 r1[5:0] r2[5:0]
+# ALU SWRRHQ
+#SRSHQS 0 1 1 1 1 0 0 0 r0[5:0] 1 0 1 0 0 1 r1[5:0] r2[5:0]
+# SLLHQS Shift Left Logical Half Word Quadruple by Scalar
+0 1 1 1 1 0 0 1 r0[5:0] 1 0 1 0 0 1 r1[5:0] r2[5:0] | kalray i 4 16 sl sllhqs r0 r2 r1
+# SRAHQS Shift Right Arithmetic Half Word Quadruple by Scalar
+0 1 1 1 1 0 1 0 r0[5:0] 1 0 1 0 0 1 r1[5:0] r2[5:0] | kalray i 4 16 sra srahqs r0 r2 r1
+# SRLHQS Shift Right Logical Half Word Quadruple by Scalar
+0 1 1 1 1 0 1 1 r0[5:0] 1 0 1 0 0 1 r1[5:0] r2[5:0] | kalray i 4 16 sr srlhqs r0 r2 r1
+# SLSHQS 0 1 1 1 1 1 0 0 r0[5:0] 1 0 1 0 0 1 r1[5:0] r2[5:0]
+# ALU MOVETQE
+#MOVETQ 0 1 1 1 1 1 1 1 r0[5:0] 1 0 1 1 1 0 r1[5:0] r2[5:0]
+# ALU MOVETQO
+#MOVETQ 0 1 1 1 1 1 1 1 r0[5:0] 1 0 1 1 1 1 r1[5:0] r2[5:0]
+# ALU FCWRRS
+#FCOMPW 0 1 1 1 0 fcomp r0[5:0] 1 1 0 0 0 0 r1[5:0] r2[5:0]
+# FCOMPD 0 1 1 1 1 fcomp r0[5:0] 1 1 0 0 0 0 r1[5:0] r2[5:0]
+# ALU FCWRRWP
+#FCOMPNWP 0 1 1 1 0 fcomp r0[5:0] 1 1 0 0 0 1 r1[5:0] r2[5:0]
+# ALU FCWRRHQ
+#FCOMPNHQ 0 1 1 1 1 fcomp r0[5:0] 1 1 0 0 0 1 r1[5:0] r2[5:0]
+# ALU DFWR
+#FNEGD
+0 1 1 1 0 0 0 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]	| kalray f 1 64 neg fnegd r0 r1
+# 6.8 FPU Instructions
+# FABSD 0 1 1 1 0 0 0 1 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FNEGW
+0 1 1 1 0 0 1 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0] | kalray f 1 32 neg fnegd r0 r1
+# FABSW 0 1 1 1 0 0 1 1 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FNEGWP 0 1 1 1 0 1 0 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FABSWP 0 1 1 1 0 1 0 1 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FNEGHQ 0 1 1 1 0 1 1 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FABSHQ 0 1 1 1 0 1 1 1 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FSISRD 0 1 1 1 1 0 0 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FSISRW 0 1 1 1 1 0 1 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# FSISRWP 0 1 1 1 1 1 0 0 r0[5:0] 1 1 0 0 1 0 0 0 0 0 0 0 r1[5:0]
+# ALU FWR
+#FWIDENLWD 0 1 1 1 1 0 0 0 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# FWIDENMWD 0 1 1 1 1 0 0 1 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# FWIDENLHW 0 1 1 1 1 0 1 0 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# FWIDENMHW 0 1 1 1 1 0 1 1 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# FWIDENLHWP 0 1 1 1 1 1 0 0 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# FWIDENMHWP 0 1 1 1 1 1 0 1 r0[5:0] 1 1 0 0 1 1 silent2 0 0 0 0 0 r1[5:0]
+# ALU FWRHQ
+#FSINVD
+0 111 0000 r0[5:0] 11 0100 000000 r1[5:0]	| kalray f 1 64 inv fsinvd r0 r1
+# FSINVW
+#0 1 1 1 0 0 1 0 r0[5:0] 1 1 0 1 0 0 0 0 0 0 0 0 r1[5:0]	| kalray f 1 32 inv fsinvw r0 r1
+# FSINVWP 0 1 1 1 0 1 0 0 r0[5:0] 1 1 0 1 0 0 silent2 0 0 0 0 0 r1[5:0]
+# ALU DFWRR
+#FSDIVD 0 1 1 1 0 0 0 0 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# FCDIVD 0 1 1 1 0 0 0 1 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# FSDIVW 0 1 1 1 0 0 1 0 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# FCDIVW 0 1 1 1 0 0 1 1 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# FSDIVWP 0 1 1 1 0 1 0 0 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# FCDIVWP 0 1 1 1 0 1 0 1 r0[5:0] 1 1 0 1 0 1 silent2 0 0 0 0 0 r1[4:0] 0
+# ALU FWRWP
+# FINVW 0 1 1 1 0 0 1 0 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[5:0]
+# FINVW Floating-Point Inverse Word (round to nearest, ties to Even 0)
+0 11 1 0010 r0[5:0] 11 0110 0 000 00 r1[5:0] | kalray f 1 32 inv finvw r0 r1
+# FISRW 0 1 1 1 0 0 1 1 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[5:0]
+# FNARROWDW 0 1 1 1 1 0 0 0 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[5:0]
+# FNARROWWH 0 1 1 1 1 0 1 0 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[5:0]
+# ALU FWRWPN
+#FNARROWDWPP 1 1 1 1 1 0 0 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[4:0] 0
+# FNARROWWHQP 1 1 1 1 1 1 0 r0[5:0] 1 1 0 1 1 0 silent2rnd2 0 0 r1[4:0] 0
+# ALU DFWRD
+#FMIND 0 1 1 1 0 0 0 0 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMAXD 0 1 1 1 0 0 0 1 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMINW 0 1 1 1 0 0 1 0 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMAXW 0 1 1 1 0 0 1 1 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMINWP 0 1 1 1 0 1 0 0 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMAXWP 0 1 1 1 0 1 0 1 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMINHQ 0 1 1 1 0 1 1 0 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# FMAXHQ 0 1 1 1 0 1 1 1 r0[5:0] 1 1 1 0 0 0 r1[5:0] r2[5:0]
+# ALU NOP
+#NOP:
+0 1 1 1 1 1 1 1 0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0	| kalray i 1 1 nop nop
+# MAU DDDI0
+#MADDD 0 1 0 0 0 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MADDWP 0 1 0 0 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MADDHQ Multiply Add Half Word Quadruple
+0 1 0 0 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]| kalray i 4 16 madd maddhq r0 r1 i0
+# MAU DDI
+#MULD 0 1 0 0 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MULWP 0 1 0 0 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MULHQ Multiply Half Word Quadruple
+0 1 0 0 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0] | kalray i 4 16 mul mulhq r0 r1 i0
+# MULWC 0 1 0 0 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAU QQDI
+#MADDDT 0 1 0 0 1 0 0 0 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDUDT 0 1 0 0 1 0 0 1 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDSUDT 0 1 0 0 1 0 1 0 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDUZDT 0 1 0 0 1 0 1 1 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MAU QDI
+#MULDT 0 1 0 0 1 0 0 0 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MULUDT 0 1 0 0 1 0 0 1 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MULSUDT 0 1 0 0 1 0 1 0 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# 6.7 MAU Instructions
+# CMULDT 0 1 0 0 1 0 1 1 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MAU DPI
+#DOT2WD 0 1 0 0 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2UWD 0 1 0 0 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2SUWD 0 1 0 0 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2W 0 1 0 0 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAU FDDDI
+# FFMAD 0 1 0 0 0 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAWD 0 1 0 0 0 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAWP 0 1 0 0 0 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAHQ 0 1 0 0 0 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSD 0 1 0 0 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSWD 0 1 0 0 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSWP 0 1 0 0 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSHQ 0 1 0 0 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# MAU FDDI
+# FMULD: Floating-Point Multiply Double Word
+0 1 0 0 1 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray f 1 64 mul fmuld r0 r1 i0
+# FMULWD: Floating-Point Multiply Words to Double Word
+0 1 0 0 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]	| kalray f 1 64 mul fmulwd r0 r1 i0
+# FMULWP 0 1 0 0 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULHQ 0 1 0 0 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FDOT2W 0 1 0 0 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FDOT2WD 0 1 0 0 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULWC 0 1 0 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULCWC 0 1 0 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# MAU FDDI1
+# FADDD: Floating-Point Add Double Word
+0 1 0 0 0 0 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 64 add faddd r0 r1 i0
+#MV: Floating-Point Double Word
+0 1 0 0 0 0 0 0 r0[5:0] 1 0 0000000000 r1[5:0]	| kalray f 1 64 mv mv r0 r1
+# FADDWP: Floating-Point Add Word Pair
+0 1 0 0 0 0 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 32 add faddwp r0 r1 i0
+# MV: Floating-Point  Word Pair
+0 1 0 0 0 0 0 1 r0[5:0] 1 0 0000000000 r1[5:0]	| kalray f 1 32 mv mv r0 r1
+# FADDHQ Floating-Point Add Half Word Quadruple
+0 1 0 0 0 0 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0] | kalray f 4 16 add faddhq r0 r1 i0
+# FADDCWC 0 1 0 0 0 0 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFD: Floating-Point Subtract From Double Word
+0 1 0 0 0 1 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 64 subf  fsbf r0 r1 i0
+# FSBFWP: Floating-Point Subtract From Word Pair
+0 1 0 0 0 1 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 32 subf fsbfwp r0 r1 i0
+# FSBFHQ 0 1 0 0 0 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFCWC 0 1 0 0 0 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FSSSI
+# FFMAHW 0 1 0 0 1 0 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMAW 0 1 0 0 1 0 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMSHW 0 1 0 0 1 0 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMSW 0 1 0 0 1 0 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FSSI
+# FADDW: Floating-Point Add Words
+0 1 0 0 1 1 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 32 add faddw r0 r1 i0
+# FSBFW 0 1 0 0 1 1 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FMULW: Floating-Point Multiply Words
+0 1 0 0 1 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]	| kalray f 1 32 mul fmulw r0 r1 i0
+# FMULHW 0 1 0 0 1 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FQQDI
+# FFMAWDP 0 1 0 0 0 0 0 0 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMAHWQ 0 1 0 0 0 0 0 1 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMSWDP 0 1 0 0 0 0 1 0 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMSHWQ 0 1 0 0 0 0 1 1 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# MAU FQDI
+# FMULWDP 0 1 0 0 0 0 0 0 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULHWQ 0 1 0 0 0 0 0 1 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULWDC 0 1 0 0 0 0 1 0 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULCWDC 0 1 0 0 0 0 1 1 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# MAU FDD
+# FLOATD 0 1 0 0 0 1 0 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FLOATUD 0 1 0 0 0 1 0 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDD 0 1 0 0 0 1 1 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDUD 0 1 0 0 0 1 1 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FLOATW 0 1 0 0 1 0 0 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FLOATUW 0 1 0 0 1 0 0 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDW 0 1 0 0 1 0 1 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDUW 0 1 0 0 1 0 1 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FLOATWP 0 1 0 0 1 1 0 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FLOATUWP 0 1 0 0 1 1 0 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDWP 0 1 0 0 1 1 1 0 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# FIXEDUWP 0 1 0 0 1 1 1 1 r0[5:0] 1 1 silent rnd i0[5:0] r1[5:0]
+# MAU DDDD0
+#MADDD 0 1 0 1 0 0 0 0 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MADDWP 0 1 0 1 0 0 0 1 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MADDHQ Multiply Add Half Word Quadruple
+0 1 0 1 0 0 1 0 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]| kalray i 4 16 madd maddhq r0 r1 r2
+# MSBFD 0 1 0 1 0 1 0 0 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MSBFWP 0 1 0 1 0 1 0 1 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MSBFHQ 0 1 0 1 0 1 1 0 r0[5:0] 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MAU QQDD
+#MADDWDP 0 1 0 1 1 0 0 0 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MADDUWDP 0 1 0 1 1 0 0 1 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MADDSUWDP 0 1 0 1 1 0 1 0 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MM2AWQ 0 1 0 1 1 0 1 1 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MSBFWDP 0 1 0 1 1 1 0 0 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MSBFUWDP 0 1 0 1 1 1 0 1 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MSBFSUWDP 0 1 0 1 1 1 1 0 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MM2SWQ 0 1 0 1 1 1 1 1 r0[4:0] 0 0 0 0 0 0 0 r1[5:0] r2[5:0]
+# MAU QDD0
+#MULWDP 0 1 0 1 0 0 0 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULUWDP 0 1 0 1 0 0 0 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULSUWDP 0 1 0 1 0 0 1 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MM2WQ 0 1 0 1 0 0 1 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MAU DDD0
+#MULD 0 1 0 1 0 1 0 0 r0[5:0] 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULWP 0 1 0 1 0 1 0 1 r0[5:0] 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULHQ Multiply Half Word Quadruple
+0 1 0 1 0 1 1 0 r0[5:0] 0 0 0 0 0 1 r1[5:0] r2[5:0]	| kalray f 4 16 mul mulhq r0 r1 r2
+# MULWC 0 1 0 1 0 1 1 1 r0[5:0] 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MAU QQDD1
+#MADDDT 0 1 0 1 1 0 0 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MADDUDT 0 1 0 1 1 0 0 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MADDSUDT 0 1 0 1 1 0 1 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MADDUZDT 0 1 0 1 1 0 1 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MSBFDT 0 1 0 1 1 1 0 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MSBFUDT 0 1 0 1 1 1 0 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MSBFSUDT 0 1 0 1 1 1 1 0 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MSBFUZDT 0 1 0 1 1 1 1 1 r0[4:0] 0 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MAU QDD1
+#MULDT 0 1 0 1 1 0 0 0 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULUDT 0 1 0 1 1 0 0 1 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MULSUDT 0 1 0 1 1 0 1 0 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# CMULDT 0 1 0 1 1 0 1 1 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MAU QQDD2
+#CMULXDT 0 1 0 1 1 1 0 0 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# CMULGLXDT 0 1 0 1 1 1 0 1 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# CMULGMXDT 0 1 0 1 1 1 1 0 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# CMULGHXDT 0 1 0 1 1 1 1 1 r0[4:0] 1 0 0 0 0 0 1 r1[5:0] r2[5:0]
+# MAU QQQ
+#DOT2WDP 0 1 0 1 0 0 0 0 r0[4:0] 0 0 0 0 0 1 0 r1[4:0] 0 r2[4:0] 0
+# DOT2UWDP 0 1 0 1 0 0 0 1 r0[4:0] 0 0 0 0 0 1 0 r1[4:0] 0 r2[4:0] 0
+# DOT2SUWDP 0 1 0 1 0 0 1 0 r0[4:0] 0 0 0 0 0 1 0 r1[4:0] 0 r2[4:0] 0
+# DOT2WZP 0 1 0 1 0 0 1 1 r0[4:0] 0 0 0 0 0 1 0 r1[4:0] 0 r2[4:0] 0
+# MULWQ 0 1 0 1 0 1 0 0 r0[4:0] 0 0 0 0 0 1 0 r1[4:0] 0 r2[4:0] 0
+# MAU DDD1
+#MULCWC 0 1 0 1 0 1 0 1 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# MAU QDD2
+#MULWDC 0 1 0 1 0 1 1 0 r0[4:0] 0 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# MULCWDC 0 1 0 1 0 1 1 1 r0[4:0] 0 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# MAU CRC
+#CRCBELMW 0 1 0 1 1 0 0 0 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# CRCBELLW 0 1 0 1 1 0 0 1 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# CRCLELMW 0 1 0 1 1 0 1 0 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# CRCLELLW 0 1 0 1 1 0 1 1 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# MAU DPP
+#DOT2WD 0 1 0 1 1 1 0 0 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# DOT2UWD 0 1 0 1 1 1 0 1 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# DOT2SUWD 0 1 0 1 1 1 1 0 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# DOT2W 0 1 0 1 1 1 1 1 r0[5:0] 0 0 0 0 1 0 r1[5:0] r2[5:0]
+# MAU SSSS
+#MADDWD 0 1 0 1 0 0 0 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MADDUWD 0 1 0 1 0 0 0 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MADDSUWD 0 1 0 1 0 0 1 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MADDW 0 1 0 1 0 0 1 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MSBFWD 0 1 0 1 0 1 0 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MSBFUWD 0 1 0 1 0 1 0 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MSBFSUWD 0 1 0 1 0 1 1 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MSBFW 0 1 0 1 0 1 1 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MAU SSS
+#MULWD 0 1 0 1 1 0 0 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MULUWD 0 1 0 1 1 0 0 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MULSUWD 0 1 0 1 1 0 1 0 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]
+# MULW
+0 1 0 1 1 0 1 1 r0[5:0] 0 0 0 0 1 1 r1[5:0] r2[5:0]	| kalray i 1 32 mul mulw r0 r1 r2
+# MAU QQDD3
+#MADDHWQ 0 1 0 1 0 0 0 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MADDUHWQ 0 1 0 1 0 0 0 1 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MADDSUHWQ 0 1 0 1 0 0 1 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MSBFHWQ 0 1 0 1 0 1 0 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MSBFUHWQ 0 1 0 1 0 1 0 1 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MSBFSUHWQ 0 1 0 1 0 1 1 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MAU QDD3
+#MULHWQ 0 1 0 1 1 0 0 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MULUHWQ 0 1 0 1 1 0 0 1 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MULSUHWQ 0 1 0 1 1 0 1 0 r0[4:0] 0 0 0 0 1 0 0 r1[5:0] r2[5:0]
+# MAU DIVREM DIVREMD∗ 0 1 0 1 scalarcond r0[4:0] 0 0 0 1 0 0 0 r1[5:0] r2[4:0] 0
+# DIVREMUD∗ 0 1 0 1 scalarcond r0[4:0] 0 0 0 1 0 0 1 r1[5:0] r2[4:0] 0
+# DIVREMW∗ 0 1 0 1 scalarcond r0[4:0] 0 0 0 1 0 1 0 r1[5:0] r2[4:0] 0
+# DIVREMUW∗ 0 1 0 1 scalarcond r0[4:0] 0 0 0 1 0 1 1 r1[5:0] r2[4:0] 0
+# MAU COPYQ
+#COPYQ 0 1 0 1 1 1 1 1 r0[4:0] 0 0 0 1 1 1 1 r1[5:0] r2[5:0]
+# MAU FDDDD
+#FFMAD 0 1 0 1 0 0 0 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMAWD 0 1 0 1 0 0 0 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMAWP 0 1 0 1 0 0 1 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMAHQ 0 1 0 1 0 0 1 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMSD 0 1 0 1 0 1 0 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMSWD 0 1 0 1 0 1 0 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMSWP 0 1 0 1 0 1 1 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FFMSHQ 0 1 0 1 0 1 1 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# MAU FDDD
+#FMULD
+0 1 0 1 1 0 0 0 r0[5:0] 0 1 0 111 r1[5:0] r2[5:0]| kalray f 1 64 mul fmuld r0 r1 r2
+# FMULWD 0 1 0 1 1 0 0 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FMULWP 0 1 0 1 1 0 1 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FMULHQ 0 1 0 1 1 0 1 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FDOT2W 0 1 0 1 1 1 0 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FDOT2WD 0 1 0 1 1 1 0 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FMULWC 0 1 0 1 1 1 1 0 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# FMULCWC 0 1 0 1 1 1 1 1 r0[5:0] 0 1 silent rnd r1[5:0] r2[5:0]
+# MAU FDDD1
+#FADDD 01010000 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]	fadd.rnd.silent
+# FADDD 01010000 r0[5:0] 10 0 000 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rn. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 001 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.ru. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 010 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rd. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 011 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rz. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 100 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rna. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 101 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rnz. r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 0 110 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.ro. r0 r1 r2
+#FADDD
+01010000 r0[5:0] 10 0 111 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd r0 r1 r2
+#FADDD 01010000 r0[5:0] 10 1 000 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rn.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 001 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.ru.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 010 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rd.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 011 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rz.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 100 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rna.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 101 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.rnz.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 110 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd.ro.s r0 r1 r2
+# FADDD 01010000 r0[5:0] 10 1 111 r1[5:0] r2[5:0]	| kalray f 1 64 add faddd..s r0 r1 r2
+# FADDWP 0 1 0 1 0 0 0 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]	 | kalray f 1 32 add faddwp r0 r1 r2
+# FADDHQ 0 1 0 1 0 0 1 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+0 1010010 r0[5:0] 100 000 r1[5:0] r2[5:0] | kalray f 4 16 add faddhq.rn. r0 r1 r2
+# FADDCWC 0 1 0 1 0 0 1 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FSBFD 0 1 0 1 0 1 0 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FSBFWP 0 1 0 1 0 1 0 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FSBFHQ 0 1 0 1 0 1 1 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FSBFCWC 0 1 0 1 0 1 1 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# MAU FSSSS
+#FFMAHW 0 1 0 1 1 0 0 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FFMAW 0 1 0 1 1 0 0 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FFMSHW 0 1 0 1 1 0 1 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FFMSW 0 1 0 1 1 0 1 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# MAU FSSS
+#FADDW 0 1 0 1 1 1 0 0 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+#FADDW
+0 1 0 1 1 1 0 0 r0[5:0] 1 0 0 111 r1[5:0] r2[5:0]		| kalray f 1 32 add fadddw r0 r1 r2
+# FSBFW 0 1 0 1 1 1 0 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# FMULW
+0 1 0 1 1 1 1 0 r0[5:0] 1 0 0 111 r1[5:0] r2[5:0]	| kalray f 1 32 mul fmulw r0 r1 r2
+# FMULHW 0 1 0 1 1 1 1 1 r0[5:0] 1 0 silent rnd r1[5:0] r2[5:0]
+# MAU FQQDD
+#FFMAWDP 0 1 0 1 0 0 0 0 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# FFMAHWQ 0 1 0 1 0 0 0 1 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# FFMSWDP 0 1 0 1 0 0 1 0 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# FFMSHWQ 0 1 0 1 0 0 1 1 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# FMM2AWQ 0 1 0 1 0 1 0 0 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# FMM2SWQ 0 1 0 1 0 1 1 0 r0[4:0] 0 1 1 silent rnd r1[5:0] r2[5:0]
+# MAU FQDD
+#FMULWDP 0 1 0 1 0 0 0 0 r0[4:0] 1 1 1 silent rnd r1[5:0] r2[5:0]
+# FMULHWQ 0 1 0 1 0 0 0 1 r0[4:0] 1 1 1 silent rnd r1[5:0] r2[5:0]
+# FMULWDC 0 1 0 1 0 0 1 0 r0[4:0] 1 1 1 silent rnd r1[5:0] r2[5:0]
+# FMULCWDC 0 1 0 1 0 0 1 1 r0[4:0] 1 1 1 silent rnd r1[5:0] r2[5:0]
+# FMM2WQ 0 1 0 1 0 1 0 0 r0[4:0] 1 1 1 silent rnd r1[5:0] r2[5:0]
+# MAU FQQQ0
+#FADDDP 0 1 0 1 1 1 0 0 r0[4:0] 0 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FADDCDC 0 1 0 1 1 1 0 1 r0[4:0] 0 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FSBFDP 0 1 0 1 1 1 1 0 r0[4:0] 0 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FSBFCDC 0 1 0 1 1 1 1 1 r0[4:0] 0 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# MAU FQQQ1
+#FADDWQ 0 1 0 1 1 0 0 0 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FADDCWCP 0 1 0 1 1 0 0 1 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FSBFWQ 0 1 0 1 1 0 1 0 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FSBFCWCP 0 1 0 1 1 0 1 1 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FDOT2WDP 0 1 0 1 1 1 0 0 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FDOT2WZP 0 1 0 1 1 1 0 1 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FMULWQ 0 1 0 1 1 1 1 0 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# FMULDP∗ 0 1 0 1 1 1 1 1 r0[4:0] 1 1 1 silent rnd r1[4:0] 0 r2[4:0] 0
+# LSU LSBO.X LBZ 0 0 0 0 0 i0[36:10] 1 0 1 0 0 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LBS 0 0 0 0 0 i0[36:10] 1 0 1 0 0 1 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LHZ 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LHS 0 0 0 0 0 i0[36:10] 1 0 1 0 1 1 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LWZ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LWS 0 0 0 0 0 i0[36:10] 1 0 1 1 0 1 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LD 0 0 0 0 0 i0[36:10] 1 0 1 1 1 0 variant r0[5:0] 0 0 i0[9:0] r1[5:0]
+# LSU LPBO.X LQ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# LSU LQBO.X LO 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant r0[3:0] 0 1 0 0 i0[9:0] r1[5:0]
+# LSU FXBO.X DTOUCHL 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 0 0 0 1 1 0 0 i0[9:0] r1[5:0]
+# DINVALL 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 0 0 1 1 1 0 0 i0[9:0] r1[5:0]
+# DPURGEL∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 0 1 0 1 1 0 0 i0[9:0] r1[5:0]
+# DFLUSHL∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 0 1 1 1 1 0 0 i0[9:0] r1[5:0]
+# ITOUCHL∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 1 0 0 1 1 0 0 i0[9:0] r1[5:0]
+# IINVALS 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 variant 0 1 0 1 1 1 0 0 i0[9:0] r1[5:0]
+# LSU LVBO.X LV 0 0 0 0 0 i0[36:10] 1 0 1 0 0 0 0 speculate r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU LVTBO.X LV 0 0 0 0 0 i0[36:10] 1 0 1 0 0 0 1 speculate r0[5:0] columnsel 0 1 i0[9:0] r1[5:0]
+# LSU SSBO.X SB 0 0 0 0 0 i0[36:10] 1 0 1 0 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# SH 0 0 0 0 0 i0[36:10] 1 0 1 0 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# SW 0 0 0 0 0 i0[36:10] 1 0 1 0 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# SD 0 0 0 0 0 i0[36:10] 1 0 1 0 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU SPBO.X SQ 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 0 0 r0[4:0] 0 0 1 i0[9:0] r1[5:0]
+# LSU SQBO.X SO 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 0 0 r0[3:0] 0 1 0 1 i0[9:0] r1[5:0]
+# LSU FZBO.X DZEROL 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 0 0 0 0 0 0 1 1 0 1 i0[9:0] r1[5:0]
+# LSU SVBO.X SV 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU ASBO.X ALCLRW 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ALCLRD 0 0 0 0 0 i0[36:10] 1 0 1 0 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU AABO.X ASWAPW∗ 0 0 0 0 0 i0[36:10] 1 0 1 0 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ASWAPD∗ 0 0 0 0 0 i0[36:10] 1 0 1 0 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFADDW 0 0 0 0 0 i0[36:10] 1 0 1 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFADDD 0 0 0 0 0 i0[36:10] 1 0 1 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFANDW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFANDD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFORW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFORD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFXORW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFXORD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMIND∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINUW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMINUD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXUW∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# AFMAXUD∗ 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# LSU APBO.X ACSWAPW 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 1 0 r0[4:0] 0 0 1 i0[9:0] r1[5:0]
+# ACSWAPD 0 0 0 0 0 i0[36:10] 1 0 1 1 1 1 1 1 r0[4:0] 0 0 1 i0[9:0] r1[5:0]
+# LSU LSPB.O LBZ 0 0 0 0 0 i0[26:0] 1 0 1 0 0 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LBS 0 0 0 0 0 i0[26:0] 1 0 1 0 0 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LHZ 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LHS 0 0 0 0 0 i0[26:0] 1 0 1 0 1 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LWZ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LWS 0 0 0 0 0 i0[26:0] 1 0 1 1 0 1 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LD 0 0 0 0 0 i0[26:0] 1 0 1 1 1 0 variant r0[5:0] 1 0 lsucond r1[5:0] r2[5:0]
+# LSU LPPB.O LQ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant r0[4:0] 0 1 0 lsucond r1[5:0] r2[5:0]
+
+# LSU LPPB1.O LO 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant r0[3:0] 0 1 1 0 lsucond r1[5:0] r2[5:0]
+# LSU FXCB.O DTOUCHL 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 0 0 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DINVALL 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 0 0 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DPURGEL∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 0 1 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# DFLUSHL∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 0 1 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# ITOUCHL∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 1 0 0 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# IINVALS 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 variant 0 1 0 1 1 1 1 0 lsucond r1[5:0] r2[5:0]
+# LSU LVPB.O LV 0 0 0 0 0 i0[26:0] 1 0 1 0 0 0 0 speculate r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU LVTPB.O LV 0 0 0 0 0 i0[26:0] 1 0 1 0 0 0 1 speculate r0[5:0] columnsel 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SSPB.O SB: Store Byte 0 0 0 0 0 i0[26:0] 1 0 1 0 0 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SH 0 0 0 0 0 i0[26:0] 1 0 1 0 0 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SW 0 0 0 0 0 i0[26:0] 1 0 1 0 0 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# SD 0 0 0 0 0 i0[26:0] 1 0 1 0 0 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SPPB.O SQ 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 0 0 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SQPB.O SO 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 0 0 r0[3:0] 0 1 1 1 lsucond r1[5:0] r2[5:0]
+# LSU FZCB.O DZEROL 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 0 0 0 0 0 0 1 1 1 1 lsucond r1[5:0] r2[5:0]
+# LSU SVPB.O SV 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU ASPB.O ALCLRW 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# ALCLRD 0 0 0 0 0 i0[26:0] 1 0 1 0 1 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU AAPB.O ASWAPW∗ 0 0 0 0 0 i0[26:0] 1 0 1 0 1 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# ASWAPD∗ 0 0 0 0 0 i0[26:0] 1 0 1 0 1 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFADDW 0 0 0 0 0 i0[26:0] 1 0 1 0 1 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFADDD 0 0 0 0 0 i0[26:0] 1 0 1 0 1 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFANDW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 0 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFANDD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFORW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFORD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFXORW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFXORD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 1 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMIND∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 0 1 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 0 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 0 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINUW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 0 1 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMINUD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 0 1 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXUW∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 0 0 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# AFMAXUD∗ 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 0 1 r0[5:0] 1 1 lsucond r1[5:0] r2[5:0]
+# LSU APPB.O ACSWAPW 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 1 0 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# ACSWAPD 0 0 0 0 0 i0[26:0] 1 0 1 1 1 1 1 1 r0[4:0] 0 1 1 lsucond r1[5:0] r2[5:0]
+# ALU WI.X
+#MAKE: Make Word from Immediate 0 0 0 0 0 i0[36:10] 1 1 1 0 0 0 0 0 r0[5:0] 0 0 i0[9:0] extend6
+# ALU WRI.X ADDD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MIND 0 0 0 0 0 i0[36:10] 1 1 1 0 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAXD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ABDD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# SBFD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MINUD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAXUD 0 0 0 0 0 i0[36:10] 1 1 1 0 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ANDD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NANDD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ORD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NORD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# XORD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NXORD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ANDND 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ORND 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ALU CWRI.X COMPD 0 0 0 0 0 i0[36:10] 1 1 1 0 comp r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ALU WRIS.X ADDSD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# SBFSD 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# ALU MWRI.X CMOVED 0 0 0 0 0 i0[36:10] 1 1 1 0 scalarcond r0[5:0] 1 0 i0[9:0] r1[5:0]
+# ALU BWRI.X SBMM8 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# SBMMT8 0 0 0 0 0 i0[36:10] 1 1 1 0 1 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# ALU WIPC.X PCREL 0 0 0 0 0 i0[36:10] 1 1 1 1 0 0 0 0 r0[5:0] 0 0 i0[9:0] extend6
+# ALU WRIW.X ADDW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MINW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAXW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ABDW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# SBFW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MINUW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAXUW 0 0 0 0 0 i0[36:10] 1 1 1 1 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ANDW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NANDW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ORW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NORW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 0 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# XORW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# NXORW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ANDNW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ORNW 0 0 0 0 0 i0[36:10] 1 1 1 1 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# ALU WRRWP0.XADDWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# MINWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# MAXWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# ABDWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# SBFWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# MINUWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# MAXUWP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# ADDCWC 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# SBFCWC 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 1 0 splat32 i0[4:0] r1[5:0]
+# ALU WRRHQ0.X
+#ADDHQ Add Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# MINHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# MAXHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# ABDHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# SBFHQ Subtract Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# MINUHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# MAXUHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# ADDCHCP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# SBFCHCP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 0 1 1 splat32 i0[4:0] r1[5:0]
+# ALU WRR1.X
+#ADDX2D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFX2D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ADDX4D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFX4D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ADDX8D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFX8D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ADDX16D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFX16D 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ADDWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ADDUWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# SBFUWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# LANDD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# LNANDD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# LORD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# LNORD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 0 0 0 i0[4:0] r1[5:0]
+# ALU DWRR1.X ADDX2W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# SBFX2W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# ADDX4W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# SBFX4W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# ADDX8W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# SBFX8W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# ADDX16W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# SBFX16W 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# AVGW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# AVGUW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# AVGRW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# AVGRUW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# LANDW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# LNANDW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# LORW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# LNORW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 0 1 0 i0[4:0] r1[5:0]
+# ALU WRRWP1.XADDX2WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# SBFX2WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# ADDX4WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# SBFX4WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# ADDX8WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# SBFX8WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# ADDX16WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# SBFX16WP 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# AVGWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# AVGUWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# AVGRWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# AVGRUWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# LANDWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# LNANDWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# LORWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# LNORWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 1 0 splat32 i0[4:0] r1[5:0]
+# ALU WRRHQ1.XADDX2HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# SBFX2HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# ADDX4HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# SBFX4HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# ADDX8HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# SBFX8HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# ADDX16HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# SBFX16HQ 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# AVGHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# AVGUHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# AVGRHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# AVGRUHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+#  LANDHQ Logical And of Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# LNANDHQ Logical Not And of Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# LORHQ Logical Or of Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# LNORHQ Logical Not Or of Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 0 1 1 1 splat32 i0[4:0] r1[5:0]
+# ALU DWRR2.X ADDX2WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX2WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 0 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX4WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX4WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 0 1 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX8WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX8WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 0 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX16WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX16WD 0 0 0 0 0 i0[31:5] 1 1 1 1 0 1 1 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX2UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX2UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 0 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX4UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX4UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 0 1 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX8UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX8UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 0 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ADDX16UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# SBFX16UWD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 1 0 0 0 0 i0[4:0] r1[5:0]
+# ALU DCWRR.X COMPW 0 0 0 0 0 i0[31:5] 1 1 1 1 comp r0[5:0] 0 1 1 0 1 1 0 i0[4:0] r1[5:0]
+# ALU AWRRW.X ADDSW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 1 0 1 1 0 i0[4:0] r1[5:0]
+# SBFSW 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 1 0 1 1 0 i0[4:0] r1[5:0]
+# ALU AWRRWP.XADDSWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 1 0 splat32 i0[4:0] r1[5:0]
+# SBFSWP 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 1 0 splat32 i0[4:0] r1[5:0]
+# ALU AWRRHQ.XADDSHQ 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 0 r0[5:0] 0 1 1 1 1 1 splat32 i0[4:0] r1[5:0]
+# SBFSHQ Subtract Saturated Half Words Quadruple 0 0 0 0 0 i0[31:5] 1 1 1 1 1 1 1 1 r0[5:0] 0 1 1 1 1 1 splat32 i0[4:0] r1[5:0]
+# ALU FCWRRS.X FCOMPW 0 0 0 0 0 i0[31:5] 1 1 1 1 0 fcomp r0[5:0] 1 1 0 0 0 0 0 i0[4:0] r1[5:0]
+# FCOMPD 0 0 0 0 0 i0[31:5] 1 1 1 1 1 fcomp r0[5:0] 1 1 0 0 0 0 0 i0[4:0] r1[5:0]
+# MAU DDDI0.X MADDD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MADDWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MADDHQ Multiply Add Half Word Quadruple 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAU DDI.X MULD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MULWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MULHQ Multiply Half Word Quadruple 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MULWC 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAU QQDI.X MADDDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 0 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDUDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 1 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDSUDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 0 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MADDUZDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 1 r0[4:0] 0 0 0 i0[9:0] r1[5:0]
+# MAU QDI.X MULDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 0 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MULUDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 1 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MULSUDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 0 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# CMULDT 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 1 r0[4:0] 1 0 0 i0[9:0] r1[5:0]
+# MAU DPI.X DOT2WD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2UWD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2SUWD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 0 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# DOT2W 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 1 r0[5:0] 0 0 i0[9:0] r1[5:0]
+# MAU FDDDI.X FFMAD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAWD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMAHQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSWD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FFMSHQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# MAU FDDI.X FMULD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULWD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULWP 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULHQ 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FDOT2W 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FDOT2WD 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULWC 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 0 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# FMULCWC 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 1 r0[5:0] 0 1 i0[9:0] r1[5:0]
+# MAU FDDI1.X FADDD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FADDWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FADDHQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FADDCWC 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFD 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFWP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFHQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFCWC 0 0 0 0 0 i0[36:10] 1 1 0 0 0 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FSSSI.X FFMAHW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMAW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMSHW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FFMSW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 0 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FSSI.X FADDW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FSBFW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 0 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FMULW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 0 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# FMULHW 0 0 0 0 0 i0[36:10] 1 1 0 0 1 1 1 1 r0[5:0] 1 0 i0[9:0] r1[5:0]
+# MAU FQQDI.X FFMAWDP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 0 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMAHWQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 1 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMSWDP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 0 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# FFMSHWQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 1 r0[4:0] 0 1 1 i0[9:0] r1[5:0]
+# MAU FQDI.X FMULWDP 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 0 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULHWQ 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 0 1 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULWDC 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 0 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# FMULCWDC 0 0 0 0 0 i0[36:10] 1 1 0 0 0 0 1 1 r0[4:0] 1 1 1 i0[9:0] r1[5:0]
+# MAU CRC.X CRCBELMW 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 0 0 r0[5:0] 0 0 0 0 1 0 0 i0[4:0] r1[5:0]
+# CRCBELLW 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 0 1 r0[5:0] 0 0 0 0 1 0 0 i0[4:0] r1[5:0]
+# CRCLELMW 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 1 0 r0[5:0] 0 0 0 0 1 0 0 i0[4:0] r1[5:0]
+# CRCLELLW 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 1 1 r0[5:0] 0 0 0 0 1 0 0 i0[4:0] r1[5:0]
+# MAU SSSS.X MADDWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 0 0 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MADDUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 0 0 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MADDSUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 0 1 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MADDW 0 0 0 0 0 i0[31:5] 1 1 0 1 0 0 1 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MSBFWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 1 0 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MSBFUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 1 0 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MSBFSUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 0 1 1 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MSBFW 0 0 0 0 0 i0[31:5] 1 1 0 1 0 1 1 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MAU SSS.X MULWD 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 0 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MULUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 0 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+# MULSUWD 0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 1 0 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0]
+#MULW
+0 0 0 0 0 i0[31:5] 1 1 0 1 1 0 1 1 r0[5:0] 0 0 0 0 1 1 0 i0[4:0] r1[5:0] | kalray i 1 32 mul mulw r0 r1 i0

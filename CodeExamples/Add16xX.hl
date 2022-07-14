@@ -1,0 +1,64 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef  unsigned long (*pifii)(unsigned long ,unsigned long);
+
+pifii genAdd(h2_insn_t * ptr, int vectorLen) // C compilette prototype
+{
+  #[
+    int 16 #(vectorLen) add (int 16 #(vectorLen) a, int 16 #(vectorLen) b ) // Generated function prototype
+    {
+	int 16 #(vectorLen) r;
+	r = a + b;
+	return r;
+    }
+  ]#
+  return (pifii)ptr;
+}
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  pifii fPtr;
+  int vectorLen, resultOK;
+
+  if ((argc < 3) || (0 != strcmp("-l", argv[1])))
+    {
+      printf("Give -l <VectorLength> <vector const values>\n");
+      exit(-1);
+    }
+  vectorLen  = atoi (argv[2]);   // Get vector Len
+  if (argc != (2*vectorLen+3))
+    {
+      printf("incorrect vector number\n");
+      exit(-1);
+    }
+  unsigned long in0 = 0, in1 = 0, res;
+  int tab0[vectorLen], tab1[vectorLen], tabr[vectorLen];
+  for (int i = 0; i < vectorLen; i++)
+  {
+      tab0[i] = (atoi(argv[3+i]) & 0xF);
+      in0 = (in0 << 4) | tab0[i];
+      tab1[i] = (atoi(argv[3+vectorLen+i]) & 0xF);
+      in1 = (in1 << 4) | tab1[i];
+      tabr[i] = tab0[i] +tab1[i];
+  }
+  //printf("%04x, %04x\n", in0, in1);
+  ptr  = h2_malloc (1024); // Allocate memory for 1024 instructions
+  fPtr = genAdd (ptr, vectorLen);     // Generate instructions=
+  res = fPtr(in0, in1);  // Call generated code
+  //printf("%04x + %04x = %04x\n", in0, in1, res);
+  int a, b, c;
+  resultOK = 0;
+  for (int i = 0; i < vectorLen; i++)
+  {
+      a = (in0 >> (i*4)) & 0xF;
+      b = (in1 >> (i*4)) & 0xF;
+      c = (res >> (i*4)) & 0xF;
+      printf("%i + %i = %i\n",a,b,c);
+      if (c != tabr[vectorLen-i-1])
+		{
+		  resultOK = -1;
+		}
+  }
+}

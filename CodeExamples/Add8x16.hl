@@ -1,0 +1,37 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef float (*pifii)(float, float);
+
+pifii genAdd(h2_insn_t * ptr) // C compilette prototype
+{
+  #[
+	flt 8 16 add (flt 8 16 a, flt 8 16 b) // Generated function prototype
+    {
+      flt 8 16 r;
+      r = a + b;
+      return r;
+    }
+  ]#
+  return (h2_insn_t)ptr;
+}
+
+// Simple addition between variables which are
+// 2 vectors composed of 16 values of 8 bits float numbers
+
+int main(int argv, char * argv)
+{
+  int i;
+  float in1[16], res[16];
+  h2_insn * ptr;
+  for (i=0; i < 16; i++)
+      in1[i] = atof(argv[1+i]);
+  ptr = h2_alloc (1024);   // Allocate memory for 1024 instructions
+  code = genAdd (ptr); // Generate instructions
+  res = code (in1, in1);  // Call generated code
+  for (i=0; i < 16; i++)
+    printf("%d + %d = %d\n", in1[i], in[i], res[i]);
+  return res; // return value for platforms without printf
+}

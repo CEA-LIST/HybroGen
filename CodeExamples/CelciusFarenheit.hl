@@ -1,0 +1,67 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  int (*pifi)(int);
+
+h2_insn_t * genC2F(h2_insn_t * ptr)
+{
+  #[
+  int 32 1 C2F (int 32 1 a)
+  {
+    int 32 1 r;
+	r = a * 9 / 5 + 32;
+    return r;
+  }
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+h2_insn_t * genF2C(h2_insn_t * ptr)
+{
+  #[
+  int 32 1 F2C (int 32 1 a)
+  {
+    int 32 1 r;
+	r = a - 32 * 5 / 9;
+    return r;
+  }
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int in0, res, resultOK;
+  pifi fC2F, fF2C;
+
+  resultOK = 0;
+  if (argc < 2)
+    {
+      printf("Give 1 values\n");
+      exit(-1);
+    }
+  in0  = atoi (argv[1]);   // Get the users values in0
+  printf("// Compilette for conversion from celcius to farenheit\n");
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fC2F = (pifi) genC2F (ptr); //
+  res  = fC2F(in0);  // Call generated code
+  printf("%d (celcius)   -> (farenheit)%d\n", in0, res);
+  if (res != (in0 * 9 / 5 + 32))
+	resultOK += 1;
+  printf("// Compilette for conversion from farenheit to celcius\n");
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fF2C = (pifi) genF2C (ptr); //
+  res  = fF2C(in0);  // Call generated code
+  printf("%d (farenheit)   -> (celcius)%d\n", in0, res);
+  if (res != (in0 - 32 * 5 / 9))
+	resultOK += 1;
+
+  if (resultOK == 0)
+	return 0;
+  else
+	return -1;
+}
+

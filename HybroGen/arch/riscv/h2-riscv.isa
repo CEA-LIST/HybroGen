@@ -1,0 +1,994 @@
+# Risc V isa description
+# Extracted from opcode-map.tex https://github.com/riscv/riscv-isa-manual/tree/master/src
+# Calling convention https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#register-convention
+# Small float from https://iis-git.ee.ethz.ch/smach/smallFloat-spec/blob/master/smallFloat_isa.pdf
+
+ARCH riscv 32
+
+# Instructions formats
+# 31       27   26 25 24        20   19     15  14 12  11      7  6        0
+#       funct7             rs2          rs1    funct3     rd        opcode   R-type
+#             imm[11:0]                 rs1    funct3     rd        opcode   I-type
+#     imm[11:5]            rs2          rs1    funct3   imm[4:0]    opcode   S-type
+#    imm[12|10:5]          rs2          rs1    funct3 imm[4:1|11]   opcode   B-type
+#                       imm[31:12]                        rd        opcode   U-type
+#                 imm[20|10:1|11|19:12]                   rd        opcode   J-type
+
+#                        RV32I Base Instruction Set
+
+i1[19:0] r3[4:0] 0110111       | RV32I i 1 32 LUI LUI r3 i1
+#i1[19:0] r3[4:0] 0010111      | RV32I i 1 32 AUIPC r3 i1
+i1[20] i1[10:1] i1[11] i1[19:12] r3[4:0] 1101111 | RV32I i 1 32 BA JAL r3 i1
+i1[11:0] r1[4:0] 000 r2[4:0] 1100111 	 | RV32I i 1 32 J JALR r2 r1 i1
+0000 0000 0000 00001 000 00000 1100111 	 | RV32I i 1 32 RET RET
+
+ i1[12] i1[10:5] r2[4:0] r1[4:0] 000 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BEQ BEQ r1 r2 i1
+i1[12] i1[10:5] r2[4:0] r1[4:0] 001 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BNE BNE r1 r2 i1
+i1[12] i1[10:5] r2[4:0] r1[4:0] 100 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BLT BLT r1 r2 i1
+i1[12] i1[10:5] r2[4:0] r1[4:0] 101 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BGE BGE r1 r2 i1
+# i1[12] i1[10:5] r2[4:0] r1[4:0] 110 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BLTU
+# i1[12] i1[10:5] r2[4:0] r1[4:0] 111 i1[4:1] i1[11] 1100011 | RV32I i 1 32 BGEU
+ i1[11:0] r1[4:0] 000 r3[4:0] 0000011 | RV32I i 1 8 R LB r3 r1 i1
+ i1[11:0] r1[4:0] 001 r3[4:0] 0000011 | RV32I i 1 16 R LH r3 r1 i1
+ i1[11:0] r1[4:0] 010 r3[4:0] 0000011 | RV32I i 1 32 R LW r3 r1 i1
+ i1[11:0] r1[4:0] 100 r3[4:0] 0000011 | RV32I u 1 32 R LBU r3 r1 i1
+ i1[11:0] r1[4:0] 101 r3[4:0] 0000011 | RV32I u 1 16 R LHU r3 r1 i1
+ i1[11:5] r2[4:0] r1[4:0] 000 i1[4:0] 0100011 | RV32I i 1 8 W SB r1 r2 i1
+ i1[11:5] r2[4:0] r1[4:0] 001 i1[4:0] 0100011 | RV32I i 1 16 W SH r1 r2 i1
+ i1[11:5] r2[4:0] r1[4:0] 010 i1[4:0] 0100011 | RV32I i 1 32 W SW r1 r2 i1
+ i0[11:0] r0[4:0] 000 r1[4:0] 0010011 | RV32I i 1 32 ADD ADDI r1 r0 i0
+ 0000 0000 0000 r1[4:0] 000 r0[4:0] 0010011 | RV32I i 1 32 MV MV r0 r1
+# i1[11:0] r1[4:0] 010 r3[4:0] 0010011 | RV32I i 1 32 SLTI r3 r1 i1
+# i1[11:0] r1[4:0] 011 r3[4:0] 0010011 | RV32I i 1 32 SLTIU r3 r1 i1
+i1[11:0] r1[4:0] 100 r3[4:0] 0010011 | RV32I i 1 32 XOR XORI r3 r1 i1
+i1[11:0] r1[4:0] 110 r3[4:0] 0010011 | RV32I i 1 32 OR ORI r3 r1 i1
+i1[11:0] 00000 110 r3[4:0] 0010011   | RV32I i 1 32 MV MV r3 i1
+i1[11:0] r1[4:0] 111 r3[4:0] 0010011 | RV32I i 1 32 AND ANDI r3 r1 i1
+0000000 i0[4:0] r1[4:0] 001 r3[4:0] 0010011 | RV32I i 1 32 SL SLLI r3 r1 i0
+0000000 i0[4:0] r1[4:0] 101 r3[4:0] 0010011 | RV32I i 1 32 SR SRLI r3 r1 i0
+0100000 i0[4:0] r1[4:0] 101 r3[4:0] 0010011 | RV32I i 1 32 SRA SRAI r3 r1 i0
+0000000 r2[4:0] r1[4:0] 000 r3[4:0] 0110011 | RV32I i 1 32 ADD ADD r3 r1 r2
+0100000 r2[4:0] r1[4:0] 000 r3[4:0] 0110011 | RV32I i 1 32 SUB SUB r3 r1 r2
+0000000 r2[4:0] r1[4:0] 001 r3[4:0] 0110011 | RV32I i 1 32 SL SLL r3 r1 r2
+# 0000000 r2[4:0] r1[4:0] 010 r3[4:0] 0110011 | RV32I i 1 32 SLT r3 r1 r2
+# 0000000 r2[4:0] r1[4:0] 011 r3[4:0] 0110011 | RV32I i 1 32 SLTU r3 r1 r2
+0000000 r2[4:0] r1[4:0] 100 r3[4:0] 0110011 | RV32I i 1 32 XOR XOR r3 r1 r2
+0000000 r2[4:0] r1[4:0] 101 r3[4:0] 0110011 | RV32I i 1 32 SR SRL r3 r1 r2
+0100000 r2[4:0] r1[4:0] 101 r3[4:0] 0110011 | RV32I i 1 32 SRA SRA r3 r1 r2
+0000000 r2[4:0] r1[4:0] 110 r3[4:0] 0110011 | RV32I i 1 32 OR OR r3 r1 r2
+0000000 r2[4:0] r1[4:0] 111 r3[4:0] 0110011 | RV32I i 1 32 AND AND r3 r1 r2
+# 0000 pred succ 00000 000 00000 0001111 | RV32I i 1 32 FENCE
+# 0000 0000 0000 00000 001 00000 0001111 | RV32I i 1 32 FENCE.I
+# 000000000000 00000 000 00000 1110011 | RV32I i 1 32 ECALL
+# 000000000001 00000 000 00000 1110011 | RV32I i 1 32 EBREAK
+# csr r1[4:0] 001 r3[4:0] 1110011 | RV32I i 1 32 CSRRW
+# csr r1[4:0] 010 r3[4:0] 1110011 | RV32I i 1 32 CSRRS
+# csr r1[4:0] 011 r3[4:0] 1110011 | RV32I i 1 32 CSRRC
+# csr zimm 101 r3[4:0] 1110011 | RV32I i 1 32 CSRRWI
+# csr zimm 110 r3[4:0] 1110011 | RV32I i 1 32 CSRRSI
+# csr zimm 111 r3[4:0] 1110011 | RV32I i 1 32 CSRRCI
+
+# RV64I Base Instruction Set (in addition to RV32I)
+# i1[11:0] r1[4:0] 110 r3[4:0] 0000011 | RV64I i 1 32 LWU r3 r1 i1
+# i1[11:0] r1[4:0] 011 r3[4:0] 0000011 | RV64I i 1 32 LD r3 r1 i1
+# i1[6:0] r2[4:0] r1[4:0] 011 i2[4:0] 0100011 | RV64I i 1 32 SD r2 r1 i1 i2
+000000 i0[5:0] r1[4:0] 001 r3[4:0] 0010011 | RV64I i 1 64 SL SLLI r3 r1 i0
+000000 i0[5:0] r1[4:0] 101 r3[4:0] 0010011 | RV64I i 1 64 SR SRLI r3 r1 i0
+010000 i0[5:0] r1[4:0] 101 r3[4:0] 0010011 | RV64I i 1 64 SRA SRAI r3 r1 i0
+# i1[11:0] r1[4:0] 000 r3[4:0] 0011011 | RV64I i 1 32 ADDIW r3 r1 i1
+# 0000000 i0[4:0] r1[4:0] 001 r3[4:0] 0011011 | RV64I i 1 32 SL SLLIW r3 r1 i0
+# 0000000 i0[4:0] r1[4:0] 101 r3[4:0] 0011011 | RV64I i 1 32 SR SRLIW r3 r1 i0
+# 0100000 i0[4:0] r1[4:0] 101 r3[4:0] 0011011 | RV64I i 1 32 SRA SRAIW r3 r1 i0
+0000000 r2[4:0] r1[4:0] 000 r3[4:0] 0111011 | RV64I i 1 32 ADD ADDW r3 r1 r2
+0100000 r2[4:0] r1[4:0] 000 r3[4:0] 0111011 | RV64I i 1 32 SUBW r3 r1 r2
+0000000 r2[4:0] r1[4:0] 001 r3[4:0] 0111011 | RV64I i 1 32 SL SLLW r3 r1 r2
+0000000 r2[4:0] r1[4:0] 101 r3[4:0] 0111011 | RV64I i 1 32 SR SRLW r3 r1 r2
+# 0100000 r2[4:0] r1[4:0] 101 r3[4:0] 0111011 | RV64I i 1 32 SRAW r3 r1 r2
+
+# RV32M Standard Extension
+0000001 r2[4:0] r1[4:0] 000 r3[4:0] 0110011 | RV32M i 1 32 MUL MUL r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 001 r3[4:0] 0110011 | RV32M i 1 32 MULH r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 010 r3[4:0] 0110011 | RV32M i 1 32 MULHSU r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 011 r3[4:0] 0110011 | RV32M i 1 32 MULHU r3 r1 r2
+0000001 r2[4:0] r1[4:0] 100 r3[4:0] 0110011 | RV32M i 1 32 DIV DIV r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 101 r3[4:0] 0110011 | RV32M i 1 32 DIVU r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 110 r3[4:0] 0110011 | RV32M i 1 32 REM r3 r1 r2
+
+
+# RV64M Standard Extension (in addition to RV32M)
+# 0000001 r2[4:0] r1[4:0] 000 r3[4:0] 0111011 | RV64M i 1 32 MULW r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 100 r3[4:0] 0111011 | RV64M i 1 32 DIVW r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 101 r3[4:0] 0111011 | RV64M i 1 32 DIVUW r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 110 r3[4:0] 0111011 | RV64M i 1 32 REMW r3 r1 r2
+# 0000001 r2[4:0] r1[4:0] 111 r3[4:0] 0111011 | RV64M i 1 32 REMUW r3 r1 r2
+
+# RV32A Standard Extension
+# 00010 aq rl 00000 r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 LR.W
+# 00011 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 SC.W
+# 00001 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOSWAP.W
+# 00000 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOADD.W
+# 00100 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOXOR.W
+# 01100 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOAND.W
+# 01000 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOOR.W
+# 10000 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOMIN.W
+# 10100 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOMAX.W
+# 11000 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A i 1 32 AMOMINU.W
+# 11100 aq rl r2[4:0] r1[4:0] 010 r3[4:0] 0101111 | RV32A
+
+# RV64A Standard Extension (in addition to RV32A)
+# 00010 aq rl 00000 r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 LR.D
+# 00011 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 SC.D
+# 00001 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOSWAP.D
+# 00000 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOADD.D
+# 00100 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOXOR.D
+# 01100 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOAND.D
+# 01000 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOOR.D
+# 10000 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOMIN.D
+# 10100 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOMAX.D
+# 11000 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOMINU.D
+# 11100 aq rl r2[4:0] r1[4:0] 011 r3[4:0] 0101111 | RV64A i 1 32 AMOMAXU.D
+
+# RV32F Standard Extension
+i1[11:0] r1[4:0] 010 r2[4:0] 0000111 | RV32F f 1 32 R FLW r2 r1 i1
+i1[11:5] r2[4:0] r1[4:0] 010 i1[4:0] 0100111 | RV32F f 1 32 W FSW r1 r2 i1
+#rs3 00 r2[4:0] r1[4:0] rm r3[4:0] 1000011 | RV32F i 1 32 FMADD.S
+#rs3 00 r2[4:0] r1[4:0] rm r3[4:0] 1000111 | RV32F i 1 32 FMSUB.S
+# rs3 00 r2[4:0] r1[4:0] rm r3[4:0] 1001011 | RV32F i 1 32 FNMSUB.S
+# rs3 00 r2[4:0] r1[4:0] rm r3[4:0] 1001111 | RV32F i 1 32 FNMADD.S
+# 0000000 r2[4:0] r1[4:0] rm r3[4:0] 1010011 | RV32F f 1 32 FADD.S # Modify rounding mode
+0000000 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F f 1 32 ADD FADD.S r3 r1 r2
+0000100 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F f 1 32 SUB FSUB.S r3 r1 r2
+0001000 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F f 1 32 MUL FMUL.S r3 r1 r2
+0001100 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F f 1 32 DIV FDIV.S r3 r1 r2
+# 0101100 00000 r1[4:0] rm r3[4:0] 1010011 | RV32F i 1 32 FSQRT.S
+# 0010000 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F i 1 32 FSGNJ.S r3 r1 r2
+0010000 r1[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F f 1 32 MV FMV.S r3 r1
+# 0010000 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32F i 1 32 FSGNJN.S r3 r1 r2
+# 0010000 r2[4:0] r1[4:0] 010 r3[4:0] 1010011 | RV32F i 1 32 FSGNJX.S r3 r1 r2
+# 0010100 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F i 1 32 FMIN.S r3 r1 r2
+# 0010100 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32F i 1 32 FMAX.S r3 r1 r2
+#1100000 00000 r1[4:0] rm r3[4:0] 1010011 | RV32F f 1 32 MVWS FCVT.W.S r3 r1
+#1100000 00001 r1[4:0] rm r3[4:0] 1010011 | RV32F f 1 32 MVWS FCVT.WU.S r3 r1
+1110000 00000 r1[4:0] 000 r2[4:0] 1010011 | RV32F f 1 32 MVFI FMV.X.W r1 r2
+# 1010000 r2[4:0] r1[4:0] 010 r3[4:0] 1010011 | RV32F i 1 32 FEQ.S r3 r1 r2
+# 1010000 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32F i 1 32 FLT.S r3 r1 r2
+# 1010000 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32F i 1 32 FLE.S r3 r1 r2
+# 1110000 00000 r1[4:0] 001 r3[4:0] 1010011 | RV32F i 1 32 FCLASS.S r3 r1 r2
+# 1101000 00000 r1[4:0] rm r3[4:0] 1010011 | RV32F f 1 32 MVSW FCVT.S.W
+# 1101000 00001 r1[4:0] rm r3[4:0] 1010011 | RV32F i 1 32 FCVT.S.WU
+1111000 00000 r1[4:0] 000 r2[4:0] 1010011 | RV32F f 1 32 MVIF FMV.W.X r1 r2
+
+# RV64F Standard Extension (in addition to RV32F)
+# 1100000 00010 r1[4:0] rm r3[4:0] 1010011 | RV64F i 1 32 FCVT.L.S
+# 1100000 00011 r1[4:0] rm r3[4:0] 1010011 | RV64F i 1 32 FCVT.LU.S
+# 1101000 00010 r1[4:0] rm r3[4:0] 1010011 | RV64F i 1 32 FCVT.S.L
+# 1101000 00011 r1[4:0] rm r3[4:0] 1010011 | RV64F i 1 32 FCVT.S.LU
+
+# RV32D Standard Extension
+# i1[11:0] r1[4:0] 011 r3[4:0] 0000111 | RV32D i 1 32 FLD r3 r1 i1
+# i1[6:0] r2[4:0] r1[4:0] 011 i2[4:0] 0100111 | RV32D i 1 32 FSD r2 r1 i1 i2
+# rs3 01 r2[4:0] r1[4:0] rm r3[4:0] 1000011 | RV32D i 1 32 FMADD.D
+# rs3 01 r2[4:0] r1[4:0] rm r3[4:0] 1000111 | RV32D i 1 32 FMSUB.D
+# rs3 01 r2[4:0] r1[4:0] rm r3[4:0] 1001011 | RV32D i 1 32 FNMSUB.D
+# rs3 01 r2[4:0] r1[4:0] rm r3[4:0] 1001111 | RV32D i 1 32 FNMADD.D
+# 0000001 r2[4:0] r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FADD.D # Modify rounding mode
+0000001 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 ADD FADD.D r3 r1 r2
+# 0000101 r2[4:0] r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FSUB.D
+# 0001001 r2[4:0] r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FMUL.D
+0001101 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 DIV FDIV.D r3 r1 r2
+# 0101101 00000 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FSQRT.D
+# 0010001 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 FSGNJ.D r3 r1 r2
+0010001 r1[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 MV FMV.D r3 r1
+# 0010001 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32D f 1 64 FSGNJN.D r3 r1 r2
+# 0010001 r2[4:0] r1[4:0] 010 r3[4:0] 1010011 | RV32D f 1 64 FSGNJX.D r3 r1 r2
+# 0010101 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 FMIN.D r3 r1 r2
+# 0010101 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32D f 1 64 FMAX.D r3 r1 r2
+# 0100000 00001 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.S.D
+# 0100001 00000 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.D.S
+# 1010001 r2[4:0] r1[4:0] 010 r3[4:0] 1010011 | RV32D f 1 64 FEQ.D
+# 1010001 r2[4:0] r1[4:0] 001 r3[4:0] 1010011 | RV32D f 1 64 FLT.D
+# 1010001 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32D f 1 64 FLE.D
+# 1110001 00000 r1[4:0] 001 r3[4:0] 1010011 | RV32D f 1 64 FCLASS.D
+# 1100001 00000 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.W.D
+# 1100001 00001 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.WU.D
+# 1101001 00000 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.D.W
+# 1101001 00001 r1[4:0] rm r3[4:0] 1010011 | RV32D f 1 64 FCVT.D.WU
+
+# RV64D Standard Extension (in addition to RV32D)
+# 1100001 00010 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.L.D
+# 1100001 00011 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.LU.D
+# 1110001 00000 r1[4:0] 000 r3[4:0] 1010011 | RV64D f 1 64 FMV.X.D
+# 1101001 00010 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.D.L
+# 1101001 00011 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.D.LU
+# 1111001 00000 r1[4:0] 000 r3[4:0] 1010011 | RV64D f 1 64 FMV.D.X
+
+# Small float extension from ethz.ch
+# Rounding Mode Mnemonic Meaning
+# 000 RNE Round to Nearest, ties to Even
+# 001 RTZ Round towards Zero
+# 010 RDN Round Down (towards −∞)
+# 011 RUP Round Up (towards +∞)
+# 100 RMM Round to Nearest, ties to Max Magnitude
+# 101 ALTF In instruction’s rm field, if fmt=10, operands are binary16alt;
+# 110 Invalid. Reserved for future use.
+# 111 In instruction’s rm field, selects dynamic rounding mode; In Rounding Mode register, Invalid.
+
+# RV32Xf16 Half-Precision Floating-Point Extension, bit[26,25]=10 (binary16)
+i1[11:0] r1[4:0] 001 r2[4:0] 0000111 			| RV32Xf16 f 1 16 R FLH r1 r2 i1
+i1[11:5] r2[4:0] r1[4:0] 001 i1[4:0] 0100111 	| RV32Xf16 f 1 16 W FSH r1 r2 i1
+r3[4:0] 10 r2[4:0] r1[4:0] i1[2:0] r4[4:0] 1000011 	| RV32Xf16 f 1 16 MADD FMADD.H r4 r1 r2 r3 i1
+# rs3 10 rs2 rs1 rm rd 1000111 FMSUB.H (rs1 ∗ rs2) − rs3
+# rs3 10 rs2 rs1 rm∗ rd 1001011 FNMSUB.H −(rs1 ∗ rs2) + rs3
+# rs3 10 rs2 rs1 rm∗ rd 1001111 FNMADD.H −(rs1 ∗ rs2) − rs3
+# r3 = rs1 + rs2
+0000010 r2[4:0] r1[4:0] 000 r3[4:0] 1010011 | RV32Xf16 f 1 16 ADD FADD.H r3 r1 r2
+# rs1 − rs2
+# 0000110 r2[4:0] r1[4:0] i1[2:0] r3[2:0] 1010011 | RV32Xf16 f 1 16 SUB FSUB.H r3 r1 r2 i1
+# rs1 ∗ rs2
+00010 10 r2[4:0] r1[4:0] i1[2:0] r3[4:0] 1010011 | RV32Xf16 f 1 16 MUL FMUL.H r3 r1 r2 i1
+# rs1/rs2
+0001110 r2[4:0] r1[4:0] i1[2:0] r3[4:0] 1010011 | RV32Xf16 f 1 16 DIV FDIV.H r3 r1 r2 i1
+0101110 00000 r1[4:0] i1[2:0] r3[4:0] 1010011 | RV32Xf16 f 1 16 SQR FSQRT.H r2 r1 i1
+# 0010010 r2[4:0] r1[4:0] 000 r0[4:0] 1010011 | RV32Xf16 f 1 16 SNG FSGNJ.H r1[4:0], sign of r2[4:0]
+# 0010010 r2[4:0] r1[4:0] 001 r0[4:0] 1010011 | RV32Xf16 f 1 16 SNG FSGNJN.H r1[4:0], inv. sign of r2[4:0]
+# 0010010 r2[4:0] r1[4:0] 010 r0[4:0] 1010011 | RV32Xf16 f 1 16 SNG FSGNJX.H r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 0010110 r2[4:0] r1[4:0] 000 r0[4:0] 1010011| RV32Xf16 f 1 16 FMIN.H min
+# 0010110 r2[4:0] r1[4:0] 001 r0[4:0] 1010011| RV32Xf16 f 1 16 FMAX.H max
+# 1010010 r2[4:0] r1[4:0] 010 r0[4:0] 1010011| RV32Xf16 f 1 16 FEQ.H equal
+# 1010010 r2[4:0] r1[4:0] 001 r0[4:0] 1010011| RV32Xf16 f 1 16 FLT.H less than
+# 1010010 r2[4:0] r1[4:0] 000 r0[4:0] 1010011| RV32Xf16 f 1 16 FLE.H less than or equal
+1100010 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf16 f 1 16 MVHW FCVT.W.H r0 r1
+#1100010 00001 r1[4:0] rm r0[4:0] 1010011 | RV32Xf16 f 1 16 MVWH FCVT.WU.H
+1101010 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf16 f 1 32 MVWH FCVT.H.W r0 r1
+# 1101010 00001 r1[4:0] rm∗ r0[4:0] 1010011| RV32Xf16 f 1 16 FCVT.H.WU from usgn. wor0[4:0] (32bit)
+#fp reg → int reg
+# 1110010 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf16 f 1 16 FMV.X.H
+# 1110010 00000 r1[4:0] 001 r0[4:0] 1010011| RV32Xf16 f 1 16 FCLASS.H classify
+# 1111010 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf16 f 1 16 FMV.H.X int reg → fp reg
+
+# RV64Xf16 Half-Precision Floating-Point Extension (in addition to RV32Xf16)
+# 1100010 00010 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.L.H to sgn. long (64bit)
+# 1100010 00011 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.LU.H to usgn. long (64bit)
+# 1101010 00010 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.H.L from sgn. long (64bit)
+# 1101010 00011 r1[4:0] rm r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.H.LU from usgn. long (64bit)
+
+# Conversions with F Standar0[4:0] Extension
+# 0100000 00010 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.S.H binary16 → binary32
+# 0100010 00000 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16 f 1 16FCVT.H.S binary32 → binary16
+
+# Conversions with D Standar0[4:0] Extension (in addition to the above)
+# 0100001 00010 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.D.H binary16 → binary64
+# 0100010 00001 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16 f 1 16 FCVT.H.D binary64 → binary16
+
+# RV32Xf16alt Alt. Half-Prec. Floating-Point Ext., bit[26,25]=10 (binary16alt)
+# i1[11:0] r1[4:0] 001 r0[4:0] 0000111 | RV32Xf16alt f 1 16 @FLAH load
+# i1[11:5] r2[4:0] r1[4:0] 001 i1[4:0] 0100111 | RV32Xf16al f 1 16 @FSAH store
+# rs3 10 r2[4:0] r1[4:0] 101 r0[4:0] 1000011| RV32Xf16al f 1 16 FMADD.AH (r1[4:0] ∗ r2[4:0]) + rs3
+# rs3 10 r2[4:0] r1[4:0] 101 r0[4:0] 1000111 | RV32Xf16al f 1 16 FMSUB.AH (r1[4:0] ∗ r2[4:0]) − rs3
+# rs3 10 r2[4:0] r1[4:0] 101 r0[4:0] 1001011 | RV32Xf16al f 1 16 FNMSUB.AH −(r1[4:0] ∗ r2[4:0]) + rs3
+# rs3 10 r2[4:0] r1[4:0] 101 r0[4:0] 1001111 | RV32Xf16al f 1 16 FNMADD.AH −(r1[4:0] ∗ r2[4:0]) − rs3
+# 0000010 r2[4:0] r1[4:0] 101 r0[4:0] 1010011| RV32Xf16al f 1 16 FADD.AH r1[4:0] + r2[4:0]
+# 0000110 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FSUB.AH r1[4:0] − r2[4:0]
+# 0001010 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FMUL.AH r1[4:0] ∗ r2[4:0]
+# 0001110 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FDIV.AH r1[4:0]/r2[4:0]
+# 0101110 00000 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FSQRT.AH r1[4:0]
+# 0010010 r2[4:0] r1[4:0] 100 r0[4:0] 1010011 | RV32Xf16al f 1 16 FSGNJ.AH r1[4:0], sign of r2[4:0]
+# 0010010 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FSGNJN.AH r1[4:0], inv. sign of r2[4:0]
+# 0010010 r2[4:0] r1[4:0] 110 r0[4:0] 1010011 | RV32Xf16al f 1 16 FSGNJX.AH r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 0010110 r2[4:0] r1[4:0] 100 r0[4:0] 1010011 | RV32Xf16al f 1 16 FMIN.AH min
+# 0010110 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FMAX.AH max
+# 1010010 r2[4:0] r1[4:0] 110 r0[4:0] 1010011 | RV32Xf16al f 1 16 FEQ.AH equal
+# 1010010 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FLT.AH less than
+# 1010010 r2[4:0] r1[4:0] 100 r0[4:0] 1010011 | RV32Xf16al f 1 16 FLE.AH less than or equal
+# 1100010 00000 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FCVT.W.AH to sgn. wor0[4:0] (32bit)
+# 1100010 00001 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FCVT.WU.AH to usgn. wor0[4:0] (32bit)
+# 1101010 00000 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FCVT.AH.W from sgn. wor0[4:0] (32bit)
+# 1101010 00001 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16FCVT.AH.WU from usgn. wor0[4:0] (32bit)
+# 1110010 00000 r1[4:0] 100 r0[4:0] 1010011 | RV32Xf16al f 1 16 FMV.X.AH fp reg → int reg
+# 1110010 00000 r1[4:0] 101 r0[4:0] 1010011 | RV32Xf16al f 1 16 FCLASS.AH classify
+# 1111010 00000 r1[4:0] 100 r0[4:0] 1010011 | RV32Xf16al f 1 16 FMV.AH.X int reg → fp reg
+
+# RV64Xf16alt Alt. Half-Prec. Floating-Point Ext. (in addition to RV32Xf16alt)
+# 1100010 00010 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.L.AH to sgn. long (64bit)
+# 1100010 00011 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.LU.AH to usgn. long (64bit)
+# 1101010 00010 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.AH.L from sgn. long (64bit)
+# 1101010 00011 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.AH.LU from usgn. long (64bit)
+
+# Conversions with F Standar0[4:0] Extension
+# 0100000 00110 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.S.AH binary16alt → binary32
+# 0100010 00000 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.AH.S binary32 → binary16alt
+
+# Conversions with D Standar0[4:0] Extension (in addition to the above)
+# 0100001 00110 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.D.AH binary16alt → binary64
+# 0100010 00001 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.AH.D binary64 → binary16alt
+
+# Conversions with Xf16 Extension
+# 0100010 00110 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.H.AH binary16alt → binary16
+# 0100010 00010 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf16al f 1 16 FCVT.AH.H binary16 → binary16alt
+
+
+# RV32Xf8 Quarter-Precision Floating-Point Extension, bit[26,25]=11 (binary8)
+# i1[11:0] r1[4:0] 000 r0[4:0] 0000111 FLB load
+# i1[11:5] r2[4:0] r1[4:0] 000 i1[4:0] 0100111 | RV32Xf8 f 1 8 FSB store
+# rs3 11 r2[4:0] r1[4:0] rm∗ r0[4:0] 1000011 | RV32Xf8 f 1 8 FMADD.B (r1[4:0] ∗ r2[4:0]) + rs3
+# rs3 11 r2[4:0] r1[4:0] rm r0[4:0] 1000111 | RV32Xf8 f 1 8 FMSUB.B (r1[4:0] ∗ r2[4:0]) − rs3
+# rs3 11 r2[4:0] r1[4:0] rm∗ r0[4:0] 1001011 | RV32Xf8 f 1 8 FNMSUB.B −(r1[4:0] ∗ r2[4:0]) + rs3
+# rs3 11 r2[4:0] r1[4:0] rm∗ r0[4:0] 1001111 | RV32Xf8 f 1 8 FNMADD.B −(r1[4:0] ∗ r2[4:0]) − rs3
+# 0000011 r2[4:0] r1[4:0] rm r0[4:0] 1010011 | RV32Xf8 f 1 8 FADD.B r1[4:0] + r2[4:0]
+# 0000111 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FSUB.B r1[4:0] − r2[4:0]
+# 0001011 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FMUL.B r1[4:0] ∗ r2[4:0]
+# 0001111 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FDIV.B r1[4:0]/r2[4:0]
+# 0101111 00000 r1[4:0] rm r0[4:0] 1010011 | RV32Xf8 f 1 8 FSQRT.B r1[4:0]
+# 0010011 r2[4:0] r1[4:0] 000 r0[4:0] 1010011 | RV32Xf8 f 1 8 FSGNJ.B r1[4:0], sign of r2[4:0]
+# 0010011 r2[4:0] r1[4:0] 001 r0[4:0] 1010011 | RV32Xf8 f 1 8 FSGNJN.B r1[4:0], inv. sign of r2[4:0]
+# 0010011 r2[4:0] r1[4:0] 010 r0[4:0] 1010011 | RV32Xf8 f 1 8 FSGNJX.B r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 0010111 r2[4:0] r1[4:0] 000 r0[4:0] 1010011 | RV32Xf8 f 1 8 FMIN.B min
+# 0010111 r2[4:0] r1[4:0] 001 r0[4:0] 1010011 | RV32Xf8 f 1 8 FMAX.B max
+# 1010011 r2[4:0] r1[4:0] 010 r0[4:0] 1010011 | RV32Xf8 f 1 8 FEQ.B equal
+# 1010011 r2[4:0] r1[4:0] 001 r0[4:0] 1010011 | RV32Xf8 f 1 8 FLT.B less than
+# 1010011 r2[4:0] r1[4:0] 000 r0[4:0] 1010011 | RV32Xf8 f 1 8 FLE.B less than or equal
+# 1100011 00000 r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FCVT.W.B to sgn. wor0[4:0] (32bit)
+# 1100011 00001 r1[4:0] rm r0[4:0] 1010011 | RV32Xf8 f 1 8 FCVT.WU.B to usgn. wor0[4:0] (32bit)
+# 1101011 00000 r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FCVT.B.W from sgn. wor0[4:0] (32bit)
+# 1101011 00001 r1[4:0] rm∗ r0[4:0] 1010011 | RV32Xf8 f 1 8 FCVT.B.WU from usgn. wor0[4:0] (32bit)
+# 1110011 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf8 f 1 8 FMV.X.B fp reg → int reg
+# 1110011 00000 r1[4:0] 001 r0[4:0] 1010011 | RV32Xf8 f 1 8 FCLASS.B classify
+# 1111011 00000 r1[4:0] 000 r0[4:0] 1010011 | RV32Xf8 f 1 8 FMV.B.X int reg → fp reg
+
+# RV64Xf8 Quarter-Precision Floating-Point Extension (in addition to RV32Xf8)
+# 1100011 00010 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.L.B to sgn. long (64bit)
+# 1100011 00011 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.LU.B to usgn. long (64bit)
+# 1101011 00010 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.L from sgn. long (64bit)
+# 1101011 00011 r1[4:0] rm r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.LU from usgn. long (64bit)
+# Conversions with F Standar0[4:0] Extension
+# 0100000 00011 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.S.B binary8 → binary32
+# 0100011 00000 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.S binary32 → binary8
+# Conversions with D Standar0[4:0] Extension (in addition to the above)
+# 0100001 00011 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.D.B binary8 → binary64
+# 0100011 00001 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.D binary64 → binary8
+# Conversions with Xf16 Extension
+# 0100010 00011 r1[4:0] 000 r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.H.B binary8 → binary16
+# 0100011 00010 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.H binary16 → binary8
+# Conversions with Xf16alt Extension
+# 0100010 00011 r1[4:0] 101 r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.AH.B binary8 → binary16alt
+# 0100011 00110 r1[4:0] rm∗ r0[4:0] 1010011 | RV64Xf8 f 1 8 FCVT.B.AH binary16alt → binary8
+
+# Xfvec Vectorial Floating-Point Ext. with F, FLEN=64, vfmt=00 (binary32)
+10 00001 r2[4:0] r1[4:0] 0 00 r3[4:0] 0110011 | XFVEC f 2 32 ADD VFADDS r3 r1 r2
+# 10 00001 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFADD.R.S r1[4:0] + r2[4:0], R
+# 10 00010 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSUB.S r1[4:0] − r2[4:0]
+# 10 00010 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSUB.R.S r1[4:0] − r2[4:0], R
+# 10 00011 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMUL.S r1[4:0] ∗ r2[4:0]
+# 10 00011 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMUL.R.S r1[4:0] ∗ r2[4:0], R
+# 10 00100 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFDIV.S r1[4:0]/r2[4:0]
+# 10 00100 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFDIV.R.S r1[4:0]/r2[4:0], R
+# 10 00101 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMIN.S min
+# 10 00101 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMIN.R.S min, R
+# 10 00110 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMAX.S max
+# 10 00110 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMAX.R.S max,
+# 10 00111 00000 r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSQRT.S r1[4:0]
+# 10 01000 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMAC.S (r1[4:0] ∗ r2[4:0]) + r0[4:0]
+# 10 01000 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMAC.R.S (r1[4:0] ∗ r2[4:0]) + r0[4:0], R
+# 10 01001 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMRE.S (r1[4:0] ∗ r2[4:0]) − r0[4:0]
+# 10 01001 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMRE.R.S (r1[4:0] ∗ r2[4:0]) − r0[4:0], R
+# 10 01100 00001 r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCLASS.S classify
+# 10 01101 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJ.S r1[4:0], sign of r2[4:0]
+# 10 01101 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJ.R.S r1[4:0], sign of r2[4:0], R
+# 10 01110 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJN.S r1[4:0], inv. sign of r2[4:0]
+# 10 01110 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJN.R.S r1[4:0], inv. sign of r2[4:0], R
+# 10 01111 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJX.S r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 10 01111 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFSGNJX.R.S r1[4:0], sign r1[4:0] ⊕ sign r2[4:0], R
+# 10 10000 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFEQ.S equal
+# 10 10000 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFEQ.R.S equal, R
+# 10 10001 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFNE.S not equal
+# 10 10001 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFNE.R.S not equal, R
+# 10 10010 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFLT.S less than
+# 10 10010 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFLT.R.S less than, R
+# 10 10011 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFGE.S greater than or equal
+# 10 10011 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFGE.R.S greater than or equal, R
+# 10 10100 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFLE.S less than or equal
+# 10 10100 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFLE.R.S less than or equal, R
+# 10 10101 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFGT.S greater than
+# 10 10101 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFGT.R.S greater than, R
+# 10 11000 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCPKA.S.S 2xbinary32 → binary32 op0,1
+# 10 11010 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCPKA.S.D 2xbinary64 → binary32 op0,1
+
+# Unless RV32D Supported
+# 10 01100 00000 r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMV.X.S fp reg → int reg
+# 10 01100 00000 r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFMV.S.X int reg → fp reg
+# 10 01100 00010 r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCVT.X.S to vector of sgn. wor0[4:0]s
+# 10 01100 00010 r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCVT.XU.S to vector of usgn. wor0[4:0]s
+# 10 01100 00011 r1[4:0] 0 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCVT.S.X from vector of sgn. wor0[4:0]s
+# 10 01100 00011 r1[4:0] 1 00 r0[4:0] 0110011 | XFVEC f 2 32 VFCVT.S.XU from vector of usgn. wor0[4:0]s
+
+
+
+# Xfvec Vectorial Floating-Point Ext. with Xf16, FLEN≥32, vfmt=10 (binary16)
+# 10 00001 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFADD.H r1[4:0] + r2[4:0]
+# 10 00001 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFADD.R.H r1[4:0] + r2[4:0], R
+# 10 00010 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFSUB.H r1[4:0] − r2[4:0]
+# 10 00010 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFSUB.R.H r1[4:0] − r2[4:0], R
+# 10 00011 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFMUL.H r1[4:0] ∗ r2[4:0]
+# 10 00011 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFMUL.R.H r1[4:0] ∗ r2[4:0], R
+# 10 00100 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFDIV.H r1[4:0]/r2[4:0]
+# 10 00100 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFDIV.R.H r1[4:0]/r2[4:0], R
+# 10 00101 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFMIN.H min
+# 10 00101 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFMIN.R.H min, R
+# 10 00110 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFMAX.H max
+# 10 00110 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFMAX.R.H max,
+# √ R
+# 10 00111 00000 r1[4:0] 0 10 r0[4:0] 0110011 VFSQRT.H r1[4:0]
+# 10 01000 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFMAC.H (r1[4:0] ∗ r2[4:0]) + r0[4:0]
+# 10 01000 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFMAC.R.H (r1[4:0] ∗ r2[4:0]) + r0[4:0], R
+# 10 01001 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFMRE.H (r1[4:0] ∗ r2[4:0]) − r0[4:0]
+# 10 01001 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFMRE.R.H (r1[4:0] ∗ r2[4:0]) − r0[4:0], R
+# 10 01100 00001 r1[4:0] 0 10 r0[4:0] 0110011 VFCLASS.H classify
+# 10 01101 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFSGNJ.H r1[4:0], sign of r2[4:0]
+# 10 01101 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFSGNJ.R.H r1[4:0], sign of r2[4:0], R
+# 10 01110 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFSGNJN.H r1[4:0], inv. sign of r2[4:0]
+# 10 01110 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFSGNJN.R.H r1[4:0], inv. sign of r2[4:0], R
+# 10 01111 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFSGNJX.H r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 10 01111 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFSGNJX.R.H r1[4:0], sign r1[4:0] ⊕ sign r2[4:0], R
+# 10 10000 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFEQ.H equal
+# 10 10000 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFEQ.R.H equal, R
+# 10 10001 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFNE.H not equal
+# 10 10001 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFNE.R.H not equal, R
+# 10 10010 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFLT.H less than
+# 10 10010 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFLT.R.H less than, R
+# 10 10011 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFGE.H greater than or equal
+# 10 10011 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFGE.R.H greater than or equal, R
+# 10 10100 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFLE.H less than or equal
+# 10 10100 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFLE.R.H less than or equal, R
+# 10 10101 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFGT.H greater than
+# 10 10101 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFGT.R.H greater than, R
+# 10 11000 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFCPKA.H.S 2xbinary32 → binary16 op0,1
+
+# Unless RV32D Supported
+# 10 01100 00000 r1[4:0] 0 10 r0[4:0] 0110011 VFMV.X.H fp reg → int reg
+# 10 01100 00000 r1[4:0] 1 10 r0[4:0] 0110011 VFMV.H.X int reg → fp reg
+# 10 01100 00010 r1[4:0] 0 10 r0[4:0] 0110011 VFCVT.X.H to vector of sgn. halfwor0[4:0]s
+# 10 01100 00010 r1[4:0] 1 10 r0[4:0] 0110011 VFCVT.XU.H to vector of usgn. halfwor0[4:0]s
+# 10 01100 00011 r1[4:0] 0 10 r0[4:0] 0110011 VFCVT.H.X from vector of sgn. halfwor0[4:0]s
+# 10 01100 00011 r1[4:0] 1 10 r0[4:0] 0110011 VFCVT.H.XU from vector of usgn. halfwor0[4:0]s
+
+# Conversions when D Standar0[4:0] Extension Supported (in addition to the above)
+# 10 01100 00110 r1[4:0] 0 00 r0[4:0] 0110011 VFCVT.S.H vec. binary16 → binary32
+# 10 01100 00100 r1[4:0] 0 10 r0[4:0] 0110011 VFCVT.H.S vec. binary32 → binary16
+# 10 11000 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFCPKB.H.S 2xbinary32 → binary16 op2,3
+# 10 11010 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFCPKA.H.D 2xbinary64 → binary16 op0,1
+# 10 11010 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFCPKB.H.D 2xbinary64 → binary16 op2,3
+
+# Xfvec Vectorial Floating-Point Ext. with Xf16alt, FLEN≥32, vfmt=01 (binary16alt)
+# 10 00001 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFADD.AH r1[4:0] + r2[4:0]
+# 10 00001 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFADD.R.AH r1[4:0] + r2[4:0], R
+# 10 00010 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFSUB.AH r1[4:0] − r2[4:0]
+# 10 00010 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFSUB.R.AH r1[4:0] − r2[4:0], R
+# 10 00011 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFMUL.AH r1[4:0] ∗ r2[4:0]
+# 10 00011 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFMUL.R.AH r1[4:0] ∗ r2[4:0], R
+# 10 00100 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFDIV.AH r1[4:0]/r2[4:0]
+# 10 00100 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFDIV.R.AH r1[4:0]/r2[4:0], R
+# 10 00101 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFMIN.AH min
+# 10 00101 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFMIN.R.AH min, R
+# 10 00110 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFMAX.AH max
+# 10 00110 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFMAX.R.AH max,
+# 10 00111 00000 r1[4:0] 0 01 r0[4:0] 0110011 VFSQRT.AH r1[4:0]
+# 10 01000 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFMAC.AH (r1[4:0] ∗ r2[4:0]) + r0[4:0]
+# 10 01000 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFMAC.R.AH (r1[4:0] ∗ r2[4:0]) + r0[4:0], R
+# 10 01001 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFMRE.AH (r1[4:0] ∗ r2[4:0]) − r0[4:0]
+# 10 01001 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFMRE.R.AH (r1[4:0] ∗ r2[4:0]) − r0[4:0], R
+# 10 01100 00001 r1[4:0] 0 01 r0[4:0] 0110011 VFCLASS.AH classify
+# 10 01101 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFSGNJ.AH r1[4:0], sign of r2[4:0]
+# 10 01101 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFSGNJ.R.AH r1[4:0], sign of r2[4:0], R
+# 10 01110 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFSGNJN.AH r1[4:0], inv. sign of r2[4:0]
+# 10 01110 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFSGNJN.R.AH r1[4:0], inv. sign of r2[4:0], R
+# 10 01111 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFSGNJX.AH r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 10 01111 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFSGNJX.R.AH r1[4:0], sign r1[4:0] ⊕ sign r2[4:0], R
+# 10 10000 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFEQ.AH equal
+# 10 10000 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFEQ.R.AH equal, R
+# 10 10001 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFNE.AH not equal
+# 10 10001 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFNE.R.AH not equal, R
+# 10 10010 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFLT.AH less than
+# 10 10010 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFLT.R.AH less than, R
+# 10 10011 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFGE.AH greater than or equal
+# 10 10011 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFGE.R.AH greater than or equal, R
+# 10 10100 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFLE.AH less than or equal
+# 10 10100 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFLE.R.AH less than or equal, R
+# 10 10101 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFGT.AH greater than
+# 10 10101 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFGT.R.AH greater than, R
+# 10 11000 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFCPKA.AH.S 2xfp32 → binary16alt op0,1
+
+# Unless RV32D Supported
+# 10 01100 00000 r1[4:0] 0 01 r0[4:0] 0110011 VFMV.X.AH fp reg → int reg
+# 10 01100 00000 r1[4:0] 1 01 r0[4:0] 0110011 VFMV.AH.X int reg → fp reg
+# 10 01100 00010 r1[4:0] 0 01 r0[4:0] 0110011 VFCVT.X.AH to vec. of sgn. halfwor0[4:0]s
+# 10 01100 00010 r1[4:0] 1 01 r0[4:0] 0110011 VFCVT.XU.AH to vec. of usgn. halfwor0[4:0]s
+# 10 01100 00011 r1[4:0] 0 01 r0[4:0] 0110011 VFCVT.AH.X from vec. of sgn. halfwor0[4:0]s
+# 10 01100 00011 r1[4:0] 1 01 r0[4:0] 0110011 VFCVT.AH.XU from vec. of usgn. halfwor0[4:0]s
+
+# Conversions when D Standar0[4:0] Extension Supported (in addition to the above)
+# 10 01100 00101 r1[4:0] 0 00 r0[4:0] 0110011 VFCVT.S.AH vec. binary16alt → binary32
+# 10 01100 00100 r1[4:0] 0 01 r0[4:0] 0110011 VFCVT.AH.S vec. binary32 → binary16alt
+# 10 11000 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFCPKB.AH.S 2xfp32 → binary16 op2,3
+# 10 11010 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFCPKA.AH.D 2xfp64 → binary16 op0,1
+# 10 11010 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFCPKB.AH.D 2xfp64 → binary16 op2,3
+
+# Conversions when Xf16 Extension Supported
+# 10 01100 00101 r1[4:0] 0 10 r0[4:0] 0110011 VFCVT.H.AH vec. binary16alt → binary16
+# 10 01100 00110 r1[4:0] 0 01 r0[4:0] 0110011 VFCVT.AH.H vec. binary16 → binary16alt
+
+# Xfvec Vectorial Floating-Point Ext. with Xf8, FLEN≥16, vfmt=11 (binary8)
+# 10 00001 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFADD.B r1[4:0] + r2[4:0]
+# 10 00001 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFADD.R.B r1[4:0] + r2[4:0], R
+# 10 00010 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFSUB.B r1[4:0] − r2[4:0]
+# 10 00010 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFSUB.R.B r1[4:0] − r2[4:0], R
+# 10 00011 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFMUL.B r1[4:0] ∗ r2[4:0]
+# 10 00011 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFMUL.R.B r1[4:0] ∗ r2[4:0], R
+# 10 00100 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFDIV.B r1[4:0]/r2[4:0]
+# 10 00100 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFDIV.R.B r1[4:0]/r2[4:0], R
+# 10 00101 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFMIN.B min
+# 10 00101 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFMIN.R.B min, R
+# 10 00110 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFMAX.B max
+# 10 00110 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFMAX.R.B max,
+# √ R
+# 10 10111 00000 r1[4:0] 0 11 r0[4:0] 0110011 VFSQRT.B r1[4:0]
+# 10 01000 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFMAC.B (r1[4:0] ∗ r2[4:0]) + r0[4:0]
+# 10 01000 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFMAC.R.B (r1[4:0] ∗ r2[4:0]) + r0[4:0], R
+# 10 01001 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFMRE.B (r1[4:0] ∗ r2[4:0]) − r0[4:0]
+# 10 01001 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFMRE.R.B (r1[4:0] ∗ r2[4:0]) − r0[4:0], R
+# 10 01101 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFSGNJ.B r1[4:0], sign of r2[4:0]
+# 10 01101 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFSGNJ.R.B r1[4:0], sign of r2[4:0], R
+# 10 01110 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFSGNJN.B r1[4:0], inv. sign of r2[4:0]
+# 10 01110 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFSGNJN.R.B r1[4:0], inv. sign of r2[4:0], R
+# 10 01111 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFSGNJX.B r1[4:0], sign r1[4:0] ⊕ sign r2[4:0]
+# 10 01111 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFSGNJX.R.B r1[4:0], sign r1[4:0] ⊕ sign r2[4:0], R
+# 10 10000 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFEQ.B equal
+# 10 10000 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFEQ.R.B equal, R
+# 10 10001 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFNE.B not equal
+# 10 10001 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFNE.R.B not equal, R
+# 10 10010 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFLT.B less than
+# 10 10010 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFLT.R.B less than, R
+# 10 10011 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFGE.B greater than or equal
+# 10 10011 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFGE.R.B greater than or equal, R
+# 10 10100 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFLE.B less than or equal
+# 10 10100 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFLE.R.B less than or equal, R
+# 10 10101 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFGT.B greater than
+# 10 10101 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFGT.R.B greater than, R
+
+# Unless RV32D Supported
+# 10 01100 00000 r1[4:0] 0 11 r0[4:0] 0110011 VFMV.X.B fp reg → int reg
+# 10 01100 00000 r1[4:0] 1 11 r0[4:0] 0110011 VFMV.B.X int reg → fp reg
+# 10 01100 00001 r1[4:0] 0 11 r0[4:0] 0110011 VFCLASS.B classify
+# 10 01100 00010 r1[4:0] 0 11 r0[4:0] 0110011 VFCVT.X.B to vector of sgn. bytes
+# 10 01100 00010 r1[4:0] 1 11 r0[4:0] 0110011 VFCVT.XU.B to vector of usgn. bytes
+# 10 01100 00011 r1[4:0] 0 11 r0[4:0] 0110011 VFCVT.B.X from vector of sgn. bytes
+# 10 01100 00011 r1[4:0] 1 11 r0[4:0] 0110011 VFCVT.B.XU from vector of usgn. bytes
+
+# Conversions when F Standar0[4:0] Extension Supported
+# 10 11000 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFCPKA.B.S 2xbinary32 → binary8 op0,1
+# 10 11000 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFCPKB.B.S 2xbinary32 → binary8 op2,3
+
+# Conversions when D Standar0[4:0] Extension Supported (in addition to the above)
+# 10 01100 00111 r1[4:0] 0 00 r0[4:0] 0110011 VFCVT.S.B vec. binary8 → binary32
+# 10 01100 00100 r1[4:0] 0 11 r0[4:0] 0110011 VFCVT.B.S vec. binary32 → binary8
+# 10 11001 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFCPKC.B.S 2xbinary32 → binary8 op4,5
+# 10 11001 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFCPKD.B.S 2xbinary32 → binary8 op6,7
+# 10 11010 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFCPKA.B.D 2xbinary64 → binary8 op0,1
+# 10 11010 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFCPKB.B.D 2xbinary64 → binary8 op2,3
+# 10 11011 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFCPKC.B.D 2xbinary64 → binary8 op4,5
+# 10 11011 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFCPKD.B.D 2xbinary64 → binary8 op6,7
+
+# Conversions when Xf16 Extension Supported
+# 10 01100 00111 r1[4:0] 0 10 r0[4:0] 0110011 VFCVT.H.B vec. binary8 → binary16
+# 10 01100 00110 r1[4:0] 0 11 r0[4:0] 0110011 VFCVT.B.H vec. binary16 → binary8
+
+# Conversions when Xf16alt Extension Supported
+# 10 01100 00111 r1[4:0] 0 01 r0[4:0] 0110011 VFCVT.AH.B vec. binary8 → binary16alt
+# 10 01100 00101 r1[4:0] 0 11 r0[4:0] 0110011 VFCVT.B.AH vec. binary16alt → binary8
+
+# Xfaux Auxiliary Floating-Point Extension with F, fmt=00 (binary32)
+# When Xfvec Extension Supported, FLEN=64, vfmt=00 (binary32)
+# 10 01010 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 VFDOTP.S dotp(r1[4:0],r2[4:0])
+# 10 01010 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 VFDOTP.R.S dotp(r1[4:0],r2[4:0]), R
+# 10 10110 r2[4:0] r1[4:0] 0 00 r0[4:0] 0110011 VFAVG.S (r1[4:0] + r2[4:0])/2
+# 10 10110 r2[4:0] r1[4:0] 1 00 r0[4:0] 0110011 VFAVG.R.S (r1[4:0] + r2[4:0])/2, R
+
+# Xfaux Auxiliary Floating-Point Extension with Xf16, fmt=10 (binary16)
+# 0100110 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 FMULEX.S.H fp32(r1[4:0] ∗ r2[4:0])
+# 0101010 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 FMACEX.S.H fp32((r1[4:0] ∗ r2[4:0]) + r0[4:0])
+
+# When Xfvec Extension Supported, FLEN≥32, vfmt=10 (binary16)
+# 10 01010 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFDOTP.H dotp(r1[4:0],r2[4:0])
+# 10 01010 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFDOTP.R.H dotp(r1[4:0],r2[4:0]), R
+# 10 01011 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFDOTPEX.S.H fp32(dotp(r1[4:0],r2[4:0]))
+# 10 01011 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFDOTPEX.S.R.H fp32(dotp(r1[4:0],r2[4:0])), R
+# 10 10110 r2[4:0] r1[4:0] 0 10 r0[4:0] 0110011 VFAVG.H (r1[4:0] + r2[4:0])/2
+# 10 10110 r2[4:0] r1[4:0] 1 10 r0[4:0] 0110011 VFAVG.R.H (r1[4:0] + r2[4:0])/2, R
+
+# Xfaux Auxiliary Floating-Point Extension with Xf16alt, fmt=10 (binary16alt)
+# 0100110 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 FMULEX.S.AH fp32(r1[4:0] ∗ r2[4:0])
+# 0101010 r2[4:0] r1[4:0] 101 r0[4:0] 1010011 FMACEX.S.AH fp32((r1[4:0] ∗ r2[4:0]) + r0[4:0])
+
+# When Xfvec Extension Supported, FLEN≥32, vfmt=01 (binary16alt)
+# 10 01010 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFDOTP.AH dotp(r1[4:0],r2[4:0])
+# 10 01010 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFDOTP.R.AH dotp(r1[4:0],r2[4:0]), R
+# 10 01011 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFDOTPEX.S.AH fp32(dotp(r1[4:0],r2[4:0]))
+# 10 01011 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFDOTPEX.S.R.AH fp32(dotp(r1[4:0],r2[4:0])), R
+# 10 10110 r2[4:0] r1[4:0] 0 01 r0[4:0] 0110011 VFAVG.AH (r1[4:0] + r2[4:0])/2
+# 10 10110 r2[4:0] r1[4:0] 1 01 r0[4:0] 0110011 VFAVG.R.AH (r1[4:0] + r2[4:0])/2, R
+
+# Xfaux Auxiliary Floating-Point Extension with Xf8, fmt=11 (binary8)
+# 0100111 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 FMULEX.S.B fp32(r1[4:0] ∗ r2[4:0])
+# 0101011 r2[4:0] r1[4:0] rm∗ r0[4:0] 1010011 FMACEX.S.B fp32((r1[4:0] ∗ r2[4:0]) + r0[4:0])
+
+# When Xfvec Extension Supported, FLEN≥16, vfmt=11 (binary8)
+# 10 01010 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFDOTP.B dotp(r1[4:0],r2[4:0])
+# 10 01010 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFDOTP.R.B dotp(r1[4:0],r2[4:0]), R
+# 10 01011 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFDOTPEX.S.B fp32(dotp(r1[4:0],r2[4:0]))
+# 10 01011 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFDOTPEX.S.R.B fp32(dotp(r1[4:0],r2[4:0])), R
+# 10 10110 r2[4:0] r1[4:0] 0 11 r0[4:0] 0110011 VFAVG.B (r1[4:0] + r2[4:0])/2
+# 10 10110 r2[4:0] r1[4:0] 1 11 r0[4:0] 0110011 VFAVG.R.B (r1[4:0] + r2[4:0])/2, R
+
+#RISC-V Vector spec 0.8
+#FORMAT
+# Format for Vector Load Instructions under LOAD-FP major opcode
+# 31-29 28-26 25 	  24-20 19-15 14-12 11-7 6- 0
+# nf |  mop | vm |  lumop	|rs1| width |	 vd|	0000111| VL* unit-stride
+# nf |  mop | vm |  rs2	|rs1| width |	 vd|	0000111| VLS* strided
+# nf |  mop | vm |  vs2	|rs1| width |	 vd|	0000111| VLX* indexed
+
+# Format for Vector Store Instructions under STORE-FP major opcode
+# 31-29 28-26 25 	  24-20 19-15 14-12 11-7 6- 0
+# nf | mop | vm | sumop|rs1| width |vs3|0100111| VS* unit-stride
+# nf | mop | vm |rs2|rs1| width |vs3|0100111| VSS* strided
+# nf | mop | vm |vs2|rs1| width |vs3|0100111| VSX* indexed
+
+# Format for Vector AMO Instructions under AMO major opcode
+# 31-27 26 25 24-20 19-15 14-12 11-7 6- 0
+# amoop |wd| vm |vs2|rs1| width | vs3/vd |0101111| VAMO*
+
+# Formats for Vector Arithmetic Instructions under OP-V major opcode
+# funct6 vm r2[4:0] r1[4:0] 000 v0[4:0] 1010111 OP-V (OPIVV)vector-vector
+# vm 0 -> vector result, only where v0[i].LSB = 1
+# vm 1 -> unmasked
+000000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADD r0 r1 r2
+#000000 0 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADD.t r0 r1 r2
+000010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 SUB VSUB r0 r1 r2
+# 000100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vminu 
+# 000101 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmin 
+# 000110 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmaxu 
+# 000111 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmax 
+# 001001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vand 
+# 001010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vor 
+# 001011 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vxor 
+# 001100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vrgather 
+# 010000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vadc 
+# 010001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmadc 
+# 010010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsbc 
+# 010011 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmsbc 
+# 010111 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmerge/vmv
+# 011000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmseq 
+# 011001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmsne 
+# 011010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmsltu 
+# 011011 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmslt 
+# 011100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32  vmsleu 
+# 011101 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vmsle 
+# 100000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsaddu 
+# 100001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsadd 
+# 100010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vssubu 
+# 100011 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vssub 
+# 100101 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsll 
+# 100111 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsmul 
+# 101000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsrl 
+# 101001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vsra 
+# 101010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vssrl 
+# 101011 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vssra 
+# 101100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vnsrl 
+# 101101 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vnsra 
+# 101110 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vnclipu 
+# 101111 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vnclip 
+# 110000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vwredsumu 
+# 110001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vwredsum 
+# 111000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vdotu 
+# 111001 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vdot
+# 111100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vqmaccu 
+# 111101 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vqmacc 
+# 111111 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vqmaccsu 
+ 
+# funct6 vm r2[4:0] r1[4:0] 100 v0[4:0] 1010111 OP-V (OPIVX)vector-scalar
+000000 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADD r0 r1 r2
+000010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 SUB VSUB r0 r1 r2
+000011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 SUB VRSUB r0 r1 r2
+# 000100 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vminu 
+# 000101 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmin 
+# 000110 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmaxu 
+# 000111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmax 
+# 001001 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vand 
+# 001010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vor 
+# 001011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vxor 
+# 001100 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vrgather 
+# 001110 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vslideup 
+# 001111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vslidedown 
+# 010000 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vadc  
+# 010001 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmadc 
+# 010010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsbc 
+# 010011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsbc 
+# 010111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmerge/vmv
+# 011000 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmseq 
+# 011001 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsne 
+# 011010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsltu 
+# 011011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmslt 
+# 011100 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsleu 
+# 011101 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsle 
+# 011110 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsgtu 
+# 011111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vmsgt 
+# 100000 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsaddu 
+# 100001 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsadd 
+# 100010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vssubu 
+# 100011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vssub 
+# 100101 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsll 
+# 100111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsmul
+# 101000 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsrl 
+# 101001 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vsra 
+# 101010 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vssrl 
+# 101011 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vssra 
+# 101100 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vnsrl 
+# 101101 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vnsra 
+# 101110 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vnclipu 
+# 101111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vnclip
+# 111100 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vqmaccu 
+# 111101 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vqmacc 
+# 111110 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vqmaccus 
+# 111111 1 r2[4:0] r1[4:0] 100 r0[4:0] 1010111 | RISCVV i 1 32 vqmaccsu
+
+# funct6 vm r2[4:0] simm5 011 r0[4:0] 1010111 OP-V (OPIVI) vector-immediate
+000000 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADDI r0 r2 i0
+000011 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 SUB VRSUB r0 r2 i0
+# 001001 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vand 
+# 001010 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vor 
+# 001011 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vxor 
+# 001100 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vrgather 
+# 001110 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vslideup 
+# 001111 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vslidedown 
+# 010000 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vadc  
+# 010001 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmadc 
+# 010111 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmerge/vmv
+# 011000 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmseq 
+# 011001 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmsne
+# 011100 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmsleu 
+# 011101 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmsle 
+# 011110 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmsgtu 
+# 011111 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmsgt 
+# 100000 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vsaddu 
+# 100001 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vsadd 
+# 100010 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vssubu 
+# 100011 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vssub 
+# 100101 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vsll 
+# 100111 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vmv<nf>r 
+# 101000 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vsrl 
+# 101001 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vsra 
+# 101010 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vssrl 
+# 101011 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vssra 
+# 101100 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vnsrl 
+# 101101 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vnsra 
+# 101110 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vnclipu 
+# 101111 1 r2[4:0] i0[4:0] 011 r0[4:0] 1010111 | RISCVV i 1 32 vnclip 
+
+# funct6 vm r2[4:0] r1[4:0] 010 r0[4:0] 1010111 OP-V (OPMVV)vector-vector
+# 000000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vred-sum 
+# 000001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vredand 
+# 000010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vredor 
+# 000011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vredxor 
+# 000100 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vred-minu 
+# 000101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vredmin 
+# 000110 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vred-maxu 
+# 000111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vred-max 
+# 001000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vaaddu 
+# 001001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vaadd 
+# 001010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vasubu 
+# 001011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vasub 
+# 010000 1 r2[4:0] 00000 010 r0[4:0] 1010111 | RISCVV I 1 32 vmv.x.s
+# 010000 1 r2[4:0] 10000 010 r0[4:0] 1010111 | RISCVV I 1 32 vpopc
+# 010000 1 r2[4:0] 10001 010 r0[4:0] 1010111 | RISCVV I 1 32 vfirst
+# 010010 1 r2[4:0] 00010 010 r0[4:0] 1010111 | RISCVV I 1 32 vzext.vf8
+# 010010 1 r2[4:0] 00011 010 r0[4:0] 1010111 | RISCVV I 1 32 vsext.vf8
+# 010010 1 r2[4:0] 00100 010 r0[4:0] 1010111 | RISCVV I 1 32 vzext.vf4
+# 010010 1 r2[4:0] 00101 010 r0[4:0] 1010111 | RISCVV I 1 32 vsext.vf4
+# 010010 1 r2[4:0] 00110 010 r0[4:0] 1010111 | RISCVV I 1 32 vzext.vf2
+# 010010 1 r2[4:0] 00111 010 r0[4:0] 1010111 | RISCVV I 1 32 vsext.vf2
+# 010100 1 r2[4:0] 00001 010 r0[4:0] 1010111 | RISCVV I 1 32 vmsbf
+# 010100 1 r2[4:0] 00001 010 r0[4:0] 1010111 | RISCVV I 1 32 vmsof
+# 010100 1 r2[4:0] 00011 010 r0[4:0] 1010111 | RISCVV I 1 32 vmsif
+# 010100 1 r2[4:0] 10000 010 r0[4:0] 1010111 | RISCVV I 1 32 viota
+# 010100 1 r2[4:0] 10001 010 r0[4:0] 1010111 | RISCVV I 1 32 vid
+# 010111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vcompress 
+# 011000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmandnot 
+# 011001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmand 
+# 011010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmor 
+# 011011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmxor 
+# 011100 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmornot 
+# 011101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmnand 
+# 011110 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmnor 
+# 011111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmxnor 
+# 100000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vdivu 
+# 100001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vdiv 
+# 100010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vremu 
+# 100011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vrem 
+# 100100 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmulhu 
+# 100101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmul 
+# 100110 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmulhsu 
+# 100111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmulh 
+# 101001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmadd 
+# 101011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vnmsub 
+# 101101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vmacc 
+# 101111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vnmsac 
+# 110000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwaddu 
+# 110001 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwadd 
+# 110010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwsubu 
+# 110011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwsub 
+# 110100 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwaddu.w 
+# 110101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwadd.w 
+# 110110 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwsubu.w 
+# 110111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwsub.w 
+# 111000 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmulu 
+# 111010 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmulsu 
+# 111011 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmul 
+# 111100 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmaccu 
+# 111101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmacc 
+# 111111 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RISCVV i 1 32 vwmaccsu 
+
+# funct6 vm r2[4:0] r1[4:0] 110 r0[4:0] 1010111 OP-V (OPMVX)vector-scalar
+# 001000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vaaddu 
+# 001001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vaadd 
+# 001010 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vasubu 
+# 001011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vasub 
+# 001110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vslide1up 
+# 001111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vslide1down 
+# 010000 1 00000 r1[4:0] 110 r0[4:0] 1010111 | RISCVV I 1 32 vmv.s.x
+# 100000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vdivu 
+# 100001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vdiv 
+# 100010 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vremu 
+# 100011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vrem 
+# 100100 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulhu 
+# 100101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmul 
+# 100110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulhsu 
+# 100111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulh 
+# 101001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmadd 
+# 101011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vnmsub 
+# 101101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmacc 
+# 101111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vnmsac 
+# 110000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwaddu 
+# 110001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwadd 
+# 110010 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwsubu 
+# 110011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwsub 
+# 110100 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwaddu.w 
+# 110101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwadd.w 
+# 110110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwsubu.w 
+# 110111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwsub.w 
+# 111000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmulu 
+# 111010 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmulsu 
+# 111011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmul 
+# 111100 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmaccu 
+# 111101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmacc 
+# 111110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmaccus 
+# 111111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwmaccsu 
+
+# funct6 vm r2[4:0] r1[4:0] 001 r0[4:0] 1010111 OP-V (OPFVV)vector-vector
+000000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 ADD VFADD r0 r1 r2
+# 000001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfredsum 
+# 000010 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfsub 
+# 000011 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfredosum 
+# 000100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmin 
+# 000101 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfredmin 
+# 000110 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmax 
+# 000111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfred-max 
+# 001000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnj 
+# 001001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnjn 
+# 001010 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnjx 
+# 010000 1 r2[4:0] 00000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmv.f.s
+# 010000 1 00000 r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmv.s.f
+#single-width converts
+# 010010 1 r2[4:0] 00000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.xu.f.v
+# 010010 1 r2[4:0] 00001 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.x.f.v
+# 010010 1 r2[4:0] 00010 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.f.xu.v
+# 010010 1 r2[4:0] 00011 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.f.x.v
+# 010010 1 r2[4:0] 00110 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.rtz.xu.f.v
+# 010010 1 r2[4:0] 00111 001 r0[4:0] 1010111 | RISCVV f 1 32 vfcvt.rtz.x.f.v
+#widening converts
+# 010010 1 r2[4:0] 01000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.xu.f.v
+# 010010 1 r2[4:0] 01001 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.x.f.v
+# 010010 1 r2[4:0] 01010 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.f.xu.v
+# 010010 1 r2[4:0] 01011 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.f.x.v
+# 010010 1 r2[4:0] 01100 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.f.f.v
+# 010010 1 r2[4:0] 01110 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.rtz.xu.f.v
+# 010010 1 r2[4:0] 01111 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwcvt.rtz.x.f.v
+#narrowing converts
+# 010010 1 r2[4:0] 10000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.xu.f.w
+# 010010 1 r2[4:0] 10001 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.x.f.w
+# 010010 1 r2[4:0] 10010 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.f.xu.w
+# 010010 1 r2[4:0] 10011 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.f.x.w
+# 010010 1 r2[4:0] 10100 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.f.f.w
+# 010010 1 r2[4:0] 10101 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.rod.f.f.w
+# 010010 1 r2[4:0] 10110 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.rtz.xu.f.w
+# 010010 1 r2[4:0] 10111 001 r0[4:0] 1010111 | RISCVV f 1 32 vfncvt.rtz.x.f.w
+
+# 010011 1 r2[4:0] 00000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfsqrt.v
+# 010011 1 r2[4:0] 10000 001 r0[4:0] 1010111 | RISCVV f 1 32 vfclass.v
+# 010111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmerge.vf/vfmv 
+# 011000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmfeq 
+# 011001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmfle 
+# 011011 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmflt 
+# 011100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmfne 
+# 011101 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmfgt 
+# 011111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vmfge 
+# 100000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfdiv 
+# 100001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfrdiv 
+# 100100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmul 
+# 100111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfrsub 
+# 101000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmadd 
+# 101001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfnmadd 
+# 101010 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmsub 
+# 101011 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfnmsub 
+# 101100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmacc 
+# 101101 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfnmacc 
+# 101110 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfmsac 
+# 101111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfnmsac 
+# 110000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwadd 
+# 110001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwredsu 
+# 110010 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwsub 
+# 110011 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwredosum 
+# 110100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwadd.w 
+# 110110 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwsub.w 
+# 111000 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwmul 
+# 111001 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfdot 
+# 111100 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwmacc 
+# 111101 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwnmacc 
+# 111110 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwmsac 
+# 111111 1 r2[4:0] r1[4:0] 001 r0[4:0] 1010111 | RISCVV f 1 32 vfwnmsac 
+  
+# funct6 vm r2[4:0] r1[4:0] 101 r0[4:0] 1010111 OP-V (OPFVF)vector-scalar
+000000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 ADD VFADDI r0 r1 r2
+# 000010 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfsub 
+# 000100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmin 
+# 000110 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmax 
+# 001000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnj 
+# 001001 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnjn 
+# 001010 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfsgnjx 
+# 001110 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfslide1up 
+# 001111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfslide1down 
+# 010000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 VRFUNARY0 
+# 010111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmerge.vf/vfmv 
+# 011000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmfeq 
+# 011001 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmfle 
+# 011011 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmflt 
+# 011100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmfne 
+# 011101 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmfgt 
+# 011111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vmfge 
+# 100000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfdiv 
+# 100001 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfrdiv 
+# 100100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmul 
+# 100111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfrsub 
+# 101000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmadd 
+# 101001 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfnmadd 
+# 101010 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmsub 
+# 101011 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfnmsub 
+# 101100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmacc 
+# 101101 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfnmacc 
+# 101110 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfmsac 
+# 101111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfnmsac 
+# 110000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwadd 
+# 110010 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwsub 
+# 110100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwadd.w 
+# 110110 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwsub.w 
+# 111000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwmul 
+# 111100 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwmacc 
+# 111101 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwnmacc 
+# 111110 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwmsac 
+# 111111 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwnmsac 
+# 111000 1 r2[4:0] r1[4:0] 101 r0[4:0] 1010111 | RISCVV f 1 32 vfwmul
+
+# Formats for Vector Configuration Instructions under OP-V major opcode
+#i0[4:2]:       vsew[2:0]   Standard element width (SEW) setting
+#i0[5] i0[1:0]: vlmul[2:0]  Vector register group multiplier (LMUL) setting
+# 0 i0[10:0] r1[4:0] 111 r0[4:0] 1010111 | RISCVV i 1 32 vsetvli r0 r1 i0
+#r2 -> vtype like zimm
+# 1 000000 r2[4:0] r1[4:0] 111 r0[4:0] 1010111 | RISCVV i 1 32 vsetvl r0 r1 r2

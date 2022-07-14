@@ -1,0 +1,68 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  float (*pifff)(float, float);
+typedef  double (*pifdd)(double, double);
+
+// Simple addition between variables with
+// specialization transprecision on data width
+// Width depend on the platform. At least 32 & 64 bits.
+// Could also be 16 on RISCV or 128 on INTEL
+
+h2_insn_t * genAdd(h2_insn_t * ptr, int FloatWidth)
+{
+  #[
+   flt #(FloatWidth) 1 add (flt #(FloatWidth) 1 a, flt #(FloatWidth) 1 b)
+ 	{
+      flt #(FloatWidth) 1 r;
+      r = a + b;
+      return r;
+	}
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  float in0, in1, resf;
+  double resd;
+#if 0
+  long double resD;
+#endif
+  pifff fPtr1;
+  pifdd fPtr2;
+
+  if (argc < 2)
+    {
+      printf("Give 2 values\n");
+      exit(-1);
+    }
+  in0  = atof(argv[1]);    // Get the users values in1 & in2
+  in1  = atof(argv[2]);
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+
+#if 0
+  fPtr1 = genAdd (ptr, 16); // Generate instructions
+  resf  = fPtr1(in0, in1);         // Call generated code
+  printf("(%d) %10.30f + %10.30f = %10.30f\n", 16, in0, in1, resf);
+#endif
+
+  fPtr1 = (pifff)genAdd (ptr, 32); // Generate instructions
+  resf  = fPtr1(in0, in1);         // Call generated code
+  printf("(%d) %10.30f + %10.30f = %10.30f\n", 32, in0, in1, resf);
+
+  fPtr2 = (pifdd)genAdd (ptr, 64); // Generate instructions
+  resd  = fPtr2(in0, in1);         // Call generated code
+  printf("(%d) %10.30lf + %10.30lf = %10.30lf\n", 64, in0, in1, resd);
+
+#if 0
+  fPtr2 = genAdd (ptr, 128); // Generate instructions
+  resD  = fPtr2(in0, in1);         // Call generated code
+  printf("(%d) %10.30Lf + %10.30Lf = %10.30Lf\n", 128, in0, in1, resD);
+#endif
+
+  return 0;
+
+}

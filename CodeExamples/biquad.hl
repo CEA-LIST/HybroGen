@@ -1,0 +1,49 @@
+// -*- c -*-
+
+typedef  void (*piff)(float *, float *, int size);
+
+// Extract from sox.sourceforge.net
+h2_insn_t * genFilter (h2_insn_t * ptr, float b0, float b1, float b2, float a1, float a2)
+{
+  #[
+  int 32 1 filter(flt 64 1 signalIn, flt 64 1 signalOut, int 64 1 len)
+  {
+    flt 64 1 o0, flt 64 1 i1, int 32 1 i;
+    for (i = 0; i < len; i = i +1)
+      {
+        o0 = signalIn[i] * #(b0) + i1 * #(b1) + i2 * #(b2) - o1 * #(a1) - o2 * #(a2);
+        i2 = i1;
+        i1 = signalIn[i];
+        o2 = o1;
+        o1 = o0;
+        signalOut[i] = o0;
+  	   }
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  float a1, a2, b0, b1, b2;
+  pifff fPtr;
+  char msg[]= "// Compilette for audio filtering\n";
+
+  if (argc < 6)
+    {
+      printf("Give 5 floating point values\n");
+      exit(-1);
+    }
+  b0  = atof (argv[1]);
+  b1  = atof (argv[2]);
+  b2  = atof (argv[3]);
+  a1  = atof (argv[4]);
+  a2  = atof (argv[5]);
+  // Read audio file
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr = genFilter (ptr, b0, b1, b2, a1, a2);
+  res  = fPtr(in1, signalIn, signalOut);  // Call generated code
+  // Write audio file
+  return 0;
+}
