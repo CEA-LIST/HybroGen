@@ -10,12 +10,12 @@
 * General idea : Hybrogen is a tool which helps to generate
   compilette, compilettes are small code generators able to regenerate
   a part of an application at run-time. It aims to be fast (~10 cycles
-  to generate 1 instruction), small (KB code generator)
+  to generate 1 instruction) and small (KB code generator).
 
-* How it works : it start from a instruction set database containing
-  instruction encoding, arithmetic, data width and vector len, we
-  create a programming language (HybroLang) which allow to express
-  data set variation & build a compiler which take advantage of (1)
+* How it works : it starts from an instruction set database containing
+  instruction encoding, arithmetic, data width and vector length, we
+  create a programming language (HybroLang) which allows to express
+  data set variation & build a compiler which takes advantage of (1)
   data set variation and (2) hardware capability to modify the binary
   code at runtime.
 
