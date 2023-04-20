@@ -19,16 +19,7 @@ def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
         return returncode
     return 0
 
-commonTestList = ( "Add32x1-flt",
-             "Or32",
-             "And32",
-             "Add32x1-int",
-             "Sub32x1-int",
-             "Sub32x1-flt",
-             "Mult32x1-int",
-             "Mult32x1-flt",
-             "Div32x1-int",
-             "Div32x1-flt",
+commonTestList = (
              "Add-With-Transprecision",
              "Add-With-Specialization",
              "Mult-With-Specialization",
@@ -41,7 +32,6 @@ commonTestList = ( "Add32x1-flt",
              "Array-Ld-flt",
              "Loop",
              "LoopNest",
-             "Add16xX",
 )
 cxramTestList =(
     "CxRAM-SimpleAnd",
@@ -49,15 +39,22 @@ cxramTestList =(
     "CxRAM-SimpleAdd16",
     "CxRAM-SimpleAdd32",
     "CxRAM-SimpleSub8",
-#    "CxRAM-SimpleMul",
+    "CxRAM-SimpleMul8",
+    "CxRAM-SimpleMul16",
+    "CxRAM-SimpleMul32",
     "CxRAM-ImageDiff",
     "CxRAM-ImagePixelAccumulation",
+    "CxRAM-Broadcast32",
+    "CxRAM-Convolution8",
+    "CxRAM-Convolution16",
+    "CxRAM-Convolution32",
+    "CxRAM-MatrixMultiplication"
     )
-allArchList = ("riscv", "power", "kalray")
+allArchList = ("aarch64", "riscv", "power", "kalray")
 archExt= {"riscv": ["RV32I","RV32F", "RV32M", "RV32D"],
           "power": ["p1", "ppc"],
           "kalray": ["kalray"]}
-errMsg = {0:   "OK",
+errMsg = {0:    "OK",
           251 : "Failed code gen",
           252 : "Bad exec result",
           253 : "Bad static compil",
@@ -87,3 +84,5 @@ if __name__ == "__main__":
             o = cmd (commande, False, doPrint = False)
             print ("  %23s"%(errMsg[o]), end="")
         print()
+    commande = tuple(["./RunDemo.py", "-c"])
+    o = cmd (commande, False, doPrint = False)

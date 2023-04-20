@@ -28,6 +28,7 @@ class H2Type():
     def keys(self):
         return self.t
 
+from HybroLang.H2Aarch64Rewrite    import H2Aarch64Rewrite
 from HybroLang.H2PowerRewrite      import H2PowerRewrite
 from HybroLang.H2CxRAMRewrite      import H2CxRAMRewrite
 from HybroLang.H2KalrayRewrite     import H2KalrayRewrite
@@ -35,12 +36,13 @@ from HybroLang.H2ConstantOptimizer import H2ConstantOptimizer
 from HybroLang.H2RegisterAllocator import H2RegisterAllocator
 from HybroLang.H2MovOptimize       import H2MovOptimize
 from HybroLang.H2IRFlattener       import H2IRFlattener
+from HybroLang.H2WindowRewrite     import H2WindowRewrite
 
 class H2IR2():
     """Intermediate representation for HybroLang. Composed of list of
     expression tree, and the code generation"""
 
-    def __init__(self, platform, verbose = False, dbIds = None):
+    def __init__(self, platform, sTable, verbose = False, dbIds = None):
         self.IList = []
         self.platform = platform
         self.archMaster = self.platform["arch"][0]
@@ -48,6 +50,7 @@ class H2IR2():
         self.tmpVarNumber = 0
         self.labelNumber = 0
         self.dbIds = dbIds
+        self.sTable = sTable
 
     def __str__(self):
         tmp = "%s nodes :\n"%str(len(self.IList))
@@ -62,25 +65,33 @@ class H2IR2():
         if self.verbose:
             print (msg)
 
+    def printIR (self, irList, messsage):
+        print(messsage)
+        for i in range(len(irList)):
+            print("%d:%s\n"%(i, irList[i]))
+
     def generateCodeGeneration(self, sTable, regTmp, lTable, regIn):
         """ Generate code generator for an IR representation + symbol table """
         insnCode = ""
         callbackCode = ""
-        self.trace("IR before code generation")
         if self.verbose :
-            for i in range(len(self.IList)):
-                self.trace ("%d:%s\n"%(i, self.IList[i]))
+            self.printIR(self.IList,"IR before code generation")
 
         # Generic optimization
         # * Simple mov transformation
-        #p = H2MovOptimize(self.IList, self.verbose)
-        #self.IList = p.getNewInsnList()
+        if self.verbose:
+            print("H2MovOptimize pass")
+        p = H2MovOptimize(self.IList, self.sTable, self.verbose)
+        self.IList = p.getNewInsnList()
         # Rewrite pass for exclusive different master architecture
         if self.archMaster in ("power"):
             p = H2PowerRewrite(self.platform, self.IList, self.verbose)
             self.IList = p.getNewInsnList()
         elif self.archMaster in ("kalray"):
             p = H2KalrayRewrite(self.archMaster, self.IList, self.verbose)
+            self.IList = p.getNewInsnList()
+        elif self.archMaster in ("aarch64"):
+            p = H2Aarch64Rewrite(self.archMaster, self.IList, self.verbose)
             self.IList = p.getNewInsnList()
         elif self.platform["abi"] in ("CXRAM"):
         # Rewrite pass for second architecture
@@ -89,11 +100,10 @@ class H2IR2():
             p = H2CxRAMRewrite(self.platform, lTable, sTable, regTmp, regIn, verbose=self.verbose, dbIds = self.dbIds)
             self.IList = p.rewriteInsns(self.IList)
             if self.verbose :
-                print("IR after H2CxRAMRewrite pass")
-                for i in range(len(self.IList)):
-                    print("%d:%s\n"%(i, self.IList[i]))
+                self.printIR (self.IList, "IR after H2CxRAMRewrite pass")
         else:
             self.trace("No specific rewrite for %s"%(self.platform))
+
         self.trace("H2ConstantOptimizer pass")
         new = []
         p = H2ConstantOptimizer(self.archMaster, verbose=self.verbose)
@@ -101,25 +111,28 @@ class H2IR2():
             new += p.rewriteInsn(i)
         self.IList = new
         if self.verbose :
-            print("IR after H2ConstantOptimizer pass")
-            for i in range(len(self.IList)):
-                print ("%d:%s\n"%(i, self.IList[i]))
-        self.trace("Now entering H2IRFlattener pass")
+            self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
+
+        self.trace("PASS : H2IRFlattener")
         p = H2IRFlattener(self.platform, sTable, verbose=self.verbose)
         self.IList = p.rewriteInsns(self.IList)
         if self.verbose :
-            print("IR after H2IRFlattener pass")
-            for i in range(len(self.IList)):
-                print ("%d:%s\n"%(i, self.IList[i]))
-        self.trace("Now entering H2RegisterAllocator pass")
-        new = []
+            self.printIR (self.IList, "IR after H2IRFlattener pass")
+
+        self.trace("PASS : Window Rewrite")
+        p = H2WindowRewrite(self.IList, self.archMaster, verbose=self.verbose)
+        self.IList = p.getOptimizedInsnList()
+        if self.verbose :
+            self.printIR (self.IList, "IR after Window Rewrite")
+
+        self.trace("PASS : H2RegisterAllocator")
         p = H2RegisterAllocator(self.archMaster, sTable, regTmp, verbose=self.verbose)
         self.IList = p.rewriteInsns(self.IList)
         if self.verbose :
-            print("IR after H2RegisterAllocator pass")
-            for i in range(len(self.IList)):
-                print ("%d:%s\n"%(i, self.IList[i]))
+            self.printIR (self.IList, "IR after H2RegisterAllocator pass")
+
         # Code generation
+        self.trace("PASS : Code generation")
         for i in range(len(self.IList)):
             insn = self.IList[i]
             if self.verbose :
@@ -223,7 +236,7 @@ class H2IR2():
         elif insn.isB():
             if insn.nodeType == H2NodeType.BA:
                 reg0 = "(h2_sValue_t) {REGISTER, 'i', 1, 32, 0, 0}" # Hardwired 0
-                if self.archMaster== "power" or archMaster== "kalray":
+                if self.archMaster== "power" or archMaster== "kalray" or self.archMaster=="aarch64":
                     target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
                     code += '\t%s_genBA_1(%s);\n'%(archMaster, target)
                 elif  self.archMaster== "riscv":
@@ -249,7 +262,7 @@ class H2IR2():
                     callback += '\th2_asm_pc = labelAddresses [%s] + 1;\n'%(insn.getSourceName())
                     callback += '\t%s_gen%s_2(%s, %s);\n'%(archMaster, branchCond, src, target)
                 else:
-                    #power
+                    #power and aarch64
                     target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
                     code += '\t%s_gen%s_1(%s);\n'%(archMaster, branchCond, target)
                     callback += '\th2_asm_pc = labelAddresses [%s] + 1;\n'%(insn.getSourceName())
@@ -274,12 +287,12 @@ class H2IR2():
             if insn.hasVariableName():
                 return insn.getVariableName()
             else:
-                d = insn.getNodeType()
+                d = insn.getOpType()
                 regNro = insn.getRegister()
                 arith = H2Type.typeCorrespondances[d['arith']]
                 return "(h2_sValue_t) {REGISTER, '%s', %s, %s, %s, 0}"%(arith, d["vectorLen"], d["wordLen"], regNro)
         elif insn.isConst():
-            d = insn.getNodeType()
+            d = insn.getOpType()
             value = insn.getConstValue()
             arith = H2Type.typeCorrespondances[d['arith']]
             return "(h2_sValue_t) {VALUE, '%s', %s, %s, 0, %s}"%(arith, d["vectorLen"], d["wordLen"], value)

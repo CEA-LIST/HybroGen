@@ -9,7 +9,8 @@ h2_insn_t * genAdd(h2_insn_t * ptr, int  b)
   int 32 1 add (int 32 1 a)
   {
     int 32 1 r;
-    r = #(b) + a; // b values will be included in code generation
+    r =  a + #(b); // b values will be included in code generation
+	// constant value should be in right position
     return r;
   }
   ]#

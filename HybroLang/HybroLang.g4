@@ -22,7 +22,7 @@ affectexpr      : Name '=' unaryexpr
 unaryexpr 		: unaryexpr op=('*'|'/')   unaryexpr
     			| unaryexpr op=('+'|'-')   unaryexpr
     			| unaryexpr op=('<<'|'>>') unaryexpr
-    			| unaryexpr op=('&&'|'||') unaryexpr
+    			| unaryexpr op=('&' | '|' | '^') unaryexpr
                 | varorvalue                       				;
 varorvalue      : Name  '[' unaryexpr ']'           # varorvalueArray
     			| constvalue                        # varorvalueConst

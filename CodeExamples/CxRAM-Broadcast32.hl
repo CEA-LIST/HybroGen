@@ -1,0 +1,60 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+typedef void (*genBroadcastType)(h2_cxram_line_t *);
+
+genBroadcastType genBroadcast(h2_insn_t *ptr)
+{
+#[
+	int 32 1 Broadcast(int[] 32 4 res)
+	{
+		int 32 1 i, max;
+		max = 16;
+		for (i = 0; i < max; i = i + 1)
+		{
+			res[i] = i;
+		}
+	}
+]#
+	return (genBroadcastType) ptr;
+}
+
+void printVec(h2_cxram_line_t *vectorLine, int len, char *mesg)
+{
+	int i;
+	printf("%s", mesg);
+	for (i = 0; i < len; i++)
+	{
+		printf("  %05d", vectorLine->i32[i]);
+	}
+	printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+	h2_insn_t *ptr;
+	genBroadcastType code;
+	h2_cxram_line_t *res;
+	h2_init_cxram();
+	res = &h2_cxram_tiles[0];
+	ptr = h2_malloc(1024);
+	code = genBroadcast(ptr);
+	code(res);
+	for (int i = 0; i < CXRAM_VECLEN; i++)
+	{
+		printVec(&res[i], CXRAM_VECLEN / 4, "=");
+	}
+	int resultOK = 0;
+	for (int i = 0; i < CXRAM_VECLEN; i++)
+	{
+		for (int j = 0; j < CXRAM_VECLEN / 4; j++)
+		{
+			if (res[i].i32[j] != i)
+				resultOK = 1;
+		}
+	}
+	return resultOK;
+}

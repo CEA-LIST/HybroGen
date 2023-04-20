@@ -11,7 +11,7 @@ pifiii genSimpleAnd(h2_insn_t * ptr)
 #[
 	int 32 1 add (int[] 128 1 a, int[] 128 1 b, int[] 128 1 res)
 	{
-		res[0] = a[0] && b[0];
+		res[0] = a[0] & b[0];
 	}
 ]#
 	return (pifiii) ptr;

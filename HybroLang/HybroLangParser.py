@@ -7,7 +7,7 @@ import sys
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3-")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3.")
         buf.write("\u00bf\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
         buf.write("\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r\4\16")
         buf.write("\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23\t\23")
@@ -26,8 +26,8 @@ def serializedATN():
         buf.write("\22\3\22\3\23\3\23\5\23\u00b0\n\23\3\24\3\24\3\24\5\24")
         buf.write("\u00b5\n\24\3\25\3\25\3\26\3\26\5\26\u00bb\n\26\3\27\3")
         buf.write("\27\3\27\2\3\36\30\2\4\6\b\n\f\16\20\22\24\26\30\32\34")
-        buf.write("\36 \"$&(*,\2\b\3\2\16\17\3\2\20\21\3\2\22\23\3\2\24\25")
-        buf.write("\3\2\26\36\3\2 %\2\u00ba\2/\3\2\2\2\4\63\3\2\2\2\6\66")
+        buf.write("\36 \"$&(*,\2\b\3\2\16\17\3\2\20\21\3\2\22\23\3\2\24\26")
+        buf.write("\3\2\27\37\3\2!&\2\u00ba\2/\3\2\2\2\4\63\3\2\2\2\6\66")
         buf.write("\3\2\2\2\b:\3\2\2\2\n>\3\2\2\2\fK\3\2\2\2\16S\3\2\2\2")
         buf.write("\20V\3\2\2\2\22^\3\2\2\2\24d\3\2\2\2\26g\3\2\2\2\30z\3")
         buf.write("\2\2\2\32|\3\2\2\2\34\u008a\3\2\2\2\36\u008c\3\2\2\2 ")
@@ -35,24 +35,24 @@ def serializedATN():
         buf.write("\2\2\2(\u00b6\3\2\2\2*\u00b8\3\2\2\2,\u00bc\3\2\2\2.\60")
         buf.write("\5\4\3\2/.\3\2\2\2\60\61\3\2\2\2\61/\3\2\2\2\61\62\3\2")
         buf.write("\2\2\62\3\3\2\2\2\63\64\5\6\4\2\64\65\5\n\6\2\65\5\3\2")
-        buf.write("\2\2\66\67\5\"\22\2\678\7)\2\289\5\b\5\29\7\3\2\2\2:;")
+        buf.write("\2\2\66\67\5\"\22\2\678\7*\2\289\5\b\5\29\7\3\2\2\2:;")
         buf.write("\7\3\2\2;<\5\f\7\2<=\7\4\2\2=\t\3\2\2\2>B\7\5\2\2?A\5")
         buf.write("\16\b\2@?\3\2\2\2AD\3\2\2\2B@\3\2\2\2BC\3\2\2\2CE\3\2")
         buf.write("\2\2DB\3\2\2\2EG\5\24\13\2FH\5\32\16\2GF\3\2\2\2GH\3\2")
         buf.write("\2\2HI\3\2\2\2IJ\7\6\2\2J\13\3\2\2\2KP\5\22\n\2LM\7\7")
         buf.write("\2\2MO\5\22\n\2NL\3\2\2\2OR\3\2\2\2PN\3\2\2\2PQ\3\2\2")
         buf.write("\2Q\r\3\2\2\2RP\3\2\2\2ST\5\20\t\2TU\7\b\2\2U\17\3\2\2")
-        buf.write("\2V[\5\22\n\2WX\7\7\2\2XZ\7)\2\2YW\3\2\2\2Z]\3\2\2\2[")
+        buf.write("\2V[\5\22\n\2WX\7\7\2\2XZ\7*\2\2YW\3\2\2\2Z]\3\2\2\2[")
         buf.write("Y\3\2\2\2[\\\3\2\2\2\\\21\3\2\2\2][\3\2\2\2^_\5\"\22\2")
-        buf.write("_`\7)\2\2`\23\3\2\2\2ac\5\30\r\2ba\3\2\2\2cf\3\2\2\2d")
+        buf.write("_`\7*\2\2`\23\3\2\2\2ac\5\30\r\2ba\3\2\2\2cf\3\2\2\2d")
         buf.write("b\3\2\2\2de\3\2\2\2e\25\3\2\2\2fd\3\2\2\2gh\5 \21\2hi")
         buf.write("\5,\27\2ij\5 \21\2j\27\3\2\2\2kl\5\34\17\2lm\7\b\2\2m")
         buf.write("{\3\2\2\2no\7\t\2\2op\7\3\2\2pq\5\34\17\2qr\7\b\2\2rs")
         buf.write("\5\26\f\2st\7\b\2\2tu\5\34\17\2uv\7\4\2\2vw\7\5\2\2wx")
         buf.write("\5\24\13\2xy\7\6\2\2y{\3\2\2\2zk\3\2\2\2zn\3\2\2\2{\31")
         buf.write("\3\2\2\2|}\7\n\2\2}~\5\36\20\2~\177\7\b\2\2\177\33\3\2")
-        buf.write("\2\2\u0080\u0081\7)\2\2\u0081\u0082\7\13\2\2\u0082\u008b")
-        buf.write("\5\36\20\2\u0083\u0084\7)\2\2\u0084\u0085\7\f\2\2\u0085")
+        buf.write("\2\2\u0080\u0081\7*\2\2\u0081\u0082\7\13\2\2\u0082\u008b")
+        buf.write("\5\36\20\2\u0083\u0084\7*\2\2\u0084\u0085\7\f\2\2\u0085")
         buf.write("\u0086\5\36\20\2\u0086\u0087\7\r\2\2\u0087\u0088\7\13")
         buf.write("\2\2\u0088\u0089\5\36\20\2\u0089\u008b\3\2\2\2\u008a\u0080")
         buf.write("\3\2\2\2\u008a\u0083\3\2\2\2\u008b\35\3\2\2\2\u008c\u008d")
@@ -64,20 +64,20 @@ def serializedATN():
         buf.write("\2\u009a\u009c\5\36\20\5\u009b\u008f\3\2\2\2\u009b\u0092")
         buf.write("\3\2\2\2\u009b\u0095\3\2\2\2\u009b\u0098\3\2\2\2\u009c")
         buf.write("\u009f\3\2\2\2\u009d\u009b\3\2\2\2\u009d\u009e\3\2\2\2")
-        buf.write("\u009e\37\3\2\2\2\u009f\u009d\3\2\2\2\u00a0\u00a1\7)\2")
+        buf.write("\u009e\37\3\2\2\2\u009f\u009d\3\2\2\2\u00a0\u00a1\7*\2")
         buf.write("\2\u00a1\u00a2\7\f\2\2\u00a2\u00a3\5\36\20\2\u00a3\u00a4")
         buf.write("\7\r\2\2\u00a4\u00a8\3\2\2\2\u00a5\u00a8\5&\24\2\u00a6")
-        buf.write("\u00a8\7)\2\2\u00a7\u00a0\3\2\2\2\u00a7\u00a5\3\2\2\2")
+        buf.write("\u00a8\7*\2\2\u00a7\u00a0\3\2\2\2\u00a7\u00a5\3\2\2\2")
         buf.write("\u00a7\u00a6\3\2\2\2\u00a8!\3\2\2\2\u00a9\u00aa\5*\26")
         buf.write("\2\u00aa\u00ab\5$\23\2\u00ab\u00ac\5$\23\2\u00ac#\3\2")
-        buf.write("\2\2\u00ad\u00b0\7\'\2\2\u00ae\u00b0\5(\25\2\u00af\u00ad")
+        buf.write("\2\2\u00ad\u00b0\7(\2\2\u00ae\u00b0\5(\25\2\u00af\u00ad")
         buf.write("\3\2\2\2\u00af\u00ae\3\2\2\2\u00b0%\3\2\2\2\u00b1\u00b5")
-        buf.write("\7\'\2\2\u00b2\u00b5\7&\2\2\u00b3\u00b5\5(\25\2\u00b4")
+        buf.write("\7(\2\2\u00b2\u00b5\7\'\2\2\u00b3\u00b5\5(\25\2\u00b4")
         buf.write("\u00b1\3\2\2\2\u00b4\u00b2\3\2\2\2\u00b4\u00b3\3\2\2\2")
-        buf.write("\u00b5\'\3\2\2\2\u00b6\u00b7\7*\2\2\u00b7)\3\2\2\2\u00b8")
-        buf.write("\u00ba\t\6\2\2\u00b9\u00bb\7\37\2\2\u00ba\u00b9\3\2\2")
-        buf.write("\2\u00ba\u00bb\3\2\2\2\u00bb+\3\2\2\2\u00bc\u00bd\t\7")
-        buf.write("\2\2\u00bd-\3\2\2\2\20\61BGP[dz\u008a\u009b\u009d\u00a7")
+        buf.write("\u00b5\'\3\2\2\2\u00b6\u00b7\7+\2\2\u00b7)\3\2\2\2\u00b8")
+        buf.write("\u00ba\t\6\2\2\u00b9\u00bb\7 \2\2\u00ba\u00b9\3\2\2\2")
+        buf.write("\u00ba\u00bb\3\2\2\2\u00bb+\3\2\2\2\u00bc\u00bd\t\7\2")
+        buf.write("\2\u00bd-\3\2\2\2\20\61BGP[dz\u008a\u009b\u009d\u00a7")
         buf.write("\u00af\u00b4\u00ba")
         return buf.getvalue()
 
@@ -94,10 +94,10 @@ class HybroLangParser ( Parser ):
 
     literalNames = [ "<INVALID>", "'('", "')'", "'{'", "'}'", "','", "';'", 
                      "'for'", "'return'", "'='", "'['", "']'", "'*'", "'/'", 
-                     "'+'", "'-'", "'<<'", "'>>'", "'&&'", "'||'", "'int'", 
-                     "'uint'", "'sint'", "'suint'", "'flt'", "'cpl'", "'pix'", 
-                     "'ipv4'", "'ipv6'", "'[]'", "'=='", "'!='", "'<'", 
-                     "'>'", "'<='", "'>='" ]
+                     "'+'", "'-'", "'<<'", "'>>'", "'&'", "'|'", "'^'", 
+                     "'int'", "'uint'", "'sint'", "'suint'", "'flt'", "'cpl'", 
+                     "'pix'", "'ipv4'", "'ipv6'", "'[]'", "'=='", "'!='", 
+                     "'<'", "'>'", "'<='", "'>='" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
@@ -108,8 +108,9 @@ class HybroLangParser ( Parser ):
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "DecimalFloatingConstant", "IntegerConstant", "DecimalConstant", 
-                      "Name", "INLINE", "WhiteSpace", "LineComment", "NewLine" ]
+                      "<INVALID>", "DecimalFloatingConstant", "IntegerConstant", 
+                      "DecimalConstant", "Name", "INLINE", "WhiteSpace", 
+                      "LineComment", "NewLine" ]
 
     RULE_compilationunit = 0
     RULE_function = 1
@@ -177,14 +178,15 @@ class HybroLangParser ( Parser ):
     T__32=33
     T__33=34
     T__34=35
-    DecimalFloatingConstant=36
-    IntegerConstant=37
-    DecimalConstant=38
-    Name=39
-    INLINE=40
-    WhiteSpace=41
-    LineComment=42
-    NewLine=43
+    T__35=36
+    DecimalFloatingConstant=37
+    IntegerConstant=38
+    DecimalConstant=39
+    Name=40
+    INLINE=41
+    WhiteSpace=42
+    LineComment=43
+    NewLine=44
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
@@ -235,7 +237,7 @@ class HybroLangParser ( Parser ):
                 self.state = 47 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__19) | (1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27))) != 0)):
+                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27) | (1 << HybroLangParser.T__28))) != 0)):
                     break
 
         except RecognitionException as re:
@@ -426,7 +428,7 @@ class HybroLangParser ( Parser ):
             self.state = 64
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__19) | (1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27))) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27) | (1 << HybroLangParser.T__28))) != 0):
                 self.state = 61
                 self.localvardef()
                 self.state = 66
@@ -1063,7 +1065,7 @@ class HybroLangParser ( Parser ):
                         self.state = 151
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not(_la==HybroLangParser.T__17 or _la==HybroLangParser.T__18):
+                        if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__17) | (1 << HybroLangParser.T__18) | (1 << HybroLangParser.T__19))) != 0)):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -1430,7 +1432,7 @@ class HybroLangParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 182
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__19) | (1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27))) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__20) | (1 << HybroLangParser.T__21) | (1 << HybroLangParser.T__22) | (1 << HybroLangParser.T__23) | (1 << HybroLangParser.T__24) | (1 << HybroLangParser.T__25) | (1 << HybroLangParser.T__26) | (1 << HybroLangParser.T__27) | (1 << HybroLangParser.T__28))) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1438,9 +1440,9 @@ class HybroLangParser ( Parser ):
             self.state = 184
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==HybroLangParser.T__28:
+            if _la==HybroLangParser.T__29:
                 self.state = 183
-                self.match(HybroLangParser.T__28)
+                self.match(HybroLangParser.T__29)
 
 
         except RecognitionException as re:
@@ -1479,7 +1481,7 @@ class HybroLangParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 186
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__29) | (1 << HybroLangParser.T__30) | (1 << HybroLangParser.T__31) | (1 << HybroLangParser.T__32) | (1 << HybroLangParser.T__33) | (1 << HybroLangParser.T__34))) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << HybroLangParser.T__30) | (1 << HybroLangParser.T__31) | (1 << HybroLangParser.T__32) | (1 << HybroLangParser.T__33) | (1 << HybroLangParser.T__34) | (1 << HybroLangParser.T__35))) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

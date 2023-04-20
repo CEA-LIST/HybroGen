@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import random
-import sys
 from enum import Enum
 from HybroLang.H2SymbolTable import H2SymbolTable
 from HybroLang.H2LabelTable  import H2LabelTable
@@ -49,12 +47,12 @@ class H2KalrayRewrite():
             insn.sonsList.insert(i, newSon)
         if insn.isOperator():
             if insn.getSemName() == "DIV":
-                invNode = H2Node(H2NodeType.OPERATOR, sonsList = [insn.sonsList[1]], opName="INV", opType = insn.getNodeType())
-                mulNode = H2Node(H2NodeType.OPERATOR, opType = insn.getNodeType(), sonsList = [insn.sonsList[0], invNode], opName= "*")
+                invNode = H2Node(H2NodeType.OPERATOR, sonsList = [insn.sonsList[1]], opName="INV", opType = insn.getOpType())
+                mulNode = H2Node(H2NodeType.OPERATOR, opType = insn.getOpType(), sonsList = [insn.sonsList[0], invNode], opName= "*")
                 return mulNode
-            elif insn.getSemName() == "SUB" and insn.getNodeType()['arith'] == 'flt':
-                negNode = H2Node(H2NodeType.OPERATOR, sonsList = [insn.sonsList[1]], opName="NEG", opType = insn.getNodeType())
-                addNode = H2Node(H2NodeType.OPERATOR, opType = insn.getNodeType(), sonsList = [insn.sonsList[0], negNode], opName= "+")
+            elif insn.getSemName() == "SUB" and insn.getOpType()['arith'] == 'flt':
+                negNode = H2Node(H2NodeType.OPERATOR, sonsList = [insn.sonsList[1]], opName="NEG", opType = insn.getOpType())
+                addNode = H2Node(H2NodeType.OPERATOR, opType = insn.getOpType(), sonsList = [insn.sonsList[0], negNode], opName= "+")
                 return addNode
         return insn
 

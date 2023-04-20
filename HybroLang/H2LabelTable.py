@@ -8,6 +8,7 @@ class H2LabelTable:
         self.labelTable = {}
         self.labelNumber = 0
         self.archName = archName
+    
     def add(self, labelName, idValue):
         if labelName in self.labelTable:
             raise Exception ("Label table error (add)", "Already existing label: "+labelName)

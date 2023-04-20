@@ -71,12 +71,12 @@ class RegisterListener(RegisterDescriptionListener):
             for i,elem in enumerate(range(int(lRegisterName[0]), int(lRegisterName[1])+1)):
                 self.db.setRegister(self.archname, extension, elem, prefix + str(elem),  width, regType, self.currentReg.getFunction()[i])
 
-def initDb():
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+def initDb(dbId):
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
 
-def insertDb(archName):
+def insertDb(archName, dbId):
     filename = "HybroGen/arch/%s/h2-%s.register"%(archName, archName)
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     try:
         l = RegisterDescriptionLexer(antlr4.FileStream(filename, "utf8"))
     except FileNotFoundError:        
@@ -89,29 +89,11 @@ def insertDb(archName):
     w = ParseTreeWalker()
     lis = RegisterListener(archName, db)
     w.walk(lis, t)
-        
 
-def dropDb():    
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+def dropDb(dbIds):
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     db.dropDb()
     
-argList = {
-    "-d":("Delete all database",               dropDb),
-    "-i":("Insert a register in the database", insertDb),
-    "-s":("Initialize database",               initDb),
-    "-x":("xperimetal stuff",                  usage),
-}
-    
-def themain(argv):
-    action = argv[0]
-    if action not in argList.keys():
-        usage("unknown action")
-    elif len(argv) == 1:
-        argList[action][1]()        
-    else: 
-        argList[action][1](argv[1])
-    
-
 def usage(msg):
     print("Error : %s"%msg)
     print("%s %s [ArchName] "%("H2Register", argList.keys()))
@@ -120,7 +102,21 @@ def usage(msg):
     sys.exit(0)
 
 if __name__ == '__main__':
-    arglen = len(sys.argv)
-    if arglen < 2:
-        usage("Give a parameter")
-    themain(sys.argv[1:])
+    import argparse
+
+    p = argparse.ArgumentParser("Hybrogen register handling")
+    p.add_argument ("-a", "--arch",   nargs=1,  default="none", help="Give arch name")
+    p.add_argument ('-p', '--dropDb', action='store_true',  help="Delete all database tables")
+    p.add_argument ('-i', '--insertDb', action='store_true', help="Insert a register in the database")
+    p.add_argument ('-n', '--initDb',  action='store_true',  help="Init DB")
+    p.add_argument ('-d', '--dbIds',  default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
+    args = p.parse_args()
+    archName = args.arch[0]
+    ids = args.dbIds.split(":")
+    dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
+    if args.initDb:
+        initDb (archName)
+    elif args.dropDb:
+        dropDb (dbIds)
+    elif args.insertDb:
+        insertDb (archName, dbIds)

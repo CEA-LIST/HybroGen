@@ -1,0 +1,207 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "include/dataMatrix.h"
+
+#define CSRAM_NB_ROWS 512 //nombre de ligne de mémoire
+#define DATA_PER_LINE 4   //nombre de données par lignes
+#define TAILLE_MAX_M_B 255
+#define AFFICHAGE_CSRAM 1
+
+typedef void (*genMultiplyAccumulateType)(h2_cxram_line_t *, h2_cxram_line_t *, h2_cxram_line_t *, int inDepth, int resDepth);
+
+genMultiplyAccumulateType genMultiplyAccumulate(h2_insn_t *ptr)
+{
+#[
+  int 32 1 MultiplyAccumulate(int[] 32 4 M_A, int[] 32 4 M_B,
+                              int[] 32 4 res, int 32 1 inDepth, int 32 1 resDepth)
+  {
+    int 32 1 i, j, k;
+    for (i = 0; i < resDepth; i = i + 1)
+    {
+      for (j = 0; j < inDepth; j = j + 1)
+      {
+        k = j * resDepth;
+        k = k + i;
+        res[resDepth + 1] = M_A[j] * M_B[k]; // multiply
+        res[i] = res[i] + res[resDepth + 1]; // accumulate
+      }
+    }
+  }
+]#
+	return (genMultiplyAccumulateType) ptr;
+}
+
+typedef void (*genBroadcastToRowsType)(h2_cxram_line_t *, int *data, int inDepth, int offset);
+
+genBroadcastToRowsType genBroadcastToRows(h2_insn_t *ptr)
+{
+#[
+  int 32 1 BroadcastToRows(int[] 32 4 filter, int[] 32 1 data, int 32 1 inDepth, int 32 1 offset)
+  {
+    int 32 1 i;
+    offset = offset * inDepth;
+    for (i = 0; i < inDepth; i = i + 1)
+    {
+      filter[i] = data[offset + i];
+    }
+  }
+]#
+	return (genBroadcastToRowsType) ptr;
+}
+
+typedef void (*genSetRowsType)(int32_t *, uint32_t, uint32_t);
+genSetRowsType genSetRows(h2_insn_t *ptr)
+{
+#[
+  int 32 1 SetRows(int[] 32 4 M_csram, int 32 1 n, int 32 1 nrows)
+  {
+    int 32 1 i;
+    for (i = 0; i < nrows; i = i + 1)
+    {
+      M_csram[i] = n;
+    }
+  }
+  return 0;
+]#
+	return (genSetRowsType) ptr;
+}
+
+void printCxram(int len, int nb_ligne, char *mesg, h2_cxram_line_t *vectorLine)
+{
+  for (int i = 0; i < nb_ligne; i++)
+  {
+    printf("%s :", mesg);
+    for (int j = 0; j < len; j++)
+    {
+      printf(" %05d", vectorLine[i].i32[j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}
+
+void loadM_B(Matrix *M_B, h2_cxram_line_t *M_B_rows, int begin, int end, int nbLineRes)
+{
+  int index = 0;
+  for (int i = 0; i < M_B->width; i++)
+  {
+    for (int j = begin; j < end; j++)
+    {
+      M_B_rows[i * nbLineRes].i32[j] = M_B->data[index++];
+    }
+  }
+}
+
+void printMatrix(Matrix *M)
+{
+  for (int x = 0; x < M->height; x++)
+  {
+    for (int y = 0; y < M->width; y++)
+    {
+      printf("%d, ", M->data[x * M->width + y]);
+    }
+    printf("\n");
+  }
+}
+
+int main(int argc, char *argv[])
+{
+  int resultOK;
+  // Matrix *M_A, *M_B, *M_C, *M_C_cxram;
+  Matrix M_C_cxram;
+  h2_insn_t *ptr;
+  genMultiplyAccumulateType h2_MacCode;
+  genBroadcastToRowsType h2_BroadcastCode;
+  genSetRowsType h2_SetCode;
+  h2_cxram_line_t *M_A_rows, *M_B_rows, *M_C_rows;
+
+  M_C_cxram.height = M_A.height;
+  M_C_cxram.width = M_B.width;
+  int heightM_A = M_A.height;
+  int heightM_B = M_B.height;
+  int heightM_C = M_B.height;
+
+  // if matrix size is compatible for multiplication
+  if (M_A.width != M_B.height){
+    printf("Size Matrix Error ! M_A(%d,%d) * M_B(%d,%d) is illegal\n", M_A.height, M_A.width, M_B.height, M_B.width);
+    return -1;
+  }
+
+  //calcul of tile const
+  const int nbLineM_C = heightM_C % DATA_PER_LINE ? (heightM_C / DATA_PER_LINE) + 1 : heightM_C / DATA_PER_LINE;  // Nombre de ligne utilisé pour le résutat dans la mémoire
+  const int nbLineM_A = heightM_A;                                                                                // Nombre de ligne utilisé pour la martice A dans la mémoire
+  const int nbLineM_B = nbLineM_A * nbLineM_C;                                                                    // Nombre de ligne utilisé pour la matrice b dans la mémoire
+  const int nbTimes = nbLineM_B % TAILLE_MAX_M_B ? (nbLineM_B / TAILLE_MAX_M_B) + 1 : nbLineM_B / TAILLE_MAX_M_B; // Nombre de passe a effeture pour obtenir la totalité de la matrice C
+  const int nbLineM_CPerTime = nbLineM_C % nbTimes ? (nbLineM_C / nbTimes) + 1 : nbLineM_C / nbTimes;
+  const int nbLineM_BPerTime = nbLineM_A * nbLineM_CPerTime;
+
+  h2_init_cxram();
+  M_A_rows = &h2_cxram_tiles[0];
+  M_B_rows = &h2_cxram_tiles[nbLineM_A];
+  M_C_rows = &h2_cxram_tiles[nbLineM_A + nbLineM_BPerTime];
+
+  // code generation
+  ptr = h2_malloc(1024);
+  h2_BroadcastCode = genBroadcastToRows(ptr);
+  ptr = h2_malloc(1024);
+  h2_MacCode = genMultiplyAccumulate(ptr);
+  ptr = h2_malloc(1024);
+  h2_SetCode = genSetRows(ptr);
+
+  for (int time = 0; time < nbTimes; time++)
+  {
+    const int M_B_Begin = time * nbLineM_CPerTime * DATA_PER_LINE;
+    const int M_B_End = (M_B_Begin + nbLineM_CPerTime * DATA_PER_LINE) > heightM_B ? heightM_B : M_B_Begin + nbLineM_CPerTime * DATA_PER_LINE;
+    const int nbLineM_CThisTime = (M_B_End - M_B_Begin) % DATA_PER_LINE ? ((M_B_End - M_B_Begin) / DATA_PER_LINE) + 1 : (M_B_End - M_B_Begin) / DATA_PER_LINE;
+
+    loadM_B(&M_B, M_B_rows, M_B_Begin, M_B_End, nbLineM_CThisTime);
+
+#if AFFICHAGE_CSRAM // M_B
+    printCxram(DATA_PER_LINE, nbLineM_BPerTime, "M_B", M_B_rows);
+#endif
+
+    for (int out_y = 0; out_y < M_A.width; out_y++)
+    {
+      h2_BroadcastCode(M_A_rows, M_A.data, nbLineM_A, out_y);
+#if AFFICHAGE_CSRAM // M_A
+      printCxram(DATA_PER_LINE, nbLineM_A, "M_A", M_A_rows);
+#endif
+      h2_SetCode(M_C_rows, 0, nbLineM_CThisTime);
+      h2_MacCode(M_A_rows, M_B_rows, M_C_rows, nbLineM_A, nbLineM_CThisTime);
+#if AFFICHAGE_CSRAM // M_C
+      printCxram(DATA_PER_LINE, nbLineM_CPerTime, "M_C", M_C_rows);
+#endif
+      int index = 0;
+      for (int i = 0; i < nbLineM_A; i++)
+      {
+        M_C_cxram.data[out_y * nbLineM_A + i] = M_C_rows[0].i32[i];
+      }
+      // return;
+    }
+  }
+#if 1
+  printf("M_A : \n");
+  printMatrix(&M_A);
+  printf("\nM_B : \n");
+  printMatrix(&M_B);
+  printf("\nM_C : \n");
+  printMatrix(&M_C_cxram);
+#endif
+  resultOK = 0;
+  for (int i = 0; i < M_C.height * M_C.width; i++)
+  {
+    if (M_C_cxram.data[i] != M_C.data[i])
+    {
+      printf("Erreur multiplication!\n");
+      resultOK = -1;
+      break;
+    }
+  }
+  return resultOK;
+}

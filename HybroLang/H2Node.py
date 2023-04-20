@@ -21,7 +21,7 @@ class H2Node():
         self.setLabelName(labelName)
         self.setTargetName(targetName)
         self.setSourceName(sourceName)
-        self.setNodeType (opType)
+        self.setOpType (opType)
         self.regId = None
 
     def __iter__(self):
@@ -33,8 +33,8 @@ class H2Node():
             s += ": %s"%(str(self.getOpName()))
             if None != self.regId:
                 s += " : reg %s"%self.getRegister()
-            if self.hasType():
-                s += ": %s"%(self.getNodeType())
+            if self.hasOpType():
+                s += ": %s"%(self.getOpType())
             s += "\n"
             for son in self.sonsList:
                 if son != None:
@@ -51,8 +51,8 @@ class H2Node():
             s += ": %s\n"%("RETURN")
         elif self.nodeType == H2NodeType.CONST:
             s += ": %s"%(self.getConstValue())
-            if self.hasType():
-                s += ": %s"%(self.getNodeType())
+            if self.hasOpType():
+                s += ": %s"%(self.getOpType())
             s += "\n"
         elif self.isB() or self.isCmp():
             s += ": %s %s"%(self.nodeType, self.targetName)
@@ -95,9 +95,16 @@ class H2Node():
     def hasLabelName (self):        		return None != self.labelName
     def isLabel(self):         			return self.hasLabelName()
 
-    def setNodeType (self, opType):        self.opType = opType
-    def getNodeType (self):        	   return self.opType
-    def hasType (self):        		   return self.opType != None
+    def setNodeType (self, nodeType):    self.nodeType = nodeType
+    def getNodeType (self):        	   return self.nodeType
+    def hasType (self):        		   return self.nodeType != None
+
+    def setOpType (self, opType):		self.opType = opType
+    def getOpType (self):				return self.opType
+    def hasOpType (self):				return self.opType != None
+
+    def setOpName (self, opName):       self.opName = self.sem[opName]
+    def getOpName (self):        	return self.opName
 
     def isOperator (self):     return self.nodeType == H2NodeType.OPERATOR
     def isConst (self):        return self.nodeType == H2NodeType.CONST
@@ -112,12 +119,36 @@ class H2Node():
     def isMem(self):           return (self.nodeType == H2NodeType.W) or (self.nodeType == H2NodeType.R)
 
 
-    sem = {"*": "MUL", "+":"ADD", "/":"DIV", "-":"SUB", "=":"MV", "W":"W", "R":"R", "L":"LOOP",
-           "&&":"AND", "||":"OR", "SL":"SL",  "SR":"SR", "<<":"SL", ">>":"SR", "LUI":"LUI", "INV":"INV", "NEG": "NEG", "MVIF":"MVIF", "MVFI":"MVFI",
+    sem = {"*": "MUL", "+":"ADD", "/":"DIV", "-":"SUB", "=":"MV", "W":"W", "R":"R", "L":"LOOP", "MAC":"MAC",
+           "^": "XOR", "&":"AND", "|":"OR", "SL":"SL",  "SR":"SR", "<<":"SL", ">>":"SR", "LUI":"LUI", "INV":"INV", "NEG": "NEG", "MVIF":"MVIF", "MVFI":"MVFI",
            "SL":"SL",  "SR":"SR", "OR":"OR", "AND":"AND", # TODO this line should be removed
     }
-    def setOpName (self, opName):       self.opName = self.sem[opName]
-    def getOpName (self):        	return self.opName
+
     def getSemName (self):        	return self.sem[self.opName]
 
     def isVector(self): return (isinstance(self.opType['vectorLen'], int) and self.opType['vectorLen'] > 1) or (isinstance(self.opType['vectorLen'], str) and  self.opType['vectorLen'].isdigit() and int(self.opType['vectorLen']) > 1)
+
+    def areNodesEquals(self, other): 
+        if self.nodeType != other.getNodeType(): return False
+        if self.labelName != other.getLabelName(): return False
+        if self.opName != other.getOpName(): return False 
+        print ("opType:")
+        print (self.opType)
+        print (other.getOpType())
+        if self.constValue != other.getConstValue(): return False
+        if self.variableName != other.getVariableName(): return False
+        return True
+    
+    def isSameTree(self, other):
+        if self.areNodesEquals(other):
+            if self.sonsList == [] and other.sonsList == []:
+                return True
+            else :
+                for i in range (len(self.sonsList)):
+                    if self.sonsList[i].isSameTree(other.sonsList[i]) == False :
+                        return False
+                return True
+        else:
+            return False
+        
+            

@@ -11,10 +11,10 @@ typedef  char  (*pifci)(char  *, int);
 h2_insn_t * genAdd(h2_insn_t * ptr, int wordSize)
 {
   #[
-	int 32 1 add (int[] #(wordSize) 1 a, int 32 1 index)
+	int #(wordSize) 1 add (int[] #(wordSize) 1 a, int 32 1 index)
     {
       int #(wordSize) 1 tmp;
-      tmp = a[index];
+	  tmp = a[index];
       return tmp;
     }
   ]#

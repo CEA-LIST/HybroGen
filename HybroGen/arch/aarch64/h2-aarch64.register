@@ -1,0 +1,35 @@
+# Register description for arm
+
+# https://github.com/ARM-software/abi-aa/releases
+# https://github.com/ARM-software/abi-aa/blob/844a79fd4c77252a11342709e3b27b2c9f590cf1/aapcs64/aapcs64.rst
+
+# AArch64
+#Register    Special    Role in the procedure call standard
+#SP                     The Stack Pointer
+#r30         LR         The Link Register.
+#r29         FP         The Frame Pointer
+#r19…r28                Callee-saved registers
+#r18                    The Platform Register, if needed; otherwise a temporary register.
+#r17         IP1        The second intra-procedure-call temporary register (can be used by call
+#                       veneers and PLT code); at other times may be used as a temporary register.
+#r16         IP0        The first intra-procedure-call scratch register (can be used by call
+#                       veneers and PLT code); at other times may be used as a temporary register.
+#r9…r15                 Temporary registers
+#r8                     Indirect result location register
+#r0…r7                  Parameter/result registers
+
+##################### A64 #######################
+#IsaExtension BankSet Name|Reg# Width Description
+
+A64     i      $r0-7      64      I0-7
+A64     i      $r0-7      64      O0-7
+A64     i      $r9-15     64      T9-15
+A64     i      $r19-28    64      I8-28
+
+A64     f      $f0-7      64      I0-7
+A64     f      $f0-7      64      O0-7
+A64     f      $f12-15    64      T12-15
+A64     f      $f19-28    64      I8-28
+
+A64    v i     $v0-31     64  	  T0-31
+A64    v f     $v0-31     64  	  T0-31

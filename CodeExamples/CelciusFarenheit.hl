@@ -10,7 +10,7 @@ h2_insn_t * genC2F(h2_insn_t * ptr)
   int 32 1 C2F (int 32 1 a)
   {
     int 32 1 r;
-	r = a * 9 / 5 + 32;
+	r = a * 9 / 5 + 32
     return r;
   }
   ]#
@@ -64,4 +64,3 @@ int main(int argc, char * argv[])
   else
 	return -1;
 }
-

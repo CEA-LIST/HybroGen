@@ -45,17 +45,13 @@ class H2CxRAMRewrite():
         self.lTable = lTable
         self.regIn = regIn
 
-        if self.archName != 'cxram':
-            self.invalid_platform = True
-            print("wait, that's illegal")
-            print(platform)
-            return
         db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
         isa = IsaDb(db, "cxram", None)
         self.insnLenList = isa.getWordSizeFromDb()
         self.insnLenList.sort()
         self.insnList = isa.getInsnList()
-
+        # for i in  self.insnList:
+        #     print ("%10s/%4d/%4d"%(i["semname"], i["wordlen"], i["vectorlen"]))
         self.csram_insns = list()
         self.nb_csram_insns = 0
         self.csram_variables = list()
@@ -314,8 +310,8 @@ class H2CxRAMRewrite():
                 semName = "SLLI"
             elif semName == "SR":
                 semName = "SRLI"
-            #elif semName == "MUL":
-            #    semName = "MULLO"
+            elif semName == "MUL":
+                semName = "MULLO"
 
         if src2 is not None:
             format_ = "aaa"
@@ -330,7 +326,7 @@ class H2CxRAMRewrite():
         # semName += "S" if dest_opType['arith'][0:4] == "sint" else ""
         insn_entry = self.query(semName, wordLen, vectorLen, format_)
         if insn_entry is None:
-            self.fatalError("Operation '%s' (%s) not supported in CxRAM" % (semName, format_.upper()))
+            self.fatalError("Operation '%s/%d/%d' (%s) not supported in CxRAM" % (semName, wordLen, vectorLen, format_.upper()))
         opcode = int(insn_entry['encoding'][0]['name'], 2)
 
         new_insns = self.transformInsn(opcode, dest,

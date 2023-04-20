@@ -11,7 +11,7 @@ from HybroLang.H2LabelTable      import H2LabelTable
 from HybroLang.H2IR2             import *
 from HybroGen.GenGeneratorFromDb import GenGeneratorFromDb
 
-H2_RELEASE = "v1.5.1"
+H2_RELEASE = "v3.0"
 
 class HybrogenTreeCompiler(HybroLangVisitor):
 
@@ -85,7 +85,7 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         archMaster = self.platform["arch"][0]
         self.sTable = H2SymbolTable(self.archMaster)   	# Initialize symbol table & register
         self.lTable = H2LabelTable(self.archMaster)   	#
-        self.IR = H2IR2(self.platform, self.verbose, self.dbIds)
+        self.IR = H2IR2(self.platform, self.sTable, self.verbose, self.dbIds)
         regin, regout, regtmp = self.gen.getRegisterIOT("f")
         self.regIn  = H2RegisterBank("In",  "flt", regin, verbose=self.verbose)
         self.regOut = H2RegisterBank("Out", "flt", regout, verbose=self.verbose)
@@ -170,9 +170,9 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         if ctx.getChildCount() == 3: # Simple affectation
             nodeVar  = H2Node(H2NodeType.VARIABLE, variableName = ctx.Name().getText())
             opType = self.sTable.get(nodeVar.getVariableName())
-            nodeVar.setNodeType(opType)
+            nodeVar.setOpType(opType)
             nodeExpr = self.visit(ctx.unaryexpr(0))
-            nodeExpr.setNodeType(opType)
+            nodeExpr.setOpType(opType)
             IRnode   = H2Node(H2NodeType.OPERATOR,  opName = "=", sonsList = [nodeVar, nodeExpr], opType=opType)
         elif ctx.getChildCount() == 6: # Array affectation STORE
             arrayName = ctx.Name().getText()
@@ -305,8 +305,8 @@ class HybrogenTreeCompiler(HybroLangVisitor):
             # otherwise we default it to None
             l_opType = self.sTable.get(l_varName) if l_varName is not None else None
             r_opType = self.sTable.get(r_varName) if r_varName is not None else None
-            l.setNodeType(l_opType)
-            r.setNodeType(r_opType)
+            l.setOpType(l_opType)
+            r.setOpType(r_opType)
             node = H2Node(H2NodeType.OPERATOR, opName = ctx.op.text, sonsList = [l, r])
         else:
             node = self.visit(ctx.varorvalue())
@@ -519,7 +519,7 @@ def extractCompilette(fileIn):
 if __name__ == '__main__':
     import sys, os, argparse
 
-    archList = ("x86", "riscv", "power", "kalray", "cxram")
+    archList = ("riscv", "power", "kalray", "cxram", "aarch64")
     aliasDict = { "riscv": { "arch":["riscv", ],
                              "extension": [["RV32I", "RV32F", "RV32M", "RV32D"],],
                              "abi": "RV32G"},
@@ -533,18 +533,21 @@ if __name__ == '__main__':
                              "extension": [["RV32I", "RV32F", "RV32M", "RV32Xf16"], ],
                              "abi": "GAP9"},
                   "cxram":{ "arch":["riscv", "cxram"],
-                                 "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
-                                 "abi": "CXRAM"}
+                            "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
+                            "abi": "CXRAM"},
+                  "aarch64":{ "arch":["aarch64"],
+                          "extension": [["A64", "A32", "T32"], ],
+                          "abi": "A64"},
     }
     parser = argparse.ArgumentParser("Hybrogen to C rewriter")
     group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument ('-i', '--inputfile', required=True, help="give input file name")
 #    parser.add_argument('fileName', type=str, help='file name')
-    parser.add_argument ('-a', '--arch', required=True, nargs='+', help="give arch parameter (archname & extension(s)) or alias")
+    parser.add_argument ('-a', '--arch', required=True, nargs='+', help="give arch parameter (archname & extension(s)) or alias : "+str(archList))
     parser.add_argument ('-b', '--abi',    help="give abi parameter")
 #    group.add_argument ('-t', '--tree',    action='store_true', help="shows syntax tree")
-    group.add_argument ('-c', '--toC',      action='store_true', help="rewrite to C")
-    group.add_argument ('-e', '--extract',  action='store_true', help="extract compilettes source code")
+    group.add_argument ('-c',  '--toC',      action='store_true', help="rewrite to C")
+    group.add_argument ('-e',  '--extract',  action='store_true', help="extract compilettes source code")
     parser.add_argument ('-v', '--verbose', action='store_true', help="verbose")
     parser.add_argument ('-g', '--debug',   action='store_true', help="add function version instead of macros")
     parser.add_argument ('-d', '--dbIds',   default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
@@ -568,8 +571,6 @@ if __name__ == '__main__':
     elif args.toC:
         outFileName, ext = os.path.splitext(args.inputfile)
         outFileName += ".c"
-        if os.path.exists (outFileName):
-            fatalError ("File %s exist. if you want to continue, please\nrm -f %s\n"%(outFileName, outFileName))
         # Passe 1 construction de l'arbre
         ids = args.dbIds.split(":")
         dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}

@@ -4,7 +4,7 @@
 urlDataBase = {}                # Will contain rootDatabase + platform dependent modifications
 rootDataBase = {
     'mpfr' :     {
-        'url': 'https://www.mpfr.org/mpfr-current/mpfr-{RELEASE}.tar.xz',
+        'url': 'https://ftp.gnu.org/gnu/mpfr/mpfr-{RELEASE}.tar.xz',
         'release':'4.1.0',
         'confargs' : ('--prefix={PREFIX}', '--program-prefix={TARGET}-', "--with-gmp={PREFIX}"),
         'targetbuild':'all',
@@ -30,10 +30,11 @@ rootDataBase = {
                                 '--target={TARGET}', '--build=x86_64-linux-gnu', '--host=x86_64-linux-gnu',
                                 '--with-gnu-as', '--with-gnu-ld', '--disable-nls',
                                 '--enable-languages=c,c++',
-			        '--without-headers',
+                                '--without-headers',
                                 '--disable-threads', '--disable-multilib',
                                 '--disable-libgcj', '--disable-libgomp',
-                                '--disable-shared',   '--enable-lto',
+                                '--disable-shared',
+                                '--enable-lto',
                         #         '--disable-werror',
                                 '--with-gmp={PREFIX}', '--with-mpc={PREFIX}', '--with-isl={PREFIX}', '--with-mpfr={PREFIX}',
                                 #'--with-sysroot={PREFIX}'
@@ -51,7 +52,7 @@ rootDataBase = {
                   'targetinstall': 'install',
     },
     'gdb'  :     {'url':'ftp://ftp.lip6.fr/pub/gnu/gdb/gdb-{RELEASE}.tar.gz',
-                  'release':'9.2',
+                  'release':'10.1',
                   'confargs': ('--prefix={PREFIX}', '--target={TARGET}',  '--program-prefix={TARGET}-',
                                '--enable-werror=no',
                   ),
@@ -183,13 +184,13 @@ def buildTool(tool, archTriplet, arch, args):
     cmd (["make", "-j", jobMax, target],  args.verbose, buildDir, environ=myEnv, doExec = args.donot)
 
 def installQemuPlugin (tool, args):
-    print("Install CxRAM qemu plugin")
-    buildDir = "%s/tmp/build/%s/%s/"%(args.workingdir, tool, tool)
-    cmd (["mkdir", "-p", buildDir], True,   doExec = args.donot)
-    cmd (["tar", "xf", "%s/tgz/csram-qemu-plugin-V1.4.tgz"%args.workingdir], True, buildDir,  doExec = args.donot)
-#    cmd (['git' ,'clone', 'git@git-dscin.intra.cea.fr:hybrogen/csram-qemu-plugin.git'], True,  wdir = buildDir)
-    installDir = '%s/libexec/qemu/'%args.prefix
-    cmd (['make', 'getQemuSrc', 'all', 'install', 'QEMUINSTALLDIR=%s'%installDir], True, buildDir)
+    print("Install CxRAM qemu plugin from it' repository")
+#     buildDir = "%s/tmp/build/%s/%s/"%(args.workingdir, tool, tool)
+#     cmd (["mkdir", "-p", buildDir], True,   doExec = args.donot)
+#     cmd (["tar", "xf", "%s/tgz/csram-qemu-plugin-V1.4.tgz"%args.workingdir], True, buildDir,  doExec = args.donot)
+# #    cmd (['git' ,'clone', 'git@git-dscin.intra.cea.fr:hybrogen/csram-qemu-plugin.git'], True,  wdir = buildDir)
+#     installDir = '%s/libexec/qemu/'%args.prefix
+#     cmd (['make', 'getQemuSrc', 'all', 'install', 'QEMUINSTALLDIR=%s'%installDir], True, buildDir)
 
 def installTool(tool, archTriplet, arch, args):
     """Install tools"""
@@ -268,8 +269,9 @@ def install(tool, archTriplet, arch, args):
         installTool  (tool, archTriplet, arch, args)
         cmd (("touch", flagFile), args.verbose)
 targetsAlias = {
-    'riscv':   	     {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
-    'powerpc': 	     {'triplet': 'powerpc64le-linux-gnu',    'qemu':'ppc64le-linux-user'},
+    'aarch64':       {'triplet': 'aarch64-linux-gnu',        'qemu':'aarch64-linux-user'},
+    'riscv':         {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
+    'powerpc':       {'triplet': 'powerpc64le-linux-gnu',    'qemu':'ppc64le-linux-user'},
     'cxram-linux':   {'triplet': 'riscv32-unknown-linux',    'qemu':'riscv32-linux-user'},
     'cxram-bm':      {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
     'kalray':        {'triplet': 'kvx-elf'},
@@ -353,6 +355,8 @@ def testCompile(archName, archTriplet, args, fileName, env):
         qname = "qemu-ppc64le"
     elif archName in ("riscv", "cxram-bm", "cxram-linux"):
         qname = "qemu-riscv32"
+    elif archName == "aarch64":
+        qname = "qemu-aarch64"
     else:
         usage("Which qemu for %s ?"%archName)
     return cmd(['%s/bin/%s'%(args.prefix, qname), binCode], environ=env)
@@ -486,10 +490,14 @@ if __name__ == '__main__' :
             theArch = archName
             if archName in ("cxram-bm", "cxram-linux"):
                 theArch = "riscv"
+            elif archName == "aarch64":
+                theArch = "arm64"
             buildLinuxIncludes("linux", archTriplet, theArch, args)
             # Additionnal configuration parameter
             urlDataBase['qemu']['confargs'] += ('--interp-prefix=%s/%s/'%(args.prefix, archTriplet),)
             if archName == "riscv":
+                urlDataBase['gcc']['confargs'] += ("--with-newlib",)
+            elif archName == "riscv":
                 urlDataBase['gcc']['confargs'] += ("--with-newlib",)
             elif archName == "cxram-bm":
                 urlDataBase['gcc']['confargs'] += ("--with-newlib", "--with-arch=rv32gc", "--with-abi=ilp32",)
@@ -497,10 +505,12 @@ if __name__ == '__main__' :
                 urlDataBase['gcc']['confargs'] += ("--with-arch=rv32gc", "--with-abi=ilp32",)
             elif archName == "powerpc":
                 urlDataBase['gcc']['confargs'] += ('--with-long-double-128', ) #'--with-long-double-format=ibm', # for power)
+            # elif archName == "aarch64":
+            #     urlDataBase['gcc']['confargs'] += ("--with-newlib",)
             # Build 1st gcc steps
             install("gcc",      archTriplet, archName, args)
             # Build glibc (power) or newlib (riscv & csram) and gcc last steps
-            if archName in ("powerpc", "cxram-linux"):
+            if archName in ("powerpc", "cxram-linux", "aarch64"):
                 buildGlibcAndGcc("glibc",      archTriplet, archName, args) # glibc 1 step, gcc last step, glibc laststep
             elif archName in ("riscv", "cxram-bm"):
                 install("newlib",   archTriplet, theArch, args) # newlib
@@ -518,7 +528,7 @@ if __name__ == '__main__' :
             # Additionnal stuff
             if archName in ("cxram-bm", "cxram-linux"):
                 installQemuPlugin("csram-qemu-plugin", args)
-            if archName == "powerpc" and (not os.path.islink(linkFile)):
+            if archName == "powerpc" : #and (not os.path.islink(linkFile)):
                 linkFile = "%s/%s/lib64"%(args.prefix, archTriplet)
                 cmd (("ln", "-s", "lib", "lib64"), args.verbose, "%s/%s/"%(args.prefix, archTriplet), doExec = args.donot)
 #

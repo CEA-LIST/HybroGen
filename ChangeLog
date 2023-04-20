@@ -1,3 +1,10 @@
+2023-04-19  Henri-Pierre CHARLES HC227932  <hc227932@gre056290.intra.cea.fr>
+
+	* Release 3.0: Target platforms risc-v, power, aarch64, cxram
+	* More complex demonstrations
+	* Sync with release 1.0 of https://github.com/CEA-LIST/csram-qemu-plugin
+
+
 2022-07-14  Henri-Pierre Charles  <hc227932@gre061041>
 
 	* Target platforms : partial part of the ISA of RISCV, Power,

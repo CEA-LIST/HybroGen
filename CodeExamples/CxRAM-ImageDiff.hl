@@ -72,7 +72,6 @@ void readImage (char * fileName, h2_cxram_line_t *pixels)
   printf("Read image file %s (%dx%d)\n", fileName, height, width);
   index = 0;
   for (lineNo = 0; lineNo < height; lineNo ++)
-
     {
       for (columnNo = 0; columnNo < width; columnNo ++)
         {
@@ -86,7 +85,7 @@ void readImage (char * fileName, h2_cxram_line_t *pixels)
 void writeImage (char * fileName, h2_cxram_line_t *pixels)
 {
   FILE * theFile;
-  int height, width, lineNo, columnNo;
+  int height, width, lineNo, columnNo, index;
 
   height = 16;
   width  = 16;
@@ -96,11 +95,12 @@ void writeImage (char * fileName, h2_cxram_line_t *pixels)
   fprintf (theFile, "%d %d\n", height, width);
   fprintf (theFile, "%d\n", 255);
   printf("Write image file %s (%dx%d)\n", fileName, height, width);
+  index = 0;
   for (lineNo = 0; lineNo < height; lineNo ++)
     {
       for (columnNo = 0; columnNo < width; columnNo ++)
         {
-          fprintf (theFile, "%d\n", pixels[lineNo].i16[columnNo]);
+          fprintf (theFile, "%d\n", pixels[0].i16[index++]);
         }
     }
   fclose (theFile);
@@ -139,7 +139,7 @@ int main(int argc, char * argv[])
   printf ("\n");
 #endif
   resultOK = 0;
-  writeImage ("/tmp/out.pgm", &h2_cxram_tiles[32]);
+  writeImage ("/tmp/out.pgm", &h2_cxram_tiles[64]);
   for (lineNo=0; lineNo < 16; lineNo++) // Check if coherent result
     {
       for (columnNo = 0; columnNo < 16; columnNo++)

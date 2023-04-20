@@ -31,7 +31,7 @@ class H2RegisterAllocator:
             if insn.isOperatorOrMem():
                 if insn.variableName is not None:
                     self.scan_bounds.setdefault(insn_name, [idx,idx])
-                    self.ariths[insn_name] = insn.getNodeType()
+                    self.ariths[insn_name] = insn.getOpType()
                     self.scan_bounds[insn_name][1] = idx
             child: H2Node
             for child in insn.sonsList:

@@ -46,8 +46,8 @@ class ProxyDb:
         "register": ("archname", "extension", "name", "arith", "function"),
     }
 
-    def __init__ (self, host, dbname, user, passwd):
-#        print('Db host=%s dbname=%s user=%s'%(host, dbname, user))
+    def __init__ (self, host, dbname, user, passwd, debug=False):
+        self.queryDebug = debug
         self.c = psycopg2.connect("host=%s dbname=%s user=%s password=%s"%(host, dbname, user, passwd))
         self.dbCursor = self.c.cursor()
         for i in self.dbSchema:
@@ -63,6 +63,14 @@ class ProxyDb:
                 lcol.append(c)
         query= 'create unique index if not exists %s_index on %s(%s);'%(ind, ind, ", ".join(lcol))
         self.execQueries((query,))
+
+    def traceQuery (self, listQuery):
+        if not self.queryDebug:
+            return
+        if isinstance(listQuery, tuple):
+            print ("Query list (%d): %s"%(len (listQuery), str(listQuery)))
+        elif isinstance(listQuery, str):
+            print ("Simple query: %s"%str(listQuery))
 
     def buildSchemaInsertIntoInsns(self, tableName):
         typesList = []
@@ -119,6 +127,7 @@ class ProxyDb:
                 ext += " or extension = '" + e + "' "
         ext +=")"
         query = 'select * from insns where archname = \'%s\' and upper(semname)=\'%s\' and arith = \'%s\' and %s order by wordlen;'%(archname, str.upper(insnSemName), arith, ext)
+        self.traceQuery (query)
         result = self.execGetQueries(query)
         insnDictList = self.fromResultToDictList(result)
         return insnDictList
@@ -192,17 +201,19 @@ Update if the same MacroName exists with different values for another column"""
         return rNumber, rName
 
     def execQueries(self, listQuery):
-            if isinstance(listQuery, tuple):
-                self.dbCursor.execute("begin;")
-                for q in listQuery:
-                    self.dbCursor.execute(q)
-                    self.dbCursor.execute("commit;")
-            elif isinstance(listQuery, str):
-                self.dbCursor.execute(listQuery)
-            else:
-                print("Unknown data type for query :",type(listQuery))
+        self.traceQuery(listQuery)
+        if isinstance(listQuery, tuple):
+            self.dbCursor.execute("begin;")
+            for q in listQuery:
+                self.dbCursor.execute(q)
+            self.dbCursor.execute("commit;")
+        elif isinstance(listQuery, str):
+            self.dbCursor.execute(listQuery)
+        else:
+            print("Unknown data type for query :",type(listQuery))
 
     def execGetQueries(self, theQuery):
+        self.traceQuery (theQuery)
         try:
             self.dbCursor.execute(theQuery)
             result = self.dbCursor.fetchall()

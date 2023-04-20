@@ -10,7 +10,7 @@ h2_insn_t * genMult(h2_insn_t * ptr, int  b)
   int 32 1 mult (int 32 1 a)
   {
     int 32 1 r;
-    r = #(b) * a; // b values will be included in code generation
+    r = a *#(b);  // b values will be included in code generation
     return r;
   }
   ]#

@@ -22,6 +22,9 @@ demo ={
     "Add-With-Transprecision":  (("39.0", "3.0"),            ("39e-6", "3e-6"),       ("39e-12", "3e-12"),
                                  ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),
                                 ),
+    "TestAdd1632":  (("39.0", "3.0"),            ("39e-6", "3e-6"),       ("39e-12", "3e-12"),
+                                 ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),
+                                ),
     "Add-With-Specialization" : (("3", "25"),),
     "Mult-With-Specialization" : (("3", "25"),),
     "CelciusFarenheit" : (("3",), ("25",),),
@@ -48,16 +51,26 @@ demo ={
     "CxRAM-SimpleAdd32" :  (("1", "2", "3", "4", "5", "6", "7", "8", "9", ),
                             ("1", "1", "1", "1", "1", "1", "1", "1", "1", ),
                          ),
-    "CxRAM-SimpleMul" :  (("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", ),
+    "CxRAM-SimpleMul8" :  (("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", ),
                           ("1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", ),
+                         ),
+    "CxRAM-SimpleMul16" :  (("1", "2", "3", "4", "5", "6", "7", "8", ),
+                          ("1", "1", "1", "1", "1", "1", "1", "1", ),
+                         ),
+    "CxRAM-SimpleMul32" :  (("1", "2", "3", "4", ),
+                          ("1", "1", "1", "1", ),
                          ),
     "CxRAM-ImageDiff" :  (("MonOeilGrisFermé.pgm","MonOeilGris.pgm",),
                           ),
     "CxRAM-ImagePixelAccumulation" :(("MonOeilGrisFermé.pgm",),
-                                     ("MonOeilGris.pgm", ),
-                          ),
-    "CxRAM-Convolution" : (("test",),
-                          ),
+                                     ("MonOeilGris.pgm", ),),
+    "CxRAM-Convolution8" : (("",),),
+    "CxRAM-Convolution16" : (("",),),
+    "CxRAM-Convolution32" : (("",),),
+    "CxRAM-Broadcast32" :  (("",),),
+    "CxRAM-MatrixMultiplication" : (("",),),
+    "CxRAM-BoucleTest" :  (("",),)
+
 }
 
 archCompiler = {
@@ -65,6 +78,7 @@ archCompiler = {
     "cxram":  ("riscv32-unknown-linux-gcc", ),
     "power":  ("powerpc64le-linux-gnu-gcc", ),
     "kalray": ("kvx-elf-gcc-7.5.0", ),
+    "aarch64":("aarch64-linux-gnu-gcc",),
 }
 
 archExec = {
@@ -72,6 +86,7 @@ archExec = {
     "cxram":  ("qemu-riscv32",), # Plugin is in the shell QEMU_PLUGIN variable environment
     "power":  ("qemu-ppc64le", ),
     "kalray": ("kvx-mppa", "--",),
+    "aarch64":("qemu-aarch64",),
 }
 
 def fatalError(msg, code):
@@ -102,7 +117,7 @@ def compile (File, Arch, Debug, Verbose):
     cmd(("rm", "-f", File, File+".c"), Verbose)
     o1 = 0
     o2 = 0
-    cmdH2 = tuple(["HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
+    cmdH2 = tuple(["../HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
     if Debug:
         cmdH2 += ("--debug",)
         compilerAndArg += ("-g", "-DH2_DEBUG")
@@ -132,7 +147,7 @@ def run(File, Arch, Verbose):
             print(param)
             output += cmd(emulatorAndArgs + (File,)+ param, Verbose)
     if output != 0:
-        return -3
+        return -4
 
 def clean(Verbose):
     for p in demo:

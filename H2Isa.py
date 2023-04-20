@@ -160,18 +160,17 @@ def generateC(archName):
     g = GenGenerator(isa)
     outFile("h2-insn-%s.h"%archName, str(g.genGenerators()))
 
-def initDb():
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+def initDb(dbId):
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
 
-def insertDb(archName):
+def insertDb(archName, dbId):
     filename = "HybroGen/arch/%s/h2-%s.isa"%(archName, archName)
     try:
         fileDate = os.path.getmtime (filename)
     except FileNotFoundError:
         print("Error : no file HybroGen/arch/%s/h2-%s.isa"%(archName, archName))
         sys.exit(0)
-
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     lastDbDate = db.getLastInsertDate(archName)
     if len(lastDbDate) == 0  or ( len(lastDbDate) > 0 and (lastDbDate[0] <= fileDate)):
         isa = IsaDb(db, archName, [])
@@ -184,6 +183,11 @@ def insertDb(archName):
         lis = IsaListenerDb(isa)
         w.walk(lis, t)
         isa.flush()
+        print("Db inserted")
+
+    else:
+        print("Db not inserted")
+        sys.exit(0)
 
 def testdb(archName):
     db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
@@ -195,30 +199,9 @@ def testdb(archName):
     #print("\nInstruction list for %s"%archName)
     #print(isa.getInsnList())
 
-def dropDb():
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+def dropDb(dbIds):
+    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     db.dropDb()
-
-argList = {
-    "-a":("Parse with antlr, give stats",      parseprint),
-    "-c":("Generate C code generators",        generateC),
-    "-d":("Delete all database",               dropDb),
-    "-i":("Insert an ISA in the database",     insertDb),
-    "-l":("Give name and len of instructions", usage),
-    "-p":("Generate Python code generators",   usage),
-    "-s":("Initialize database",               initDb),
-    "-v":("Give semantical instruction list and variants", usage),
-    "-x":("xperimetal stuff",                  testdb),
-}
-
-def themain(argv):
-    action = argv[0]
-    if action not in argList.keys():
-        usage("unknown action")
-    elif len(argv) == 1:
-        argList[action][1]()
-    else:
-        argList[action][1](argv[1])
 
 def outFile(filename, dataToWrite):
     f = open ("HybroGen/include/"+filename, "w")
@@ -233,7 +216,40 @@ def usage(msg):
     sys.exit(0)
 
 if __name__ == '__main__':
-    arglen = len(sys.argv)
-    if arglen < 2:
-        usage("Give a parameter")
-    themain(sys.argv[1:])
+    import argparse
+
+    p = argparse.ArgumentParser("Hybrogen ISA handling")
+    p.add_argument ("-a", "--arch",   nargs=1,  default="none", help="Give arch name")
+    p.add_argument ("-s", "--stats",  action='store_true',  help="Pretty print & give stats")
+    p.add_argument ("-n", "--initDb",  action='store_true',  help="Init DB")
+    p.add_argument ("-c", "--genC",   action='store_true',  help="Generate C code generators")
+    p.add_argument ('-p', '--dropDb', action='store_true',  help="Delete all database tables")
+    p.add_argument ('-i', '--insertDb',action='store_true', help="Insert ISA in database")
+    p.add_argument ('-t', '--testDb', action='store_true',  help="Delete all database tables")
+    p.add_argument ('-d', '--dbIds',  default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
+    args = p.parse_args()
+    archName = args.arch[0]
+    ids = args.dbIds.split(":")
+    dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
+    if args.stats:
+        parseprint (archName)
+    elif args.genC:
+        generateC (archName)
+    elif args.initDb:
+        initDb (archName)
+    elif args.dropDb:
+        dropDb (dbIds)
+    elif args.insertDb:
+        insertDb (archName, dbIds)
+    # "-c":("Generate C code generators",        generateC),
+    # "-d":("Delete all database",               dropDb),
+    # "-i":("Insert an ISA in the database",     insertDb),
+    # "-l":("Give name and len of instructions", usage),
+    # "-p":("Generate Python code generators",   usage),
+    # "-s":("Initialize database",               initDb),
+    # "-v":("Give semantical instruction list and variants", usage),
+    # "-x":("xperimetal stuff",                  testdb),
+    # arglen = len(sys.argv)
+    # if arglen < 2:
+    #     usage("Give a parameter")
+    # themain(sys.argv[1:])

@@ -3,8 +3,9 @@
 class H2MovOptimize():
     ''' Optimize mov to the previous instruction tree'''
 
-    def __init__(self, insnList, verbose):
+    def __init__(self, insnList, sTable, verbose):
         self.oldList = insnList
+        self.sTable = sTable
         self.newList = []
         if 1 != len(self.oldList):
             self.doMovOptimize()
@@ -14,6 +15,14 @@ class H2MovOptimize():
             print ("Mov optimize from old %d insn to new %d insn"%(len (self.oldList), len (self.newList)))
             for i in range(len(self.newList)):
                 print("%d : %s \n"%(i, self.newList[i]))
+
+    def areVariableSimilar(self, nodeA, nodeB):
+        if nodeA.isVariable() and nodeB.isVariable() and nodeA.getVariableName() == nodeB.getVariableName():
+            nodeAtype = self.sTable.get(nodeA.getVariableName())
+            nodeBtype = self.sTable.get(nodeB.getVariableName())
+            if nodeAtype['wordLen'] == nodeBtype['wordLen'] and nodeAtype['vectorLen'] == nodeBtype['vectorLen']:
+                return True
+        return False
 
     def  doMovOptimize(self):
         """Window optimization : if current operation is simple mv, place the
@@ -29,7 +38,8 @@ class H2MovOptimize():
                 replacedNode = current.sonsList[0]
                 # print("Optimize opportunity %s <- %s"%(destNode.getVariableName(), srcNode.getVariableName()))
                 # print(" %s %s "%(current.sonsList[0].getVariableName(),srcNode.getVariableName()))
-                if replacedNode.isVariable() and srcNode.isVariable() and replacedNode.getVariableName() == srcNode.getVariableName():
+                if self.areVariableSimilar(replacedNode, srcNode):
+                    # destNode.setOpType (srcNode.getOpType ()) # Should we transfert datatype ?
                     current.sonsList[0] = destNode
                     self.newList += [current]
                     i += 1
