@@ -23,7 +23,8 @@ h2_insn_t * genF2C(h2_insn_t * ptr)
   int 32 1 F2C (int 32 1 a)
   {
     int 32 1 r;
-	r = a - 32 * 5 / 9;
+	r = a - 32;
+    r = r * 5 / 9;
     return r;
   }
   ]#
@@ -56,7 +57,7 @@ int main(int argc, char * argv[])
   fF2C = (pifi) genF2C (ptr); //
   res  = fF2C(in0);  // Call generated code
   printf("%d (farenheit)   -> (celcius)%d\n", in0, res);
-  if (res != (in0 - 32 * 5 / 9))
+  if (res != ((in0 - 32) * 5 / 9))
 	resultOK += 1;
 
   if (resultOK == 0)

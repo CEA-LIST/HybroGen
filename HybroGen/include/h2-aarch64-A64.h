@@ -1,11 +1,32 @@
-#ifndef H2_ARM
-#define H2_ARM
+#ifndef H2_AARCH64
+#define H2_AARCH64
 
 #include <stdint.h>
 
-typedef uint32_t      h2_insn_t;
+typedef uint32_t     h2_insn_t;
+typedef uint64_t     ticks;
 static  h2_insn_t    *h2_asm_pc;
 static  h2_insn_t    *h2_save_asm_pc;
+
+/* aarch64 / power examples :
+   https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h */
+
+static inline ticks getticks(void)
+{
+  uint64_t Rt;
+  asm volatile("mrs %0,  CNTVCT_EL0" : "=r" (Rt));
+  return Rt;
+}
+
+#if 0
+static inline ticks getticks(void)
+{
+        uint64_t cc = 0;
+        asm volatile("mrs %0, PMCCNTR_EL0" : "=r"(cc));
+        return cc;
+}
+#endif
+
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -34,4 +55,4 @@ static h2_insn_t *h2_malloc (size_t size)
 }
 
 
-#endif /*H2_ARM*/
+#endif /* H2_AARCH64 */

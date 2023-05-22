@@ -369,6 +369,14 @@ def removeSubDirs(args):
         commande = ["rm", "-rf", args.workingdir+"/"+d]
         cmd (commande, args.verbose, doExec = args.donot)
 
+def writeIfNotExist(outputFileName, data):
+    if not os.path.isfile(outputFileName):
+        print("Writed in : "+outputFileName)
+        f = open(outputFileName, "w")
+        f.write(data)
+        f.close()
+    else:
+        print ("File exists : "+outputFileName)
 def removeInstallDirs(args):
     for d in args.arch:
         triplet = targetsAlias[d[0]]['triplet']
@@ -423,6 +431,7 @@ if __name__ == '__main__' :
 #                thePrefix = args.archprefix
                 binList.append("%s%s/bin/"%(thePrefix, a[0]))
                 libList.append("%s%s/lib/"%(thePrefix, a[0]))
+                libList.append("%s%s/%s/lib/"%(thePrefix, a[0], targetsAlias[a[0]]["triplet"]))
         fail = False
         if a[0] != "kalray":
             for binDir in binList:  # Check minimal tool existance
@@ -443,17 +452,19 @@ if __name__ == '__main__' :
         fInput = open('/proc/%d/cmdline'%ppid, "r")
         parentProcessName = fInput.read().split('\x00')[0]
         if parentProcessName in ("bash", "-bash", "sh"):
-            print ("export PATH=%s:${PATH}"% ":".join(binList))
-            print ("export LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}"% ":".join(libList))
+            shEnv =  "export PATH=%s:${PATH}\n"% ":".join(binList)
+            shEnv += "export LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
             if a[0] in ("cxram-linux", "cxram-bm", ):
                 qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
-                print ("export QEMU_PLUGIN=%s"%qemuPlugin)
+                shEnv += "export QEMU_PLUGIN=%s\n"%qemuPlugin
+            writeIfNotExist(args.archprefix+a[0]+"/.bashrc", shEnv)
         elif parentProcessName in ("csh", "-csh", "tcsh", "-tcsh"):
-            print ("setenv PATH %s:${PATH}"% ":".join(binList))
-            print ("setenv LD_LIBRARY_PATH %s:${LD_LIBRARY_PATH}"% ":".join(libList))
+            cshEnv  = "setenv PATH %s:${PATH}\n"% ":".join(binList)
+            cshEnv += "setenv LD_LIBRARY_PATH %s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
             if a[0] in ("cxram-linux", "cxram-bm", ):
                 qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
-                print ("setenv QEMU_PLUGIN %s"%qemuPlugin)
+                cshEnv += "setenv QEMU_PLUGIN %s\n"%qemuPlugin
+            writeIfNotExist(args.archprefix+a[0]+"/.cshrc", cshEnv)
         else:
             print ("Unknown environment for %s"%parentProcessName)
     elif args.config:

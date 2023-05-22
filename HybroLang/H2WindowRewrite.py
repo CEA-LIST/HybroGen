@@ -53,9 +53,10 @@ Gain 1 instruction & (1 physical register)
         nameNext =  next.sonsList[1].sonsList[1].variableName
         return nameFirst == nameNext
 
+    # Instruction without immediate parameter
     # Should be extracted from database
     insnWithoutConst = {
-        "riscv"   : ("*", "/"),
+        "riscv"   : ("*", "/", "-"),
         "power"   : ("/",),
         "aarch64" : ("/", "*"),
     }

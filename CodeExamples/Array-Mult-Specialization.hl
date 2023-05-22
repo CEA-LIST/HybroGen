@@ -1,0 +1,86 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+typedef  int (*pifi)(int *, int);
+
+
+h2_insn_t * genMulArray(h2_insn_t * ptr, int  b)
+{
+  #[
+  int 32 1 mult (int[] 32 1 a, int 32 1 len)
+  {
+    int 32 1 r, i;
+    for (i = 0; i < len; i = i + 1)
+      {
+        a[i] = a[i] * #(b); // b values will be included in code generation
+      }
+  }
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+void printArray(int * array, int len)
+{
+  printf ("Array values (%d) : ", len);
+  for (int i = 0; i < len; i++)
+    printf ("%d ", array[i]);
+  printf ("\n");
+}
+
+void mulArray(int * array, int len, int value)
+{
+  for (int i = 0; i < len; i++)
+    array[i] = array[i] * value;
+}
+
+int main(int argc, char * argv[])
+{
+
+  h2_insn_t * ptr;
+  int arrayLen, mulValue, i, resultOK;
+  pifi fPtr;
+  int *array1, *array2;
+  clock_t startC, stopC, startHg, stopHg;
+
+  if (argc < 3)
+    {
+      printf("Give 2 values (array len & mult. coefficient )\n");
+      exit(-1);
+    }
+  arrayLen  = atoi (argv[1]);   // Get the
+  mulValue  = atoi (argv[2]);
+  array1 = calloc (arrayLen, sizeof (int));
+  array2 = calloc (arrayLen, sizeof (int));
+  for (i = 0; i < arrayLen; i++)
+	{
+      array1[i] = random () % 100;
+	  array2[i] = array1[i];
+	}
+  printArray (array1, arrayLen);
+  printf("// Multiply an array with a constant value\n");
+  printf("// Array len = %d\n", arrayLen);
+  printf("// Code specialization on value = %d\n", mulValue);
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr = (pifi) genMulArray (ptr, mulValue);
+  startHg = clock();
+  fPtr(array1, arrayLen);  // Call generated code
+  stopHg = clock();
+  printArray (array1, arrayLen);
+  resultOK = 0;
+  startC = clock();
+  mulArray (array2, arrayLen, mulValue);
+  stopC = clock();
+  printf ("C version %ld Hg version %ld\n\n", stopC - startC, stopHg - startHg);
+  for (int i = 0; i < arrayLen; i++)
+  {
+    if (array2[i] != array1[i])
+    {
+      printf("Erreur multiplication!\n");
+      resultOK = -1;
+      break;
+    }
+  }
+  return resultOK;
+}

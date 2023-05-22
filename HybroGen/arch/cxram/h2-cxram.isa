@@ -3,7 +3,7 @@
 # Instruction format definition    ISA-2.0/csram-isa-v2.0.json 
 # Instruction definition based on  ISA-2.0/csram-opcodes-v2.0.5.csv 
 # CXRAM configuration defined with ISA-2.0/csram-v2.0.5.json 
-# Generation date/time 2023-04-17 15:38:16.746144 
+# Generation date/time 2023-05-09 17:10:00.211210 
 ARCH CXRAM 64
 # Copy a Line into another
 100000 11000000 a0[15:0] 00 i0[15:0] a1[15:0]  | cxram i 1 128 copy copy a0 a1 i0
@@ -118,11 +118,11 @@ ARCH CXRAM 64
 # Comparison
 100000 10111010 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 4 32 cmp32 cmp 
 # Arithmetic 8-bit integer multiply
-100000 00111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 16 8 mul8 mul 
+100000 00111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 16 8 mul8 mullo 
 # Arithmetic 16-bit integer multiply
-100000 01111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 8 16 mul16 mul 
+100000 01111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 8 16 mul16 mullo 
 # Arithmetic 32-bit integer multiply
-100000 10111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 4 32 mul32 mul 
+100000 10111011 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 4 32 mul32 mullo 
 # Arithmetic 8-bit integer multiply-accumulate
 100000 00111100 a0[15:0] 00 a2[15:0] a1[15:0]  | cxram i 16 8 fmac8 fmac 
 # Arithmetic 16-bit integer multiply-accumulate

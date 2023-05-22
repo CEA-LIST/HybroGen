@@ -1,11 +1,32 @@
-#ifndef H2_RISCV
-#define H2_RISCV
+#ifndef H2_RISCV_RV32G
+#define H2_RISCV_RV32G
 
 #include <stdint.h>
 
-typedef uint32_t      h2_insn_t;
+typedef uint32_t    h2_insn_t;
+typedef unsigned 	long ticks;
 static  h2_insn_t   *h2_asm_pc;
 static  h2_insn_t    *h2_save_asm_pc;
+
+/* 
+https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
+*/
+
+unsigned long getticks(void)
+{
+    unsigned long dst;
+    // output into any register, likely a0
+    // regular instruction:
+    asm volatile ("csrrs %0, 0xc00, x0" : "=r" (dst) );
+    // regular instruction with symbolic csr and register names
+    // asm volatile ("csrrs %0, cycle, zero" : "=r" (dst) );
+    // pseudo-instruction:
+    // asm volatile ("csrr %0, cycle" : "=r" (dst) );
+    // pseudo-instruction:
+    //asm volatile ("rdcycle %0" : "=r" (dst) );
+    return dst;
+}
+
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -34,4 +55,4 @@ static h2_insn_t *h2_malloc (size_t size)
 }
 
 
-#endif /*H2_RISCV*/
+#endif /*H2_RISCV_RV32G*/

@@ -1,0 +1,104 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int CelciusToFarenheit(int celcius)
+{
+  int farenheit;
+  farenheit = celcius * 9 / 5 + 32;
+  return farenheit;
+}
+
+int FarenheitToCelcius(int farenheit)
+{
+  int celcius;
+  celcius = (farenheit - 32 ) * 5 /  9;
+  return celcius;
+}
+
+typedef  int (*pifi)(int);
+
+h2_insn_t * genC2F(h2_insn_t * ptr)
+{
+  #[
+  int 32 1 C2F (int 32 1 a)
+  {
+    int 32 1 r;
+	r = a * 9 / 5 + 32;
+    return r;
+  }
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+h2_insn_t * genF2C(h2_insn_t * ptr)
+{
+  #[
+  int 32 1 F2C (int 32 1 a)
+  {
+    int 32 1 r;
+	r = a - 32;
+    r = r * 5 / 9 ;
+    return r;
+  }
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+typedef int arrayTemp_t[3][13];
+
+void printVector(arrayTemp_t tempArray, int len, char * msg1, char * msg2, char * msg3)
+{
+  int i;
+  printf("%s", msg1);
+  for (i=0; i<len; i++)
+    printf("%4d",tempArray[0][i]);
+  printf("\n%s", msg2);
+  for (i=0; i<len; i++)
+    printf("%4d",tempArray[1][i]);
+  printf("\n%s", msg3);
+  for (i=0; i<len; i++)
+    printf("%4d",tempArray[2][i]);
+  printf("\n");
+}
+
+int main(int argc, char * argv[])
+{
+  int i;
+  pifi fC2F, fF2C;
+  arrayTemp_t tempArray;
+  clock_t startC, stopC, startHg, stopHg;
+
+  fC2F = (pifi) genC2F(h2_malloc (1024)); // Allocate memory for binary code
+  fF2C = (pifi) genF2C(h2_malloc (1024)); // and generate binary codes
+
+  printf ("Celcius to Farenheit conversion table\n");
+  for (i = 0; i < 8; i ++)
+      tempArray[0][i] = 5*i;
+  startC = clock();
+  for (i = 0; i < 8; i ++)
+    tempArray[1][i] = CelciusToFarenheit(tempArray[0][i]);
+  stopC = clock();
+  startHg = clock();
+  for (i = 0; i < 8; i ++)
+    tempArray[2][i] = fC2F(tempArray[0][i]);
+  stopHg = clock();
+  printVector(tempArray, 8, "C     ", "F  (C)", "F (Hg)");
+  printf ("C version %ld Hg version %ld\n\n", stopC - startC, stopHg - startHg);
+
+  printf ("Farenheit to Celcius conversion table\n");
+  for (i = 0; i < 13; i ++)
+    tempArray[0][i] = 35 + 5*i;
+  startC = clock();
+  for (i = 0; i < 13; i ++)
+      tempArray[1][i] = FarenheitToCelcius(tempArray[0][i]);
+  stopC = clock();
+  startHg = clock();
+  for (i = 0; i < 13; i ++)
+    tempArray[2][i] = fF2C(tempArray[0][i]);
+  stopHg = clock();
+  printVector(tempArray, 13, "F     ", "C  (C)", "C (Hg)");
+  printf ("C version %ld Hg version %ld\n\n", stopC - startC, stopHg - startHg);
+  return 0;
+}

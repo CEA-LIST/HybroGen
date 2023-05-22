@@ -1,11 +1,28 @@
-#ifndef H2_RISCV
-#define H2_RISCV
+#ifndef H2_POWER
+#define H2_POWER
 
 #include <stdint.h>
 
+/* aarch64 / power examples :
+   https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h */
+
 typedef uint32_t      h2_insn_t;
-static  h2_insn_t   *h2_asm_pc;
-static  h2_insn_t    *h2_save_asm_pc;
+typedef unsigned long long ticks;
+static  h2_insn_t     *h2_asm_pc;
+static  h2_insn_t     *h2_save_asm_pc;
+
+static ticks getticks(void)
+{
+     unsigned int tbl, tbu0, tbu1;
+
+     do {
+	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu0));
+	  __asm__ __volatile__ ("mftb %0" : "=r"(tbl));
+	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu1));
+     } while (tbu0 != tbu1);
+
+     return (((unsigned long long)tbu0) << 32) | tbl;
+}
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -34,4 +51,4 @@ static h2_insn_t *h2_malloc (size_t size)
 }
 
 
-#endif /*H2_RISCV*/
+#endif /*H2_POWER*/

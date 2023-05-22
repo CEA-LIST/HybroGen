@@ -131,7 +131,7 @@ class H2CxRAMRewrite():
         return self.setSrc2Field(imm16)
 
     def setSrc1Field(self, insn, src1):
-        return self.createOrNode(src1, insn);
+        return self.createOrNode(src1, insn)
 
     def setImm32Field(self, value):
         return value

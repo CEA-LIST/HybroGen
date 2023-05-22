@@ -1,15 +1,26 @@
-2023-04-19  Henri-Pierre CHARLES HC227932  <hc227932@gre056290.intra.cea.fr>
+2023-05-22  Henri-Pierre CHARLES HC227932  <Henri-Pierre.Charles@cea.fr>
+
+	* Add demonstrators for 4 code generation scenarios
+		* a : Program initialization :
+	https://HybroLangDemos/Newton-SquareRoot-VariablePrecision/Newton.hl
+		* b : Kernel initialization :
+	https://CodeExamples/Array-Mult-Specialization.hl
+		* c : Applicaiton controlled :
+	https://HybroLangDemos/Newton-SquareRoot-VariablePrecision/Newton.hl
+		* d : Heterogeneous target : https://HybroLangDemos/ImagePixelSum/CxRAM-ImagePixelAccumulation.hl
+
+	* Correct minor bugs (mul on cxram)
+
+2023-04-19  Henri-Pierre CHARLES HC227932  <Henri-Pierre.Charles@cea.fr>
 
 	* Release 3.0: Target platforms risc-v, power, aarch64, cxram
 	* More complex demonstrations
 	* Sync with release 1.0 of https://github.com/CEA-LIST/csram-qemu-plugin
 
 
-2022-07-14  Henri-Pierre Charles  <hc227932@gre061041>
+2022-07-14  Henri-Pierre Charles  <hc227932@gre056290.intra.cea.fr>
 
 	* Target platforms : partial part of the ISA of RISCV, Power,
 	Kalray, CxRAM platforms
 
 	* Release 2.0: First public release
-
-

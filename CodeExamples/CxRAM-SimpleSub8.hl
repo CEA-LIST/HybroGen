@@ -30,7 +30,7 @@ void printVec(int8_t *vectorLine, int len, char * mesg)
 
 int main(int argc, char * argv[])
 {
-  int i, resultOK;
+  int i;
   h2_insn_t * ptr;
   pifiii code;
   int8_t *in1, *in2, *res;
@@ -60,15 +60,14 @@ int main(int argc, char * argv[])
   printVec (in2, CXRAM_VECLEN, "-");
   printVec (res, CXRAM_VECLEN, "=");
 #endif
-  resultOK = 0;
   for (i=0; i < CXRAM_VECLEN / sizeof(in1[0]); i++)
 	{
 	  int tmp = in1[i] - in2[i];
 	  int resultat = tmp; // La soustraction est signée (tmp < 0)?0:tmp;
 	  if (res[i] != resultat)
 		{
-		  resultOK = -1;
+		  return 1;
 		}
 	}
-  return resultOK;
+  return 0;
 }

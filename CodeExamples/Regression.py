@@ -45,8 +45,8 @@ cxramTestList =(
     "CxRAM-ImageDiff",
     "CxRAM-ImagePixelAccumulation",
     "CxRAM-Broadcast32",
-    "CxRAM-Convolution8",
-    "CxRAM-Convolution16",
+#    "CxRAM-Convolution8", # Convolution8 & 16 are not bit compatible
+#    "CxRAM-Convolution16", # thus can not be used as regression test
     "CxRAM-Convolution32",
     "CxRAM-MatrixMultiplication"
     )
