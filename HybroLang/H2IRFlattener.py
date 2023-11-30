@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+from H2Utils import *
 # H2IR2 SStructures and Methods
 from HybroLang.H2LabelTable import H2LabelTable
 from HybroLang.H2SymbolTable import H2SymbolTable
@@ -16,20 +19,21 @@ class H2IRFlattener():
         self.sTable = sTable
         self.verbose = verbose
         self.call_counter = -1
-    def fatalError(self, s: str):
-        print("[H2IRFlt] %s" % s)
-        sys.exit(1)
+
     def visitInsn(self, insn:H2Node, parent:H2Node, new_insns:list):
         self.call_counter += 1
         need_tmp = parent is not None and parent.opName != '='
         if insn.isOperator() and insn.opName == 'LUI':
             const:H2Node = insn.sonsList[0]
             const.opType = insn.opType
-            var_name = "h2_%08d" % (self.call_counter)
-            var = H2Node(H2NodeType.VARIABLE,
-                variableName=var_name,
-                opType=insn.opType)
-            insn.sonsList.insert(0, var)
+            if insn.sonsList[0].isVariable() and len(insn.sonsList) > 1:
+                var_name = insn.sonsList[0].getVariableName()
+            else :
+                var_name = "h2_%08d" % (self.call_counter)
+                var = H2Node(H2NodeType.VARIABLE,
+                    variableName=var_name,
+                    opType=insn.opType)
+                insn.sonsList.insert(0, var)
             new_insns.append(insn)
             insn.variableName = var_name
         elif insn.isOperator():
@@ -88,7 +92,7 @@ class H2IRFlattener():
                     rhs: H2Node = insn.sonsList[1]
                     rhs.variableName = lhs.variableName
                 new_insns.append(insn)
-        elif insn.isR():
+        elif insn.isR() and parent != None:
             addr = insn.sonsList[0]
             addr.opType = H2Type('int', 32, 1)
             self.visitInsn(addr, insn, new_insns)
@@ -205,4 +209,3 @@ class H2IRFlattener():
         #foo()
         #new_insns = self.purge_redundant_mvs(new_insns)
         return new_insns + [H2Node(H2NodeType.RTN)]
-

@@ -18,13 +18,13 @@ ARCH power 32
 # addg6s Add & Generate Sixes
 # 011111 ..... ..... ..... 00010 010100| power addg6s
 # addi Add Immediate
-001110 r0[4:0] r1[4:0] i0[15:0]	| p1  i 1 32 add addi r0 r1 i0
+001110 r0[4:0] r1[4:0] i0[15:0]					| p1  i 1 32 add addi r0 r1 i0
 # subi Add Immediate
-001110 r0[4:0] r1[4:0] (-i0[15:0])	| p1  i 1 32 sub subi r0 r1 i0
+001110 r0[4:0] r1[4:0] (-i0[15:0])				| p1  i 1 32 sub subi r0 r1 i0
 # li load immediate
-001110 r0[4:0] 00000 i0[15:0]	| p1  i 1 32 mv li r0 i0
+001110 r0[4:0] 00000 i0[15:0]					| p1  i 1 32 mv li r0 i0
 # mv Add Immediate
-001110 r0[4:0] r1[4:0] 0000 0000 0000 0000 | p1  i 1 32 mv mv r0 r1
+001110 r0[4:0] r1[4:0] 0000 0000 0000 0000 		| p1  i 1 32 mv mv r0 r1
 # addic Add Immediate Carrying
 # 001100 ..... ..... ..... ..... ......| p1 addic
 # addic. Add Immediate Carrying & record
@@ -49,21 +49,21 @@ ARCH power 32
 # 011101 ..... ..... ..... ..... ......| p1 andis.
 # b[l][a] Branch [& Link] [Absolute]
 # 010010 ..... ..... ..... ..... ......| p1 b[l][a]
-# b[l][a] Branch      
+# b[l][a] Branch
 010010 i0[23:0] 00    | p1 i 1 32 ba bl i0
-# bc Branch Conditional blt   
-010000 01100 00000 i0[13:0] 00	| p1 i 1 32 blt blt i0 
+# bc Branch Conditional blt
+010000 01100 00000 i0[13:0] 00	| p1 i 1 32 blt blt i0
 # bc Branch Conditional    bgt
-010000 01100 00001 i0[13:0] 00	| p1 i 1 32 bgt bgt i0 
+010000 01100 00001 i0[13:0] 00	| p1 i 1 32 bgt bgt i0
 # bc Branch Conditional    beq
-010000 01100 00010 i0[13:0] 00	| p1 i 1 32 beq beq i0 
+010000 01100 00010 i0[13:0] 00	| p1 i 1 32 beq beq i0
 # bc Branch Conditional    ble
-010000 00100 00001 i0[13:0] 00	| p1 i 1 32 ble ble i0 
+010000 00100 00001 i0[13:0] 00	| p1 i 1 32 ble ble i0
 # bc Branch Conditional    bne
-010000 00100 00010 i0[13:0] 00	| p1 i 1 32 bne bne i0 
+010000 00100 00010 i0[13:0] 00	| p1 i 1 32 bne bne i0
 # bc Branch Conditional    bge
-010000 00100 00000 i0[13:0] 00	| p1 i 1 32 bge bge i0 
-# bca Branch Conditional Absolute 
+010000 00100 00000 i0[13:0] 00	| p1 i 1 32 bge bge i0
+# bca Branch Conditional Absolute
 #010000 ..... ..... ..... ..... ....10	| p1 bca
 # bclBranch Conditional & Link
 #010000 ..... ..... ..... ..... ....01	| p1 bcl
@@ -763,7 +763,23 @@ ARCH power 32
 # rlwimi[.] Rotate Left Word Immediate then Mask Insert
 # 010100 ..... ..... ..... ..... ......| p1 rlwimi[.]
 # rlwinm[.] Rotate Left Word Immediate then AND with Mask
-# 010101 ..... ..... ..... ..... ......| p1 rlwinm[.]
+# Table 141:Word rotate and shift mnemonics
+# Operation Extended Mnemonic Equivalent to
+# Extract and left justify immediate extlwi ra,rs,n,b (n > 0) 	rlwinm ra,rs,b,0,n-1
+# Extract and right justify immediate extrwi ra,rs,n,b (n > 0) 	rlwinm ra,rs,b+n,32-n,31
+# Insert from left immediate inslwi ra,rs,n,b (n > 0) 			rlwimi ra,rs,32-b,b,(b+n)-1
+# Insert from right immediate insrwi ra,rs,n,b (n > 0) 			rlwimi ra,rs,32-(b+n),b,(b+n)-1
+# Rotate left immediate rotlwi ra,rs,n 							rlwinm ra,rs,n,0,31
+# Rotate right immediate rotrwi ra,rs,n 						rlwinm ra,rs,32-n,0,31
+# TODO Reintroducte expression in binary format
+# 010101 r0[4:0] r1[4:0] (32-i0[4:0]) 0 31 0 	| ppc i 1 32 SL rlwinm r1 r0 i0
+# Rotate left rotlw ra,rs,rb 									rlwnm ra,rs,rb,0,31
+# 010101 r0[4:0] r1[4:0] i0[4:0] 0 31 0 					| ppc i 1 32 SL rlwinm r1 r0 i0
+# Shift left immediate slwi ra,rs,n (n < 32) 					rlwinm ra,rs,n,0,31-n
+# Shift right immediate srwi ra,rs,n (n < 32) 					rlwinm ra,rs,32-n,n,31
+# Clear left immediate clrlwi ra,rs,n (n < 32) 					rlwinm ra,rs,0,n,31
+# Clear right immediate clrrwi ra,rs,n (n < 32) 				rlwinm ra,rs,0,0,31-n
+# Clear left and shift left immediate clrlslwi ra,rs,b,n (n <= b < 32) 	rlwinm ra,rs,n,b-n,31-n
 # rlwnm[.] Rotate Left Word then AND with Mask
 # 010111 ..... ..... ..... ..... ......| p1 rlwnm[.]
 # sc System Call

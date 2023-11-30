@@ -5,7 +5,7 @@ urlDataBase = {}                # Will contain rootDatabase + platform dependent
 rootDataBase = {
     'mpfr' :     {
         'url': 'https://ftp.gnu.org/gnu/mpfr/mpfr-{RELEASE}.tar.xz',
-        'release':'4.1.0',
+        'release':'4.2.0',
         'confargs' : ('--prefix={PREFIX}', '--program-prefix={TARGET}-', "--with-gmp={PREFIX}"),
         'targetbuild':'all',
         'targetinstall':'install',
@@ -19,13 +19,13 @@ rootDataBase = {
     },
     'mpc' :     {
         'url': 'http://www.multiprecision.org/downloads/mpc-{RELEASE}.tar.gz',
-        'release':'1.2.1',
+        'release':'1.3.1',
         'confargs' : ('--prefix={PREFIX}', '--program-prefix={TARGET}-', '--with-mpfr={PREFIX}', '--with-gmp={PREFIX}'),
         'targetbuild':'all',
         'targetinstall':'install',
     },
-    'gcc'  :     {'url':'ftp://ftp.gnu.org/gnu/gcc/gcc-{RELEASE}/gcc-{RELEASE}.tar.gz',
-                  'release':'10.2.0',
+    'gcc'  :     {'url':'https://ftp.gnu.org/gnu/gcc/gcc-{RELEASE}/gcc-{RELEASE}.tar.gz',
+                  'release':'13.2.0',
                   'confargs': ( '--prefix={PREFIX}', '--program-prefix={TARGET}-',
                                 '--target={TARGET}', '--build=x86_64-linux-gnu', '--host=x86_64-linux-gnu',
                                 '--with-gnu-as', '--with-gnu-ld', '--disable-nls',
@@ -43,15 +43,15 @@ rootDataBase = {
                   'targetinstall': 'install-gcc',
     },
     # Links between binutils & gcc : https://wiki.osdev.org/Cross-Compiler_Successful_Builds
-    'binutils' : {'url':'ftp://ftp.lip6.fr/pub/gnu/binutils/binutils-{RELEASE}.tar.gz',
-                  'release':'2.36.1',
+    'binutils' : {'url':'https://ftp.lip6.fr/pub/gnu/binutils/binutils-{RELEASE}.tar.gz',
+                  'release':'2.40',
                   'confargs':  ('--prefix={PREFIX}', '--program-prefix={TARGET}-', '--target={TARGET}'
                                 '--disable-nls', '--disable-werror', '--target={TARGET}'
                   ),
                   'targetbuild': 'all',
                   'targetinstall': 'install',
     },
-    'gdb'  :     {'url':'ftp://ftp.lip6.fr/pub/gnu/gdb/gdb-{RELEASE}.tar.gz',
+    'gdb'  :     {'url':'https://ftp.lip6.fr/pub/gnu/gdb/gdb-{RELEASE}.tar.gz',
                   'release':'10.1',
                   'confargs': ('--prefix={PREFIX}', '--target={TARGET}',  '--program-prefix={TARGET}-',
                                '--enable-werror=no',
@@ -61,19 +61,19 @@ rootDataBase = {
     },
     'linux' :  {
         'url': 'https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-{RELEASE}.tar.gz',
-        'release': '5.4.60',
+        'release': '5.18.17',
         'confargs': '',
         'targetbuild':   'headers_install',
         },
-    'newlib': { 'url':'ftp://sourceware.org/pub/newlib/newlib-{RELEASE}.tar.gz',
-                'release' : '4.1.0',
+    'newlib': { 'url':'https://sourceware.org/pub/newlib/newlib-{RELEASE}.tar.gz',
+                'release' : '4.3.0.20230120',
                 'confargs' : ('--prefix={PREFIX}', '--target={TARGET}', '--disable-multilib', '--enable-lite-exit'),
                 # --enable-newlib-register-fini --enable-newlib-global-atexit # Other interesting configuration parameters
                 'targetbuild':   'all',
                 'targetinstall': 'install',
     },
-    'glibc': { 'url':'ftp://ftp.gnu.org/gnu/glibc/glibc-{RELEASE}.tar.gz',
-               'release' : '2.33',
+    'glibc': { 'url':'https://ftp.gnu.org/gnu/glibc/glibc-{RELEASE}.tar.gz',
+               'release' : '2.37',
                'confargs' : ('--prefix={PREFIX}/{TARGET}', '--build=x86_64-pc-linux-gnu', '--host={TARGET}', '--target={TARGET}',
                              '--with-headers={PREFIX}/{TARGET}/include/',
                              '--disable-multilib', 'libc_cv_forced_unwind=yes',
@@ -83,7 +83,7 @@ rootDataBase = {
     },
     'qemu' : {
         'url':'https://download.qemu.org/qemu-{RELEASE}.tar.xz',
-        'release': '5.2.0',
+        'release': '8.0.3',
         'confargs' : ('--prefix={PREFIX}', '--target-list={TARGET}',
                       '--enable-plugins', '--gdb={PREFIX}/bin/{TARGET}-gdb'),
         'targetbuild':   'all',
@@ -91,8 +91,7 @@ rootDataBase = {
     },
     'isl' : {
         'url': 'https://sourceforge.net/projects/libisl/files/isl-{RELEASE}.tar.gz',
-#        'url': 'http://isl.gforge.inria.fr/isl-{RELEASE}.tar.gz',
-        'release': '0.23',
+        'release': '0.26',
         'confargs' : ('--prefix={PREFIX}', '--with-gmp-prefix={PREFIX}', '--with-gmp=system'),
         'targetbuild':   'all',
         'targetinstall': 'install',
@@ -256,7 +255,7 @@ def buildGlibcAndGcc(tool, archTriplet, arch, args):
     Step("Build glibc 2nd (last) step", "gcc", archTriplet)
     cmd (("make", "-j", jobMax),    args.verbose,  buildDir, environ=myEnv, doExec = args.donot)
     cmd (("make",               "install"), args.verbose, buildDir, environ=myEnv, doExec = args.donot)
-    cmd (("touch", flagFile), args.verbose)
+    cmd (("touch", flagFile), args.verbose, doExec = args.donot)
 
 
 def install(tool, archTriplet, arch, args):
@@ -270,7 +269,7 @@ def install(tool, archTriplet, arch, args):
         cmd (("touch", flagFile), args.verbose)
 targetsAlias = {
     'aarch64':       {'triplet': 'aarch64-linux-gnu',        'qemu':'aarch64-linux-user'},
-    'riscv':         {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
+    'riscv':         {'triplet': 'riscv32-linux-gnu',        'qemu':'riscv32-linux-user'},
     'powerpc':       {'triplet': 'powerpc64le-linux-gnu',    'qemu':'ppc64le-linux-user'},
     'cxram-linux':   {'triplet': 'riscv32-unknown-linux',    'qemu':'riscv32-linux-user'},
     'cxram-bm':      {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
@@ -423,50 +422,32 @@ if __name__ == '__main__' :
         libList = []
         for a in args.arch:     # Find installed directory
             thePrefix = args.archprefix
-            if a[0] == "kalray":
-#                thePrefix = ""
-                binList.append("/opt/kalray/accesscore/bin/")
-                libList.append("/opt/kalray/accesscore/lib/")
+            binList.append("%s%s/bin/"%(thePrefix, a[0]))
+            libList.append("%s%s/lib/"%(thePrefix, a[0]))
+            libList.append("%s%s/%s/lib/"%(thePrefix, a[0], targetsAlias[a[0]]["triplet"]))
+            fail = False
+            # Generate environment variable depending on the parent shell
+            binList.append ("/bin/") # Needed on CEA aar environment
+            binList.append ("%s/hybrogen/bin/"%(thePrefix))
+            ppid = os.getppid()
+            fInput = open('/proc/%d/cmdline'%ppid, "r")
+            parentProcessName = fInput.read().split('\x00')[0]
+            if parentProcessName in ("bash", "-bash", "sh"):
+                shEnv =  "export PATH=%s:${PATH}\n"% ":".join(binList)
+                shEnv += "export LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
+                if a[0] in ("cxram-linux", "cxram-bm", ):
+                    qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
+                    shEnv += "export QEMU_PLUGIN=%s\n"%qemuPlugin
+                writeIfNotExist(args.archprefix+a[0]+"/.bashrc", shEnv)
+            elif parentProcessName in ("csh", "-csh", "tcsh", "-tcsh"):
+                cshEnv  = "setenv PATH %s:${PATH}\n"% ":".join(binList)
+                cshEnv += "setenv LD_LIBRARY_PATH %s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
+                if a[0] in ("cxram-linux", "cxram-bm", ):
+                    qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
+                    cshEnv += "setenv QEMU_PLUGIN %s\n"%qemuPlugin
+                writeIfNotExist(args.archprefix+a[0]+"/.cshrc", cshEnv)
             else:
-#                thePrefix = args.archprefix
-                binList.append("%s%s/bin/"%(thePrefix, a[0]))
-                libList.append("%s%s/lib/"%(thePrefix, a[0]))
-                libList.append("%s%s/%s/lib/"%(thePrefix, a[0], targetsAlias[a[0]]["triplet"]))
-        fail = False
-        if a[0] != "kalray":
-            for binDir in binList:  # Check minimal tool existance
-                output = "(no result)"
-                try:
-                    output = cmd(("find", binDir, "-iname", '"*-gcc"'), doPrint=False)
-                    output = cmd(("find", binDir, "-iname", '"*-gdb"'), doPrint=False)
-                except:
-                    fail = True
-                    print("Missing tool for %s"%binDir)
-                    print(output)
-            if fail:
-                usage("At least one  missing tool")
-        # Generate environment variable depending on the parent shell
-        binList.append ("/bin/") # Needed on CEA aar environment
-        binList.append ("%s/hybrogen/bin/"%(thePrefix))
-        ppid = os.getppid()
-        fInput = open('/proc/%d/cmdline'%ppid, "r")
-        parentProcessName = fInput.read().split('\x00')[0]
-        if parentProcessName in ("bash", "-bash", "sh"):
-            shEnv =  "export PATH=%s:${PATH}\n"% ":".join(binList)
-            shEnv += "export LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
-            if a[0] in ("cxram-linux", "cxram-bm", ):
-                qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
-                shEnv += "export QEMU_PLUGIN=%s\n"%qemuPlugin
-            writeIfNotExist(args.archprefix+a[0]+"/.bashrc", shEnv)
-        elif parentProcessName in ("csh", "-csh", "tcsh", "-tcsh"):
-            cshEnv  = "setenv PATH %s:${PATH}\n"% ":".join(binList)
-            cshEnv += "setenv LD_LIBRARY_PATH %s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
-            if a[0] in ("cxram-linux", "cxram-bm", ):
-                qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
-                cshEnv += "setenv QEMU_PLUGIN %s\n"%qemuPlugin
-            writeIfNotExist(args.archprefix+a[0]+"/.cshrc", cshEnv)
-        else:
-            print ("Unknown environment for %s"%parentProcessName)
+                print ("Unknown environment for %s"%parentProcessName)
     elif args.config:
         for a in rootDataBase.keys():
             print ("%10s : %s"%(a, rootDataBase[a]["release"]))
@@ -504,26 +485,22 @@ if __name__ == '__main__' :
             elif archName == "aarch64":
                 theArch = "arm64"
             buildLinuxIncludes("linux", archTriplet, theArch, args)
+
             # Additionnal configuration parameter
             urlDataBase['qemu']['confargs'] += ('--interp-prefix=%s/%s/'%(args.prefix, archTriplet),)
-            if archName == "riscv":
-                urlDataBase['gcc']['confargs'] += ("--with-newlib",)
-            elif archName == "riscv":
-                urlDataBase['gcc']['confargs'] += ("--with-newlib",)
-            elif archName == "cxram-bm":
+            if archName == "cxram-bm":
                 urlDataBase['gcc']['confargs'] += ("--with-newlib", "--with-arch=rv32gc", "--with-abi=ilp32",)
             elif archName == "cxram-linux":
                 urlDataBase['gcc']['confargs'] += ("--with-arch=rv32gc", "--with-abi=ilp32",)
             elif archName == "powerpc":
                 urlDataBase['gcc']['confargs'] += ('--with-long-double-128', ) #'--with-long-double-format=ibm', # for power)
-            # elif archName == "aarch64":
-            #     urlDataBase['gcc']['confargs'] += ("--with-newlib",)
+
             # Build 1st gcc steps
             install("gcc",      archTriplet, archName, args)
             # Build glibc (power) or newlib (riscv & csram) and gcc last steps
-            if archName in ("powerpc", "cxram-linux", "aarch64"):
+            if archName in ("powerpc", "cxram-linux", "aarch64", "riscv"):
                 buildGlibcAndGcc("glibc",      archTriplet, archName, args) # glibc 1 step, gcc last step, glibc laststep
-            elif archName in ("riscv", "cxram-bm"):
+            elif archName in ("cxram-bm"):
                 install("newlib",   archTriplet, theArch, args) # newlib
                 Step("Build gcc last step", "gcc", archTriplet)
                 toolName2 = 'gcc-'+ urlDataBase["gcc"]["release"]

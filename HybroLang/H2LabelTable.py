@@ -8,19 +8,22 @@ class H2LabelTable:
         self.labelTable = {}
         self.labelNumber = 0
         self.archName = archName
-    
+
     def add(self, labelName, idValue):
         if labelName in self.labelTable:
             raise Exception ("Label table error (add)", "Already existing label: "+labelName)
         self.labelTable[labelName] = idValue
 
     def getCDecl (self):
-        decl = "#define %s_genLABEL(LABEL_ID) labelAddresses[LABEL_ID] = h2_asm_pc;\n"%(self.archName)
-        decl += "h2_insn_t   * labelAddresses []={\n"
-        for labelName in self.labelTable:
-            decl += "\t0, /* %s */\n"%labelName
-            decl += "\t#define %s %d\n"%(labelName, self.labelTable[labelName])
-        decl += "\t};\n"
+        if len(self.labelTable) > 0: # Avoid warning during C compilation
+            decl = "#define %s_genLABEL(LABEL_ID) labelAddresses[LABEL_ID] = h2_asm_pc;\n"%(self.archName)
+            decl += "h2_insn_t   * labelAddresses []={\n"
+            for labelName in self.labelTable:
+                decl += "\t0, /* %s */\n"%labelName
+                decl += "\t#define %s %d\n"%(labelName, self.labelTable[labelName])
+            decl += "\t};\n"
+        else:
+            decl = "/* No label table to avoid C warning for empty table ... */"
         return decl
 
     def __iter__(self):

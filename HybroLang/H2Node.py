@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from H2Utils import *
 from HybroLang.H2SymbolTable  import H2SymbolTable
 from HybroLang.H2LabelTable   import H2LabelTable
 from HybroLang.H2NodeType     import H2NodeType
@@ -63,12 +64,8 @@ class H2Node():
                 else:
                     s += "%s%s"%("\t"*(i+1), str(son))
         else:
-            self.fatalError("Unknown node %s"%self.nodeType)
+            fatalError("Unknown node %s"%self.nodeType)
         return s
-
-    def fatalError (self, msg):
-        print ("Fatal error: %s"%msg)
-        sys.exit(-1)
 
     def __str__(self, i = 0):
         return self.getStr(i)
@@ -115,6 +112,7 @@ class H2Node():
     def isVariable (self):     return self.nodeType == H2NodeType.VARIABLE
     def isOperatorOrMem(self): return self.isMem() or (self.nodeType == H2NodeType.OPERATOR)
     def isB(self):             return self.nodeType == H2NodeType.BA or self.isBcc()
+    def isBA(self):            return self.nodeType == H2NodeType.BA
     def isBcc(self):           return self.nodeType in (H2NodeType.BEQ, H2NodeType.BNE, H2NodeType.BLT, H2NodeType.BGT, H2NodeType.BGE, H2NodeType.BLE, H2NodeType.BEQZ, H2NodeType.BNEZ)
     def isMem(self):           return (self.nodeType == H2NodeType.W) or (self.nodeType == H2NodeType.R)
 
@@ -128,17 +126,17 @@ class H2Node():
 
     def isVector(self): return (isinstance(self.opType['vectorLen'], int) and self.opType['vectorLen'] > 1) or (isinstance(self.opType['vectorLen'], str) and  self.opType['vectorLen'].isdigit() and int(self.opType['vectorLen']) > 1)
 
-    def areNodesEquals(self, other): 
+    def areNodesEquals(self, other):
         if self.nodeType != other.getNodeType(): return False
         if self.labelName != other.getLabelName(): return False
-        if self.opName != other.getOpName(): return False 
+        if self.opName != other.getOpName(): return False
         print ("opType:")
         print (self.opType)
         print (other.getOpType())
         if self.constValue != other.getConstValue(): return False
         if self.variableName != other.getVariableName(): return False
         return True
-    
+
     def isSameTree(self, other):
         if self.areNodesEquals(other):
             if self.sonsList == [] and other.sonsList == []:
@@ -150,5 +148,3 @@ class H2Node():
                 return True
         else:
             return False
-        
-            

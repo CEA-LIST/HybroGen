@@ -2,6 +2,7 @@
 
 import antlr4
 from antlr4 import *
+from H2Utils import *
 from HybroLang.HybroLangLexer    import HybroLangLexer
 from HybroLang.HybroLangParser   import HybroLangParser
 from HybroLang.HybroLangVisitor  import HybroLangVisitor
@@ -11,7 +12,7 @@ from HybroLang.H2LabelTable      import H2LabelTable
 from HybroLang.H2IR2             import *
 from HybroGen.GenGeneratorFromDb import GenGeneratorFromDb
 
-H2_RELEASE = "v3.0"
+H2_RELEASE = "v4.0"
 
 class HybrogenTreeCompiler(HybroLangVisitor):
 
@@ -141,24 +142,46 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         if ctx.getChildCount() == 2: # Affectexpr
             insn = self.visit (ctx.affectexpr(0))
             IR += [insn]
-        elif ctx.getChildCount() == 11: # For loop
-            treeLoopPrelude =  self.visit(ctx.affectexpr(0))
-            treeLoopCond =     self.visit(ctx.condexpr())
-            treeLoopContinue = self.visit(ctx.affectexpr(1))
-            treeLoopAction =   self.visit(ctx.actionlist())
-            labelPrologue = self.lTable.genLabelName("prologue")
-            labelBegin = self.lTable.genLabelName("begin")
-            labelEnd = self.lTable.genLabelName("end")
-            IR += [H2Node(H2NodeType.LABEL, labelName  = labelPrologue)]
-            IR += [treeLoopPrelude]
-            IR += [H2Node(H2NodeType.LABEL, labelName  = labelBegin)]
-            treeLoopCond.setTargetName(labelEnd)
-            treeLoopCond.setSourceName(labelBegin)
-            IR += [treeLoopCond]
-            IR += treeLoopAction
-            IR += [treeLoopContinue]
-            IR += [H2Node(H2NodeType.BA,    targetName = labelBegin)]
-            IR += [H2Node(H2NodeType.LABEL, labelName  = labelEnd)]
+        elif ctx.getChildCount() == 11 : # For loop
+            token = str(ctx.children[0])
+            if token == "for":
+                treeLoopPrelude  = self.visit(ctx.affectexpr(0))
+                treeLoopCond     = self.visit(ctx.condexpr())
+                treeLoopContinue = self.visit(ctx.affectexpr(1))
+                treeLoopAction   = self.visit(ctx.actionlist(0))
+                labelPrologue    = self.lTable.genLabelName("prologue")
+                labelBegin       = self.lTable.genLabelName("begin")
+                labelEnd         = self.lTable.genLabelName("end")
+                labelBA          = self.lTable.genLabelName("BA")
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelPrologue)]
+                IR += [treeLoopPrelude]
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelBegin)]
+                treeLoopCond.setTargetName(labelEnd)
+                treeLoopCond.setSourceName(labelBegin)
+                IR += [treeLoopCond]
+                IR += treeLoopAction
+                IR += [treeLoopContinue]
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelBA)]
+                IR += [H2Node(H2NodeType.BA,    targetName = labelBegin, sourceName = labelBA)]
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelEnd)]
+            elif token == "if":
+                treeIfCond        = self.visit(ctx.condexpr())
+                treeIfActionTrue  = self.visit(ctx.actionlist(0))
+                treeIfActionFalse = self.visit(ctx.actionlist(1))
+                labelPrologue     = self.lTable.genLabelName("prologue")
+                labelEndTrue      = self.lTable.genLabelName("endtrue")
+                labelFalse        = self.lTable.genLabelName("iffalse")
+                labelEnd          = self.lTable.genLabelName("ifend")
+                treeIfCond.setTargetName (labelFalse)
+                treeIfCond.setSourceName (labelPrologue)
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelPrologue)]
+                IR += [treeIfCond]
+                IR += treeIfActionTrue
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelEndTrue)]
+                IR += [H2Node(H2NodeType.BA,    targetName = labelEnd, sourceName = labelEndTrue)]
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelFalse)]
+                IR += treeIfActionFalse
+                IR += [H2Node(H2NodeType.LABEL, labelName  = labelEnd)]
         else:
             fatalError("visitAction : unknown child count %d"%ctx.getChildCount())
         self.tab -= 1
@@ -278,8 +301,8 @@ class HybrogenTreeCompiler(HybroLangVisitor):
 
     def visitVarorvalueVar(self, ctx:HybroLangParser.VarorvalueVarContext):
         self.Trace()
-        n = H2Node(H2NodeType.VARIABLE, variableName = ctx.getText())
-        return n
+        self.sTable.get(ctx.getText()) # Check variable existence in symbol table
+        return H2Node(H2NodeType.VARIABLE, variableName = ctx.getText())
 
     def visitReturnexpr(self, ctx:HybroLangParser.ReturnexprContext):
         self.Trace()
@@ -312,10 +335,6 @@ class HybrogenTreeCompiler(HybroLangVisitor):
             node = self.visit(ctx.varorvalue())
         self.tab -= 1
         return node
-
-def fatalError (msg):
-    print ("Fatal error: %s"%msg)
-    sys.exit(-1)
 
 def BuildTreeAndCompile (inputCompilette, platform, verbose, debug, dbIds):
     v = HybrogenTreeCompiler(inputCompilette, platform, verbose, debug, dbIds)
@@ -350,151 +369,6 @@ def writeCandParseCompilette(fileIn, platform, verbose, debug, dbIds):
         else:
             compiletteCode += line
     return prefixDict, cCode
-
-class HybrogenTreeGather(HybroLangVisitor):
-
-    sem = {"*": "MUL", "+":"ADD", "/":"DIV", "-":"SUB",
-           "R":"R", "W":"W", "CMP":"CMP",
-           "==": "BNE", "!=":"BEQ",
-           "<": "BGE" , ">=":"BLT",
-           ">": "BLE",  "<=":"BGT",
-           "BA":"BA",
-           "INV":"INV",
-           "NEG":"NEG",
-           "CMPGE": "CMPGE", "CMPGT": "CMPGT",
-           "CMPLE": "CMPLE", "CMPLT": "CMPLT",
-           "CMPNE": "CMPNE", "CMPEQ": "CMPEQ",
-           "BEQZ": "BEQZ", "BNEZ": "BNEZ" }
-
-    def __init__(self, inputCompilette, archList, verbose, debug):
-        self.tab = 0
-        self.archList = archList
-        self.archMaster = archList[0]
-        self.verbose = verbose
-        self.debug = debug
-        self.datatype = {}
-        self.operatorList = set()
-        #create H2SymbolTable only for master architecture ?
-        self.sTable = H2SymbolTable(self.archMaster)
-        self.Trace()
-        if self.verbose:
-            print ("HybrogenVisitor for %s Verbose : %s Debug : %s"%(self.archMaster, verbose, debug))
-        l = HybroLangLexer(antlr4.InputStream(inputCompilette)) # Initialize ANTLR lexer, tokenizer, parse, tree
-        s = CommonTokenStream(l)
-        p = HybroLangParser(s)
-        syntaxTree = p.compilationunit()
-        self.tree = self.visit(syntaxTree)                      # Visit syntax tree & gather Op & dataType
-
-    def getPrefixTuple(self):
-        tupleOperateurType = []
-        for o in self.operatorList:
-            op = self.sem[o]
-            for t in self.datatype:
-                tupleOperateurType.append ((op, t))
-        if self.verbose:
-            print ("Tuple Operator Type :"+str(tupleOperateurType))
-        return tupleOperateurType
-
-    def printIfVerbose (self, msg):
-        if self.verbose:
-            print (msg, file=sys.stderr)
-
-    def Trace(self):
-        fname = sys._getframe(1).f_code.co_name
-        self.printIfVerbose(fname)
-
-    def visitAffectexpr(self, ctx:HybroLangParser.AffectexprContext):
-        self.Trace()
-        if ctx.getChildCount() == 3:
-            self.visit (ctx.unaryexpr(0))
-        elif ctx.getChildCount() == 6:
-            self.visit (ctx.unaryexpr(0))
-            self.visit (ctx.unaryexpr(1))
-            self.operatorList.add ("W")
-            self.operatorList.add ("+")
-
-    def visitDatatype(self, ctx:HybroLangParser.DatatypeContext):
-        self.Trace()
-        h = H2Type (ctx.typebase().getText(), ctx.wordlen.getText(), ctx.vectorlen.getText())
-        a = h["arith"][0]
-        if a not in self.datatype:
-            self.datatype[a] = set()
-        self.datatype[a].add ((h["wordLen"], h["vectorLen"]))
-
-    def visitVarorvalueArray(self, ctx:HybroLangParser.VarorvalueArrayContext):
-        self.Trace()
-        self.visit (ctx.unaryexpr())
-        self.operatorList.add ("R")
-        self.operatorList.add ("+")
-
-    def visitAction(self, ctx:HybroLangParser.ActionContext):
-        self.Trace()
-        if ctx.getChildCount() == 2: # Affectexpr
-            self.visit (ctx.affectexpr(0))
-        elif ctx.getChildCount() == 11: # For loop
-            self.visit(ctx.affectexpr(0))
-            self.visit(ctx.condexpr())
-            self.visit(ctx.affectexpr(1))
-            self.visit(ctx.actionlist())
-        else:
-            fatalError("visitAction : unknown child count %d"%ctx.getChildCount())
-
-    def visitCondexpr(self, ctx:HybroLangParser.CondexprContext):
-        self.visit(ctx.varorvalue(0))
-        self.visit(ctx.condOperator())
-        if "power" in self.archList:
-            self.operatorList.add ("CMP")
-        if "kalray" in self.archList:
-            self.operatorList.add ("CMPGE")
-            self.operatorList.add ("CMPGT")
-            self.operatorList.add ("CMPLE")
-            self.operatorList.add ("CMPLT")
-            self.operatorList.add ("CMPEQ")
-            self.operatorList.add ("CMPNE")
-            self.operatorList.add ("BNEZ")
-            self.operatorList.add ("BEQZ")
-        self.operatorList.add ("BA")
-        self.operatorList.add (ctx.condOperator().getText())
-        self.visit(ctx.varorvalue(1))
-
-    def visitUnaryexpr(self, ctx:HybroLangParser.UnaryexprContext):
-        self.Trace()
-        if "kalray" in self.archList:
-            self.operatorList.add ("INV")
-            self.operatorList.add ("NEG")
-        if ctx.getChildCount() == 3:
-            l = self.visit(ctx.unaryexpr(0))
-            r = self.visit(ctx.unaryexpr(1))
-            self.operatorList.add (ctx.op.text)
-        else:
-            node = self.visit(ctx.varorvalue())
-            self.operatorList.add ("*")
-
-def BuildTreeAndGather (inputCompilette, archList, verbose, debug):
-    v = HybrogenTreeGather(inputCompilette, archList, verbose, debug)
-    return v.getPrefixTuple()
-
-def gatherOpsAndTypes(fileIn, archList, verbose, debug):
-    """ Extract DataType and operators
-    """
-    BEGIN = "#["
-    END = "]#"
-    outsideCompilette = True
-    prefixTuple = []
-    for line in fileIn:
-        if (BEGIN in line and outsideCompilette):
-            outsideCompilette = False
-            line, compiletteCode = line.split(BEGIN)
-        elif END in line and not outsideCompilette:
-            outsideCompilette = True
-            endCompilette, line = line.split(END)
-            compiletteCode += endCompilette
-            prefixTuple += BuildTreeAndGather(compiletteCode, archList, verbose, debug)
-        elif (BEGIN in line and not outsideCompilette) or (END in line and outsideCompilette):
-            fatalError ("Something weird append on line: "+line)
-        if not outsideCompilette:
-            compiletteCode += line
-    return prefixTuple
 
 def extractCompilette(fileIn):
     """ Compilette code
@@ -544,13 +418,15 @@ if __name__ == '__main__':
     parser.add_argument ('-i', '--inputfile', required=True, help="give input file name")
 #    parser.add_argument('fileName', type=str, help='file name')
     parser.add_argument ('-a', '--arch', required=True, nargs='+', help="give arch parameter (archname & extension(s)) or alias : "+str(archList))
-    parser.add_argument ('-b', '--abi',    help="give abi parameter")
+    parser.add_argument ('-b', '--abi',    	help="give abi parameter")
 #    group.add_argument ('-t', '--tree',    action='store_true', help="shows syntax tree")
-    group.add_argument ('-c',  '--toC',      action='store_true', help="rewrite to C")
-    group.add_argument ('-e',  '--extract',  action='store_true', help="extract compilettes source code")
-    parser.add_argument ('-v', '--verbose', action='store_true', help="verbose")
-    parser.add_argument ('-g', '--debug',   action='store_true', help="add function version instead of macros")
-    parser.add_argument ('-d', '--dbIds',   default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
+    group.add_argument ('-c',  '--toC',      	action='store_true', help="rewrite to C")
+    group.add_argument ('-e',  '--extract',  	action='store_true', help="extract compilettes source code")
+    parser.add_argument ('-v', '--verboseParsing', action='store_true', help="verbose parsing")
+    parser.add_argument ('-V', '--verboseBackend', 	action='store_true', help="verbose backend")
+    parser.add_argument ('-w', '--verboseIR', 	action='store_true', help="verbose IR")
+    parser.add_argument ('-g', '--debug',   	action='store_true', help="add function version instead of macros")
+    parser.add_argument ('-d', '--dbIds',   	default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
 
     args = parser.parse_args()
     if args.arch[0] in aliasDict:
@@ -576,19 +452,17 @@ if __name__ == '__main__':
         dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
         print('HybroLang Compiler %s (host=%s dbname=%s user=%s)'%(H2_RELEASE, dbIds["host"], dbIds["dbname"], dbIds["user"]))
         fileIn  = open(args.inputfile, 'r')
-        prefixDict, cCode = writeCandParseCompilette(fileIn, platform, args.verbose, args.debug, dbIds)
+        prefixDict, cCode = writeCandParseCompilette(fileIn, platform, args.verboseParsing, args.debug, dbIds)
         fileIn.close()
-
         prefixTuples = list()
         for arith in prefixDict.keys():
             prefixTuples += [ (op, arith[0]) for op in prefixDict[arith]]
-        if args.verbose:
+        if args.verboseBackend:
             print("PrefixTuples after compilation and optimization:")
             print(prefixTuples)
         # Connect to backend only for master architecture ?
-        gen = GenGeneratorFromDb (arch[0], extension[0], abi, dbIds, args.verbose, args.debug)
+        gen = GenGeneratorFromDb (arch[0], extension[0], abi, dbIds, args.verboseIR, args.debug)
         prefixCode = gen.genAndGetCode(prefixTuples)
-
         fileOut = open(outFileName, 'w')
         fileOut.write (prefixCode)
         fileOut.write (cCode)

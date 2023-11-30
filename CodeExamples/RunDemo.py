@@ -32,9 +32,13 @@ demo ={
     "Array-Ld" : (("3",), ("5",)),
     "Array-St-flt" : (("3","12.0"), ("5","132.00")),
     "Array-Ld-flt" : (("3",), ("5",)),
-    "Loop"     : (("6", "7"), ("1000", "2"), ("2", "1000"), ),
-    "LoopNest" : (("1",), ("7",), ("42",)),
-    "Add8x16" :   	 (("1.0", "2.0", "2.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", )),
+    "Array-Mult-Specialization": (("10", "42",),),
+    "If"          : (("42", "42"), ("4", "4"), ),
+    "If-in-Loop"  : (("42", "42"), ("4", "4"), ),
+    "Loop-in-If"  : (("1", "10"), ("0", "10"), ),
+    "Loop"        : (("6", "7"), ("1000", "2"), ("2", "1000"), ),
+    "LoopNest"    : (("1",), ("7",), ("42",)),
+    "Add8x16"     : (("1.0", "2.0", "2.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", )),
     "CxRAM-SimpleSub8" : ( ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", ),
                           ("1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", ),
                           ("10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", "10", ),
@@ -120,16 +124,16 @@ def compile (File, Arch, Debug, Verbose):
     cmdH2 = tuple(["../HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
     if Debug:
         cmdH2 += ("--debug",)
-        compilerAndArg += ("-g", "-DH2_DEBUG")
+        compilerAndArg += ("-g", "-DH2_DEBUG", "-DASM_DEBUG")
     if Verbose:
-        cmdH2 += ("--verbose",)
+        cmdH2 += ("--verboseParsing",)
     o0 = cmd (["which", compilerAndArg[0]], Verbose)
     if 0 != o0:
         fatalError ("C Compiler not found (environment pb ?)", -1)
     o1 = cmd(cmdH2, Verbose)
     if 0 != o1:
         fatalError ("Hybrogen compiler error", -2)
-    o2 = cmd(compilerAndArg + ("-Wall", "-o", File, File+".c"), Verbose)
+    o2 = cmd(compilerAndArg + ("-DQEMU_TARGET", "-Wall", "-o", File, File+".c"), Verbose)
     if o2 != 0:
         fatalError ("C compilation compiler error", -3)
     return 0

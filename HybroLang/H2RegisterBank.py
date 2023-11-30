@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import sys
 
+import sys
 from enum import Enum
+from H2Utils import *
 
 class H2RegisterAllocationType(Enum):
     """
@@ -34,17 +35,13 @@ class H2RegisterBank():
         self.verbose = verbose
         nb_registers = len(numberList[0])
         if 0 == nb_registers:
-            self.fatalError ("Not enough defined registers (%d). Is the database initialized ?"%nb_registers)
+            fatalError ("Not enough defined registers (%d). Is the database initialized ?"%nb_registers)
         alloc_flags = [H2RegisterAllocationType.FREE] * nb_registers
         self.numberList = {arith: [numberList[0],numberList[1], alloc_flags]}
 
     def print(self, s):
         if self.verbose:
             print(str(self))
-
-    def fatalError(self, s):
-        print(s)
-        sys.exit(-1)
 
     def getNextRegister(self, arith_: str):
         # global regCorrespondances
@@ -71,7 +68,7 @@ class H2RegisterBank():
             self.print ("Allocated register %d for '%s'"%(regNo, arith))
             return regNo
         except ValueError as ex:
-            self.fatalError("%s : No more register available for '%s'"%(self.bankName, arith))
+            fatalError("%s : No more register available for '%s'"%(self.bankName, arith))
 
     def freeRegister(self, arith_: str, regNo: int):
         arith = regCorrespondances[arith_]
@@ -94,7 +91,7 @@ class H2RegisterBank():
             except ValueError as ex:
                 pass
         except ValueError as ex:
-            self.fatalError("%s : Register #%d does not exist for '%s'"%(self.bankName, regNo, arith))
+            fatalError("%s : Register #%d does not exist for '%s'"%(self.bankName, regNo, arith))
         self.print ("%s : Freed register %d for '%s'"%(self.bankName, regNo, arith))
 
     def add(self, arith, numberList):

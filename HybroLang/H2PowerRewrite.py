@@ -3,6 +3,7 @@
 import random
 import sys
 from enum import Enum
+from H2Utils import *
 from HybroLang.H2SymbolTable import H2SymbolTable
 from HybroLang.H2LabelTable  import H2LabelTable
 from HybroLang.H2Node  import H2Node
@@ -11,6 +12,8 @@ from HybroLang.H2NodeType  import H2NodeType
 class H2PowerRewrite():
 
     def __init__(self, platform, instructionList, verbose):
+        if "power" != platform["arch"][0]:
+            fatalError ("H2PowerRewrite called for %s"%platform["arch"][0])
         if verbose:
             print("H2PowerRewrite pass")
         self.archName = platform["arch"][0]
@@ -33,7 +36,7 @@ class H2PowerRewrite():
     def createCMPandBCC (self, initialBCC):
         """ Filter a BCC instruction (compare and branch) and rewrite it on a sequence of CMP + BCC nodes"""
         i = initialBCC
-        if i.isB() and i.hasTargetName() and i.hasSourceName() and self.archName == "power":
+        if i.isB() and i.hasTargetName() and i.hasSourceName() and not i.isBA():
             cmpNode = H2Node (H2NodeType.CMP, sonsList = i.sonsList)
             bccNode = H2Node (i.nodeType, opName = i.getOpName(), targetName = i.getTargetName(), sourceName = i.getSourceName())
             return [cmpNode, bccNode]

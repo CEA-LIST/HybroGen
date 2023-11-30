@@ -65,7 +65,7 @@ class H2ConstantOptimizer:
             try:
                 lhs_val = int(eval(lhs.getConstValue()))
                 rhs_val = int(eval(rhs.getConstValue()))
-            except TypeError as ex:
+            except (TypeError, NameError) as ex:
                 # The operation depends on run-time constants, we cannot
                 # optimize that
                 return insn
