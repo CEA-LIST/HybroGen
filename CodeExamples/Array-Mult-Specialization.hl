@@ -4,9 +4,7 @@
 #include <time.h>
 
 typedef  int (*pifi)(int *);
-
-
-h2_insn_t * genMulArray(h2_insn_t * ptr, int  b, int len)
+pifi genMulArray(pifi ptr, int  b, int len)
 {
   #[
   int 32 1 mult (int[] 32 1 a)
@@ -19,7 +17,7 @@ h2_insn_t * genMulArray(h2_insn_t * ptr, int  b, int len)
       }
   }
   ]#
-  return (h2_insn_t *) ptr;
+  return ptr;
 }
 
 void printArray(int * array, int len)

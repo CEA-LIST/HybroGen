@@ -5,18 +5,21 @@ all:
 	echo "make buildGrammar # Build grammars (need antlr)"
 	echo "make DbPopulate # "
 
+# Uncomment if you whish to use distant database
+# DBIDS = --dbIds "DistantHost:DataBaseName:UserDbName:DbPassword"
+
 DbPopulate:
-	make buildGrammar
-	./H2Isa.py -n # Create database schema
+	./H2Isa.py -n ${DBIDS} # Create database schema
 	make DbArch ARCH=aarch64
 	make DbArch ARCH=riscv
 	make DbArch ARCH=kalray
 	make DbArch ARCH=power
-	./H2Isa.py -i -a cxram 	 # No register description for cxram
+	./H2Isa.py -i -a cxram ${DBIDS}	 # No register description for cxram
 	echo "Need to generate environment ?\nExample : ./GenCrossTools.py -s -a cxram-linux -a powerpc\n"
 
 DbArch:
-	./H2Isa.py -i -a ${ARCH}; ./H2Reg.py -i -a ${ARCH}
+	./H2Isa.py -i -a ${ARCH} ${DBIDS} # ISA description database insertion
+	./H2Reg.py -i -a ${ARCH} ${DBIDS} # Register description database insertion
 
 buildGrammar:
 	(cd HybroGen  ; make all) # Lexers / parsers for input data
@@ -24,7 +27,7 @@ buildGrammar:
 
 clean:
 	make buildGrammar
-	./H2Isa.py -p
+	./H2Isa.py -p ${DBIDS}
 	-(cd HybroGen ;     make clean)
 	-(cd HybroLang;     make clean)
 	-(cd CodeExamples/; make clean)

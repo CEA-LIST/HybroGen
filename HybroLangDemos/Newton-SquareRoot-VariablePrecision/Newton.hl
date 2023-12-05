@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef  float  (*piff)(float,  float,  float);
-typedef  double (*pidd)(double, double, double);
+
 #define True 1
 #define False 0
 #define FLOAT 32
 #define DOUBLE 64
 
-
+typedef  float  (*piff)(float,  float,  float);
+typedef  double (*pidd)(double, double, double);
 /* Newton square root demonstration with variable precision */
 h2_insn_t * genIterate(h2_insn_t * ptr, int FloatWidth)
 {
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     iterationNumber = 0;
     af = atof (argv[1]);
     precd = atof (argv[2]);
-    precf = precd * 1.e14;
+    precf = 1; // precd * 1.e14;
     ptr  = h2_malloc (1024);
     isFloat = True;
     printf ("Compute square root of %f\n", af);
@@ -69,6 +69,6 @@ int main(int argc, char **argv)
 			 iterationNumber++,
 			 isFloat?"float ":"double",
 			 next, isFloat?precf:precd);
-    } while ( isFloat || (!isFloat && (diff > precd)));
+    } while ( diff > precd);
     return 0;
 }

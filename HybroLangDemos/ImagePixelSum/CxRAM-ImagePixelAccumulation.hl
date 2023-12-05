@@ -6,24 +6,24 @@
 #include <string.h>
 #include "ReadPgmImage.h"
 
-typedef  void (*pifiii)(h2_cxram_line_t *, h2_cxram_line_t *);
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 // Compute the sum of the image cxram lines, accumulate the result in partialSum
+typedef  void (*pifiii)(h2_cxram_line_t *, h2_cxram_line_t *);
 pifiii genSumReduction(h2_insn_t * ptr, int totalLine)
 {
 #[
   int 32 1 sumImage(int[] 16 8 partialSum, int[] 16 8 image)
-	{
-	  int 32 1 lineNumber;
-	  partialSum[0] = 0;
-	  for (lineNumber = 0; lineNumber < #(totalLine); lineNumber = lineNumber + 1)
-		{
-		  partialSum[0] = partialSum[0] + image[lineNumber];
-		}
-	}
+    {
+      int 32 1 lineNumber;
+      partialSum[0] = 0;
+      for (lineNumber = 0; lineNumber < #(totalLine); lineNumber = lineNumber + 1)
+        {
+          partialSum[0] = partialSum[0] + image[lineNumber];
+        }
+    }
 ]#
-	return (pifiii) ptr;
+ return (pifiii) ptr;
 }
 
 int main(int argc, char * argv[])
