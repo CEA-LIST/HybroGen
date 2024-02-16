@@ -38,6 +38,8 @@ static void h2_iflush(void *addr, void *last)
         perror("iflush: mprotect");
         exit(-1);
     }
+    /* Gcc function to clear data cache after code generation */
+    __clear_cache((char *)addr, (char *)last);
 #endif
 #ifdef ASM_DEBUG
     printf("Flush data cache from %p to %p\n", addr, last);
