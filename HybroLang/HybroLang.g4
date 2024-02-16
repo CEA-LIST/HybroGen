@@ -15,7 +15,8 @@ vardcl			: datatype Name             					;
 actionlist		: (action)* 			     					;
 condexpr        : varorvalue condOperator varorvalue    		;
 action			:  affectexpr ';'
-			    | 'for' '(' affectexpr ';' condexpr ';' affectexpr ')' '{' actionlist '}';
+			    | 'for' '(' affectexpr ';' condexpr ';' affectexpr ')' '{' actionlist '}'
+			    | 'if'  '(' condexpr ')' '{' actionlist '}' 'else' '{' actionlist '}';
 returnexpr		: 'return' unaryexpr ';'         				;
 affectexpr      : Name '=' unaryexpr
                 | Name '[' unaryexpr ']' '=' unaryexpr			;

@@ -1,18 +1,22 @@
 #ifndef H2_RISCV_RV32G
 #define H2_RISCV_RV32G
 
+// #define H2SYS 					/* Has  operating system */
+
 #include <stdint.h>
+#ifdef H2SYS
+#include <sys/mman.h>
+#endif
 
 typedef uint32_t    h2_insn_t;
-typedef unsigned 	long ticks;
 static  h2_insn_t   *h2_asm_pc;
 static  h2_insn_t    *h2_save_asm_pc;
 
-/* 
+/*
 https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
 */
 
-unsigned long getticks(void)
+ticks_t h2_getticks(void)
 {
     unsigned long dst;
     // output into any register, likely a0
@@ -39,8 +43,11 @@ static void h2_iflush(void *addr, void *last)
         exit(-1);
     }
 #endif
-#ifdef ASM_DEBUG
-    printf("Flush data cache from %p to %p\n", addr, last);
+#ifdef H2_DEBUG
+	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
+	uint64_t insnGenerated = (last-addr)/sizeof (h2_insn_t);
+    printf ("Flush data cache from %p to %p\n", addr, last);
+	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {

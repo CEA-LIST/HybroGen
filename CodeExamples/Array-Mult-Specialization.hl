@@ -3,22 +3,21 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef  int (*pifi)(int *, int);
-
-
-h2_insn_t * genMulArray(h2_insn_t * ptr, int  b)
+typedef  int (*pifi)(int *);
+pifi genMulArray(pifi ptr, int  b, int len)
 {
   #[
-  int 32 1 mult (int[] 32 1 a, int 32 1 len)
+  int 32 1 mult (int[] 32 1 a)
   {
-    int 32 1 r, i;
-    for (i = 0; i < len; i = i + 1)
-      {
-        a[i] = a[i] * #(b); // b values will be included in code generation
+    int 32 1 r, i, l;
+	l = #(len);
+    for (i = 0; i < l; i = i + 1)
+      { // b values will be included in code generation
+        a[i] = a[i] * #(b);
       }
   }
   ]#
-  return (h2_insn_t *) ptr;
+  return ptr;
 }
 
 void printArray(int * array, int len)
@@ -37,8 +36,6 @@ void mulArray(int * array, int len, int value)
 
 int main(int argc, char * argv[])
 {
-
-  h2_insn_t * ptr;
   int arrayLen, mulValue, i, resultOK;
   pifi fPtr;
   int *array1, *array2;
@@ -60,12 +57,11 @@ int main(int argc, char * argv[])
 	}
   printArray (array1, arrayLen);
   printf("// Multiply an array with a constant value\n");
-  printf("// Array len = %d\n", arrayLen);
-  printf("// Code specialization on value = %d\n", mulValue);
-  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
-  fPtr = (pifi) genMulArray (ptr, mulValue);
+  printf("// Array len = %d constant value %d\n", arrayLen, mulValue);
+  // Allocate memory for 1024 instructions, generate kernel
+  fPtr = (pifi) genMulArray (h2_malloc (1024), mulValue, arrayLen);
   startHg = clock();
-  fPtr(array1, arrayLen);  // Call generated code
+  fPtr(array1);  // Call generated code
   stopHg = clock();
   printArray (array1, arrayLen);
   resultOK = 0;

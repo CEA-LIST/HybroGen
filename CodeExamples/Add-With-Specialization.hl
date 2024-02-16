@@ -3,7 +3,7 @@
 
 typedef  int (*pifi)(int);
 
-h2_insn_t * genAdd(h2_insn_t * ptr, int  b)
+pifi genAdd(pifi ptr, int  b)
 {
   #[
   int 32 1 add (int 32 1 a)
@@ -14,12 +14,11 @@ h2_insn_t * genAdd(h2_insn_t * ptr, int  b)
     return r;
   }
   ]#
-  return (h2_insn_t *) ptr;
+  return (pifi) ptr;
 }
 
 int main(int argc, char * argv[])
 {
-  h2_insn_t * ptr;
   int in0, in1, res;
   pifi fPtr;
 
@@ -30,10 +29,10 @@ int main(int argc, char * argv[])
     }
   in0  = atoi (argv[1]);   // Get the users values in1 & in2
   in1  = atoi (argv[2]);
-  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr  = (pifi) h2_malloc (1024);  // Allocate memory for 1024 instructions
   printf("// Compilette for simple addition between 1 variable with\n");
   printf("// code specialization on value = %d\n", in0);
-  fPtr = (pifi) genAdd (ptr, in0); // Generate instructions
+  fPtr = genAdd (fPtr, in0); // Generate instructions
   res  = fPtr(in1);  // Call generated code
   printf("%d + %d = %d\n", in0, in1, res);
   if (res == (in0 + in1))

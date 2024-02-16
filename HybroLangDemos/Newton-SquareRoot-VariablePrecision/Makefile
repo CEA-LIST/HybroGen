@@ -16,8 +16,11 @@ newton:
 run-newton:
 	make run-demo DEMOCODE=Newton.$(ARCH) DEMOARGS="65536 1e-13"
 
-debug-newton-power: clean newton-power
-	make debug-newton ARCH="power" GDB="/opt/hybrotools/powerpc64le/bin/powerpc64le-linux-gdb" SIM="qemu-ppc64le -L /usr/powerpc64le-linux-gnu/" CC="powerpc64le-linux-gnu-gcc-10.2.0"
+debug-newton-power: clean 
+	make debug-newton ARCH="power" GDB="/opt/H2/powerpc64le/bin/powerpc64le-linux-gdb" SIM="qemu-ppc64le -L /usr/powerpc64le-linux-gnu/" CC="powerpc64le-linux-gnu-gcc-10.2.0"
+
+debug-newton-aarch64: clean 
+	make debug-newton ARCH="aarch64" GDB="/opt/H2/aarch64/bin/aarch64pc64-linux-gdb" SIM="qemu-aarch64 -L /usr/aarch64-linux-gnu/" CC="aarch64-linux-gnu-gcc-10.2.0"
 
 debug-newton-riscv: clean newton-riscv
 	make debug-newton ARCH="riscv" GDB="riscv32-elf-gdb" SIM="qemu-riscv32" CC="riscv32-unknown-elf-gcc"

@@ -6,6 +6,7 @@ from HybroGen.Insn import Insn
 from HybroGen.ProxyDb import *
 
 # H2IR2 SStructures and Methods
+from H2Utils import *
 from HybroLang.H2LabelTable import H2LabelTable
 from HybroLang.H2SymbolTable import H2SymbolTable
 from HybroLang.H2Node import H2Node
@@ -60,9 +61,17 @@ class H2CxRAMRewrite():
         self.prologueLabel = H2Node(H2NodeType.LABEL, labelName=self.prologueName)
         self.iteratorsStack = list()
 
-    def createConstantNode(self, n):
+    def createConstNode(self, n, str=0):
         global opType
-        node = H2Node(H2NodeType.CONST, constValue=hex(n), opType=opType)
+        if str :
+            node = H2Node(H2NodeType.CONST, constValue=n, opType=opType)
+        else:
+            node = H2Node(H2NodeType.CONST, constValue=hex(n), opType=opType)
+        return node
+
+    def createVariableNode(self, n):
+        global opType
+        node = H2Node(H2NodeType.VARIABLE, variableName=n, opType=opType)
         return node
 
     def createOrNode(self, op1, op2):
@@ -70,9 +79,19 @@ class H2CxRAMRewrite():
         node = H2Node(H2NodeType.OPERATOR, sonsList=[op1, op2], opType=opType, opName="OR")
         return node
 
+    def createLuiNode(self, op1, op2):
+        global opType
+        node = H2Node(H2NodeType.OPERATOR, sonsList=[op1, op2], opType=opType, opName="LUI")
+        return node
+
     def createAndNode(self, op1, op2):
         global opType
         node = H2Node(H2NodeType.OPERATOR, sonsList=[op1, op2], opType=opType, opName="AND")
+        return node
+
+    def createSubNode(self, op1, op2):
+        global opType
+        node = H2Node(H2NodeType.OPERATOR, sonsList=[op1, op2], opType=opType, opName="-")
         return node
 
     def createSlNode(self, op1, op2):
@@ -109,22 +128,32 @@ class H2CxRAMRewrite():
         return None
 
     def logicalAddressToPhysical(self, addr_node):
-        c4    = self.createConstantNode(0x4)
-        cffff = self.createConstantNode(0xFFFF)
-        mask  = self.createAndNode(addr_node, cffff)
+        c4    = self.createConstNode(0x4)
+        base = self.createVariableNode('base')
+        mask  = self.createSubNode(addr_node, base)
         shft  = self.createSrNode(mask, c4)
         return shft
 
+    def baseAddrToRegister(self):
+        baseNode = self.createVariableNode('base')
+        zeroNode = self.createConstNode(0x0)
+        constNode = self.createConstNode('((CXRAM_BASE_ADDR) >> 12)',str=1)
+        andNode = self.createAndNode(baseNode, zeroNode)
+        node1 = self.createAssignNode(baseNode, andNode)
+        node2 = self.createLuiNode(baseNode, constNode)
+        self.prologueBlock += [node1]
+        self.prologueBlock += [node2]
+
     def setNmcEnableAndOpcode(self, opcode):
-        return self.createConstantNode(opcode << 18)
+        return self.createConstNode(opcode << 18)
 
     def setDestField(self, insn, dest):
-        c2 = self.createConstantNode(2)
+        c2 = self.createConstNode(2)
         shift = self.createSlNode(dest, c2)
         return self.createOrNode(insn, shift)
 
     def setSrc2Field(self, src2):
-        c16 = self.createConstantNode(16)
+        c16 = self.createConstNode(16)
         return self.createSlNode(src2, c16)
 
     def setImm16Field(self, imm16):
@@ -137,7 +166,7 @@ class H2CxRAMRewrite():
         return value
 
     def genW(self, addr, val):
-        c0 = self.createConstantNode(0)
+        c0 = self.createConstNode(0)
         node = H2Node(H2NodeType.W, sonsList=[addr, val, c0], opType=opType, opName="W")
         return node
 
@@ -167,6 +196,10 @@ class H2CxRAMRewrite():
         # Update of the 'dest' argument
         dest_var : H2Node = dest.sonsList[0]
         dest_idx : H2Node = dest.sonsList[1].sonsList[0]
+        if not self.csram_variables:
+            # node = self.baseAddrToRegister()
+            # self.prologueBlock += [node]
+            self.baseAddrToRegister()
         if dest_var.getVariableName() not in self.csram_variables:
             node = self.createAssignNode(dest_var, self.logicalAddressToPhysical(dest_var))
             self.prologueBlock += [node]
@@ -227,10 +260,6 @@ class H2CxRAMRewrite():
     def print(self, s):
         print("[H2CxRAMRewrite] %s" % str(s)) if self.verbose else None
 
-    def fatalError(self, s):
-        print("[H2CxRAMRewrite] %s" % str(s))
-        sys.exit(-1)
-
     def isInsnCompatible(self, insn):
         global opType
         if self.archName != "cxram":
@@ -249,12 +278,12 @@ class H2CxRAMRewrite():
             wordLen   = int(wordLen)
             vectorLen = int(vectorLen)
         except ValueError as ex:
-            self.fatalError("Exiting, dynamically parameterable types are not supported (%s, %s, %s)" % (str(arith), str(wordLen), str(vectorLen)))
+            fatalError("Exiting, dynamically parameterable types are not supported (%s, %s, %s)" % (str(arith), str(wordLen), str(vectorLen)))
             return False
         dest = insn.sonsList[0]
         # print ("H2CxRAMRewrite: %s %s %s"%(arith, wordLen, vectorLen))
         if (arith, wordLen, vectorLen) not in supportedArith :
-            self.fatalError("Exiting, data type %s %d %d is not supported on the CxRAM architecture" % (arith, wordLen, vectorLen))
+            fatalError("Exiting, data type %s %d %d is not supported on the CxRAM architecture" % (arith, wordLen, vectorLen))
             return False
 
         op = insn.sonsList[1]
@@ -291,7 +320,7 @@ class H2CxRAMRewrite():
             if rhs.isR() and vectorLenOK and wordLenOK:
                 vectorLen = 1
                 wordLen = 128
-                imm16 = self.createConstantNode(0)
+                imm16 = self.createConstNode(0)
                 src1 = rhs.sonsList[0]
                 semName = "COPY"
             else:
@@ -300,7 +329,7 @@ class H2CxRAMRewrite():
         else:
             src1          = rhs.sonsList[0].sonsList[0]
             if len(rhs.sonsList) == 1:
-                imm16 = self.createConstantNode(0)
+                imm16 = self.createConstNode(0)
             elif rhs.sonsList[1].isConst():
                 imm16 = rhs.sonsList[1]
             else:
@@ -326,7 +355,7 @@ class H2CxRAMRewrite():
         # semName += "S" if dest_opType['arith'][0:4] == "sint" else ""
         insn_entry = self.query(semName, wordLen, vectorLen, format_)
         if insn_entry is None:
-            self.fatalError("Operation '%s/%d/%d' (%s) not supported in CxRAM" % (semName, wordLen, vectorLen, format_.upper()))
+            fatalError("Operation '%s/%d/%d' (%s) not supported in CxRAM" % (semName, wordLen, vectorLen, format_.upper()))
         opcode = int(insn_entry['encoding'][0]['name'], 2)
 
         new_insns = self.transformInsn(opcode, dest,

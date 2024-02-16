@@ -1,32 +1,26 @@
 #ifndef H2_AARCH64
 #define H2_AARCH64
 
-#include <stdint.h>
+#define H2SYS 					/* Has  operating system */
 
-typedef uint32_t     h2_insn_t;
-typedef uint64_t     ticks;
-static  h2_insn_t    *h2_asm_pc;
-static  h2_insn_t    *h2_save_asm_pc;
+#include <stdint.h>
+#ifdef H2SYS
+#include <sys/mman.h>
+#endif
+
+typedef uint32_t   h2_insn_t;
+static  h2_insn_t  *h2_asm_pc;
+static  h2_insn_t  *h2_save_asm_pc;
 
 /* aarch64 / power examples :
    https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h */
 
-static inline ticks getticks(void)
+static inline ticks_t h2_getticks(void)
 {
   uint64_t Rt;
   asm volatile("mrs %0,  CNTVCT_EL0" : "=r" (Rt));
   return Rt;
 }
-
-#if 0
-static inline ticks getticks(void)
-{
-        uint64_t cc = 0;
-        asm volatile("mrs %0, PMCCNTR_EL0" : "=r"(cc));
-        return cc;
-}
-#endif
-
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -41,8 +35,11 @@ static void h2_iflush(void *addr, void *last)
     /* Gcc function to clear data cache after code generation */
     __clear_cache((char *)addr, (char *)last);
 #endif
-#ifdef ASM_DEBUG
-    printf("Flush data cache from %p to %p\n", addr, last);
+#ifdef H2_DEBUG
+	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
+	uint64_t insnGenerated = (last-addr)/sizeof (h2_insn_t);
+    printf ("Flush data cache from %p to %p\n", addr, last);
+	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {

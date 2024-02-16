@@ -27,76 +27,106 @@
     * 2021 : Transprecision example (using HybroLang) : ["Dynamic compilation for transprecision applications on heterogeneous platform"](https://mdpi-res.com/d_attachment/jlpea/jlpea-11-00028/article_deploy/jlpea-11-00028-v2.pdf?version=1625022977)
     * 2021 : (using HybroLang) ["Instruction Set Design Methodology for In-Memory
 Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/hal-03449840/document)
+
 # Installation Dependency
 
 * Grammar use ANTLR4 with python4 backend
-   * `sudo apt install antlr4`
    * `pip3 install antlr4-python3-runtime==4.7.2`
-   * `pip install psycopg2-binary`
-
-* Qemu use ninja
-  * `sudo apt install ninja-build` 
 
 * Compilation need a postresql database. To install postgresql and configure it you can use this commands :
    * `sudo apt install postgresql`
-   * `sudo -i -u postgres`
-   * `createdb hybrogen`
-   * `createuser --pwprompt hybrogen` # the default password in the code is "hybrogen"
-
-It is a good practice to not create the database under your own
-username. (The database should be multiuser accessible)
 
 * Install a python postgresql connector:
    * `sudo apt install python3-psycopg2`
 
+* Initialize the database
+   * `sudo -i -u postgres`
+   * `createdb hybrogen`
+   * `createuser --pwprompt hybrogen` # the default password in the code is "hybrogen"
+   * Under psql prompt `grant all privileges on database  hybrogen to hybrogen;`
+
+  It is a good practice to not create the database under your own
+  username. (The database could be multiuser accessible)
+
+
+* Qemu build need ninja
+  * `sudo apt install ninja-build`
+
 # Hybrogen installation
 
-## For all supported platforms
+## Create cross-compilers, debugger and emulator for supported platforms
 
-* Put the `HybroGen-V2.0.tgz` file in an empty directory
-* `tar xfz HybroGen-V2.0.tgz` To extract the source files
-* Choose a target directory to install the release (user mode)
-  e.g. `/opt/H2/`
-* Run`./GenCrossTools.py -a riscv -p /opt/H2/ -w /opt/H2/tmp`
-    * This command will generate the cross-compiler environment (gcc, gdb, qemu, linux-headers)
-* Run `./GenCrossTools.py -a riscv -p /opt/H2/ -w /opt/H2/tmp -s`
+* Clone HybroGen in a directory to extract the source files (with git or fetch / tar)
+* `git clone git@github.com:CEA-LIST/HybroGen.git`
+* or
+  * `wget https://github.com/CEA-LIST/HybroGen/archive/refs/tags/v4.0.tar.gz`
+  * `tar xf v4.0.tar.gz`
+* Choose a target directory to install the release e.g. `/opt/H4.0/`
+* For each platforms riscv, aarch64, powerpc, cxram-linux
+
+  Run `./GenCrossTools.py -a <platform> -p /opt/H4.0/ -w /opt/H4.0/tmp`
+
+  This command will generate the cross-compiler environment (gcc, gdb,
+  qemu, linux-headers). This command could take some time to run.
+
+
+  * Run `./GenCrossTools.py -a riscv -p /opt/H4.0/ -w /opt/H4.0/tmp -s`
     * This will generate the shell environment (csh like or bash like)
-  to use the previously build binaries. Put this variables in your
-  environment.
-* Run `make buildGrammar` to build the ANTLR lexer / parser
+    * A full installation could be :
+```
+./GenCrossTools.py -a aarch64 -p /opt/H4.0/ -w /opt/H4.0/tmp
+./GenCrossTools.py -a aarch64 -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+
+./GenCrossTools.py -a riscv   -p /opt/H4.0/ -w /opt/H4.0/tmp
+./GenCrossTools.py -a riscv   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+
+./GenCrossTools.py -a powerpc   -p /opt/H4.0/ -w /opt/H4.0/tmp
+./GenCrossTools.py -a powerpc   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+
+./GenCrossTools.py -a cxram-linux   -p /opt/H4.0/ -w /opt/H4.0/tmp
+./GenCrossTools.py -a cxram-linux   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+
+```
+
+This step could take time. Count between 5mn and 20mn for each
+architecture depending on your computing power and bandwith.
+
+## Build HybroGen
+
+HybroGen is mainly written in with python but need some build
+
 * Run `make DbPopulate` to populate the SQL database with instructions description
-* `cd CodeExamples`
-* Run demonstration examples
-   * ./RunDemo.py -a riscv -i Add32x1-flt
+* Congratulation, HybroGen is ready to work !
+
+If you want to play with grammar / lexer / parser, you'll need some more steps:
+* Install
+   * `sudo apt install antlr4`
+   * `make buildGrammar` to build the ANTLR lexer / parser
 
 ## For Computing in memory platform aka CXRAM
 
-* Put the `HybroGen-V2.0.tgz` file in an empty directory
-* `tar xfz HybroGen-V2.0.tgz` To extract the source files
-* Choose a target directory to install the release (user mode)
-  e.g. `/opt/H2/`
-* Put the `csram-qemu-plugin-V2.0.tgz` file in `/opt/H2/tmp/tgz`
-* Run`./GenCrossTools.py -a cxram-linux -p /opt/H2/ -w /opt/H2/tmp`
-    * This command will generate the cross-compiler environment (gcc, gdb, qemu, linux-headers)
-* Run `./GenCrossTools.py -a cxram-linux -p /opt/H2/ -w
-  /opt/H2/tmp -s`
-    * This will generate the shell environment to use the previously
-  build binaries. Put this variables in your environment
-* Run `make buildGrammar` to build the ANTLR lexer / parser
-* Run `make DbPopulate` to populate the SQL database with instructions description
-* `cd CodeExamples`
-* Run demonstration examples
-   * ./RunDemo.py -a cxram -i CxRAM-SimpleMul
-   * ./RunDemo.py -a cxram -i CxRAM-ImageDiff
+For this platform we need a qemu plugin which emulate the C-SRAM
+accelerator and give statistics about executed instructions.
 
-# Platforms demonstrators
+Follow instructions on this repository : https://github.com/CEA-LIST/csram-qemu-plugin
 
+## Run some examples / démonstration
+
+* Some code examples are located in the this sub directory : `CodeExamples`
+
+For example to run an demonstration for the power architecture here is
+the command. Adapt for other architectures / demonstrations.
+
+  * `cd CodeExamples/`
+  * `source /opt/H4.0/powerpc/.cshrc`
+  * `./RunDemo.py -a power -i Array-Mult-Specialization`
+
+* Regression can be run in the same directory :
+  * `./Regression.py power`
 
 # Execution dependencies
 
-Build, debug and run binary application on multiple platforms
-(powerpc, riscv, kalray) need compilers, debuggers and simulation on
-each platforms.
+GenCrossTools used to generate compiler / debugger and qemu has it's
+own documentation :
 
-* Build tools:
-   * Read the [GenCrossTools documentation](README.GenCrossTools.md)
+* Read the [GenCrossTools documentation](README.GenCrossTools.md)

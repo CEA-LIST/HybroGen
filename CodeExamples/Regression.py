@@ -30,8 +30,12 @@ commonTestList = (
              "Array-Ld",
              "Array-St-flt",
              "Array-Ld-flt",
+             "Array-Mult-Specialization",
              "Loop",
              "LoopNest",
+             "If",
+             "If-in-Loop",
+             "Loop-in-If",
 )
 cxramTestList =(
     "CxRAM-SimpleAnd",

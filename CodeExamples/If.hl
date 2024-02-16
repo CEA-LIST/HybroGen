@@ -1,0 +1,49 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  int   (*pifi)(int);
+
+/* C compilette prototype */
+h2_insn_t * genIf(h2_insn_t * ptr, int selectedValue)
+{
+  #[
+	int 32 1 add (int 32 1 value)
+    {
+      int 32 1 tmp;
+	  int 31 1 threshold;
+	  threshold = #(selectedValue);
+      if (value == threshold)
+        {
+		  tmp = 0;
+        }
+      else
+        {
+          tmp = 1;
+        }
+      return tmp;
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  int selected, toTest, res;
+  pifi iPtr;
+
+  if (argc < 2)
+    {
+      printf("Give 2 value (testValue, testedValue)\n");
+      exit(-1);
+    }
+  selected  = atoi (argv[1]);       // Get threshold value
+  toTest    = atoi (argv[2]);       // Value to be tested
+  ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions
+  iPtr = (pifi) genIf (ptr, selected); // Generate instructions
+  res  =  iPtr(toTest);         	 // Call generated code
+  printf ("Result %d = %d : %d\n", selected, toTest, res);
+  return res;
+}

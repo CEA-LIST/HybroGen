@@ -1,3 +1,39 @@
+2023-11-30  Henri-Pierre Charles  <hc227932@gre061041>
+
+	* Demonstrators for new article
+
+	* Upgrade GenCrossTool with new release tools
+
+      mpfr : 4.2.0
+       gmp : 6.2.1
+       mpc : 1.3.1
+       gcc : 13.2.0
+  binutils : 2.40
+       gdb : 10.1
+     linux : 5.18.17
+    newlib : 4.3.0.20230120
+     glibc : 2.37
+      qemu : 8.0.3
+       isl : 0.26
+
+
+	* Public V4.0 release
+
+2023-09-18  Henri-Pierre Charles  <hc227932@gre061041>
+
+	* Add aarch64 backend
+
+	* New language construction : initial if/else support: condition
+	with only one simple condition (like loops)
+
+	* New low level code generation optimisation. Multiplication by
+	runt time value 0 or power of 2 will be optimized
+
+	* New low level binary code generation scheme. if + return instead
+	of nested if
+
+	* V4.0 release
+
 2023-05-22  Henri-Pierre CHARLES HC227932  <Henri-Pierre.Charles@cea.fr>
 
 	* Add demonstrators for 4 code generation scenarios
