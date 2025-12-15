@@ -7,14 +7,14 @@ from HybroGen.ProxyDb import *
 
 class GenGeneratorFromDb:
 
-    def __init__(self, archName, extList, abi, dbConf, verbose = False, debug = False):
+    def __init__(self, archName, extList, abi, dbConf, args):
         self.db = ProxyDb(dbConf["host"], dbConf["dbname"], dbConf["user"], dbConf["pwd"])
         self.isa = IsaDb(self.db, archName, extList)
         self.insnLenList = self.isa.getWordSizeFromDb()
         self.insnLenList.sort()
         self.archname = archName
-        self.debug = debug
-        self.verbose = verbose
+        self.debug = args.debug
+        self.verbose = args.verboseBackend
         self.extList = extList
         self.abi = abi
 
@@ -37,13 +37,31 @@ class GenGeneratorFromDb:
             self.output += data
             inputFile.close()
         self.output += self.genHeader()
-        self.lInsns = self.isa.getInsnListSem("RET", "i")
-        self.lSem = ["RET"]
-        for (semName, typeName) in opListAndType:
-            self.lInsns.extend(self.isa.getInsnListSem(semName, typeName))
+        # Add mandatory instructions in instruction list
+        possiblyInsnToBeAdded = [("RET", "i"),  # Return
+               ("W",   "i"), # W for low level optimization : Store 0 in memory
+                             # & store on stack
+               ("SL",  "i"), # SL for low level optimization : Replace MUL by SL
+               ("ADD", "i"), # ADD for array address computations
+               ("SUB", "i"), # SUB for stack register calle save
+               ("MV",  "i"), # MV for const propagation even with FP arith.
+                         ]
+        insnToBeAdded = []
+        for i in possiblyInsnToBeAdded:
+            if not i in opListAndType:
+                insnToBeAdded += (i,)
+        self.lSem = []
+        self.lInsns = []
+        for semname, arith in insnToBeAdded:
+            self.lInsns.extend(self.isa.getInsnListSem(semname, arith))
+            self.lSem += [semname]
+        for semName, arith in opListAndType:
+            # print (semName, arith)
+            insnDef = self.isa.getInsnListSem(semName, arith)
+            self.lInsns.extend(insnDef)
             self.lSem.append(semName)
-            self.Trace("genAndGetCode for %s %s"%(semName, typeName))
-
+            # else:
+            #     print ("already inserted", semName)
         self.lSem = list(set(self.lSem))
         self.output += self.genMacroOrFunctionList()
         self.output += self.genGenerator()
@@ -119,7 +137,7 @@ class GenGeneratorFromDb:
 
 
     INSN_MACRO_DEFINITION = """#define {macro}({param}) do /* {sem} */ {{ {implem} }} while(0);\n"""
-    INSN_FN_DEFINITION    = 'void {macro}({param}){{ /* {sem} */\n{implem}\n#ifdef H2_DEBUG\nprintf("%p : {macro}\\n", h2_asm_pc);\n#endif\n}}\n'
+    INSN_FN_DEFINITION    = 'void {macro}({param}){{ /* {sem} */\n{implem}\n#ifdef H2_DEBUG_INSN\nprintf("%p : {macro}\\n", h2_asm_pc);\n#endif\n}}\n'
 
     def genMacroOrFunction (self, i):
         """ Generate C code for one instruction macro or function form """
@@ -133,10 +151,10 @@ class GenGeneratorFromDb:
         for p in json.loads(i["operand"]):
             paramList.append(p)
         implem = self.macroImplem(i, elemSize, maskElem)
-        if self.debug :
+        if self.debug : # For run-time debug, generate C function
             pList = ["int "+i for i in paramList]
             s += self.INSN_FN_DEFINITION.format(macro = i["macroname"], param = ",".join(pList) , sem = i["semname"], implem = implem)
-        else :
+        else :          # else generate C macro
             s += self.INSN_MACRO_DEFINITION.format(macro= i["macroname"], param = ",".join(paramList) , sem = i["semname"], implem = implem)
         return s
 
@@ -149,106 +167,72 @@ class GenGeneratorFromDb:
 
 
 
-    SEM_FN_BODYW    = 'void {arch}_gen{sem}_{paramN}({paramList})\n{{\n{codeList}\n\t{warningMsg}\n}}'
+    SEM_FN_BODYW    = 'h2_sValue_t {arch}_gen{sem}_{paramN}({paramList})\n{{\n{codeList}\n\t{warningMsg}\n}}'
+    SEM_FN_HEADER   = 'h2_sValue_t {arch}_gen{sem}_{paramN}({paramList});\n'
     SEM_FAILED_MSG  = 'printf ("Warning, {sem} instruction generation failed\\n");\n\th2_codeGenerationOK = false;\n'
-    SEM_MESG        = '\tprintf ("ValOrReg / arith / vLen / wLen / regNro / valueImm\\n");\n'
+    SEM_HEAD_MSG    = 'printf ("Start code gen for {sem} instruction\\n");\n'
+    SEM_MESG        = '\tprintf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\\n");\n'
     SEM_PARAM       = '\tprintf ("P%d: %s/%c/%d/%d/%d\\n", {N}, (0==P{N}.ValOrReg)?"REG":"VAL", P{N}.arith, P{N}.wLen, P{N}.vLen, P{N}.valueImm);\n'
     SEM_INSN_FORMAT = """
     if (({P}.arith == '{ar}') && ({P}.wLen <= {wl}) && ({P}.vLen == {vl}) && {cond})
     {{
 	{mn}({arg});
-	return;
+	return {P};
     }}"""
-    OPTIM_MUL_POWER = """
-    if ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && (1 == P2.valueImm))
-    { // X * 1 = X
-        #ifdef H2_DEBUG
-        printf ("Optim for * 1 (power)\\n");
-        #endif
-        if (P0.regNro != P1.regNro)              /* P1_MV_RR_I_32_1(int r0,int r1) mv */
-           power_G32(((0xe & 0x3f) << 26)|((P0.regNro & 0x1f) << 21)|((P1.regNro & 0x1f) << 16)|((0x0 & 0xffff) >> 0));
-         /* else no operation */
-
-      return;
-    }
-    if ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && (0 == P2.valueImm))
-    { // X * 0 = 0
-        #ifdef H2_DEBUG
-        printf ("Optim for * 0 (power)\\n");
-        #endif
-	// P1_LI_RI_I_32_1(P0.regNro, P1.valueImm);
-        power_G32(((0xe & 0x3f) << 26)|((P0.regNro & 0x1f) << 21)|((0x0 & 0x1f) << 16)|((P1.valueImm & 0xffff) >> 0));
-
-      return;
-    }
-    if ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
-    { // X * NPowerOf2 = X << N (immediate shift left)
-        #ifdef H2_DEBUG
-        printf ("Optim for * power of 2 (power)\\n");
-        #endif
-	power_G32(((21 & 0x3f) << 26)|((P1.regNro & 0x1f) << 21)|((P0.regNro & 0x1f) << 16)
-                |(((h2_log2(P2.valueImm)) & 0x1f) << 11)
-                |((0  & 0x3F) <<6)|((31 & 0x3F) <<1)|(0x0 & 0x1));
-      return;
-    }"""
-    OPTIM_MUL_AARCH64 = """
-   if ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && (0 == P2.valueImm))
-    { // X * 0 = 0
-        #ifdef H2_DEBUG
-        printf ("Optim for *0 (aarch64)\\n");
-        #endif
-        aarch64_G32(((0x294 & 0x7ff) << 21)|((P2.valueImm & 0xffff) << 5)|((P0.regNro & 0x1f) >> 0));
-        return;
-    }
-    if  ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
-    { // X * NPowerOf2 = X << N (immediate shift left)
-        #ifdef H2_DEBUG
-        printf ("Optim for * power of 2 (aarch64)\\n");
-        #endif
-        aarch64_G32(((0x34d & 0x3ff) << 22)|(((h2_log2(P2.valueImm) & 0x3f) << 16)|((0x0 & 0x3f) << 10)|((P1.regNro & 0x1f) << 5)|((P0.regNro & 0x1f) >> 0)));
-    }"""
-    OPTIM_R_AARCH64 = """
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-        aarch64_G32(((0x135032 & 0x3fffff) << 10)|((P1.regNro & 0x1f) << 5)|((P0.regNro & 0x1f) >> 0));
-        #ifdef H2_DEBUG
-        printf("%p : A64_LD1R_RR_I_32_4\\n", h2_asm_pc);
-        #endif
-        return;
-    }
-    """
-
-    def genMulOptimization(self, archName):
-        if archName == "power":
-            return self.OPTIM_MUL_POWER
-        elif archName == "aarch64":
-            return self.OPTIM_MUL_AARCH64
-        return ""
-
-    def genROptimization(self, archname):
-        return self.OPTIM_R_AARCH64
+    def addOptimisationCodeFile (self, semname, archName):
+        codeList  = []
+        Root = os.path.dirname(os.path.realpath(sys.argv[0]))+"/HybroGen/OptimCodeGen/"
+        try:
+            fileName = Root+"OPTIM_%s_GENERIC.codegen"%semname
+            # print(fileName)
+            with open (fileName, "r") as f:
+                codeList += [f.read()]
+        except:
+            codeList += ["// No generic optimisation for %s\n"%(semname)]
+        try:
+            fileName = Root+"OPTIM_%s_%s.codegen"%(semname, archName)
+            # print(fileName)
+            with open (fileName, "r") as f:
+                codeList += [f.read()]
+        except:
+            codeList += ["// No specific optimisation for %s/%s\n"%(semname, archName)]
+        return codeList
 
     def genOneInstructionSelector(self, semname):
         """ Generate one C instruction selector
         instruction selection are based on arithmetic (I/F/...), wordLen, vectorLen & immediate value
         SEM_INSN_FORMAT pattern is the basic selector.
         """
-        is_mem_access  = semname in ['W']
-        pReg = "P0" if not is_mem_access else "P1"
         # Get existing parameter variant number (rrr, rri, ...)
         paramList = list(set([len(i[0]) for i in self.isa.getInsnParameters(semname)]))
-        if "MUL" == semname and self.archname in ("power", "aarch64"):
-            codeList = [self.genMulOptimization (self.archname)]
-        elif "R" == semname and self.archname == "aarch64":
-            codeList = [self.genROptimization (self.archname)]
-        else:
+        # Generate header message before code generation
+        if 0 == len(paramList) or paramList[0] == 0 :
+
             codeList = []
+        else: #
+            codeList = ["#ifdef H2_DEBUG_INSN"]  # Warning msg
+            codeList += [self.SEM_HEAD_MSG.format (sem = semname)]  # Warning msg
+            codeList += [self.SEM_MESG]                            #
+            for i in range(paramList[0]):
+                codeList += [self.SEM_PARAM.format (N=i)]          # add "printf" for each input h2_sValue parameter
+            codeList += ["#endif // H2_DEBUG_INSN"]
+
+        is_mem_access  = semname in ['W']
+        pReg = "P0" if not is_mem_access else "P1"
+        # Include optimisation specific for operator or operator / architecture
+        codeList +=  self.addOptimisationCodeFile(semname, self.archname)
+        # If generator has no parameter : no possible fail (no instruction to select)
+        # print (semname, paramList)
+        if len(paramList) > 0 and paramList[0] >= 1 : # Add dynamic reg alloc for 1 param
+            codeList.append("""\tif ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))\n\t\tP0.regNro = h2_getReg();""")
+        if len(paramList) > 0 and paramList[0] >= 2 : # Add dynamic reg alloc for 2 param
+             codeList.append("""\tif ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))\n\t\tP1.regNro = h2_getReg();""")
         insnNumber = 0
         paramN = 0
         pList = ""
         for param in paramList:
             paramN = param
-            #  print (paramN, semname)
+            # print (paramN, semname)
             self.Trace("genGenerator : %s %s %s"%(self.archname, semname, param))
             params = []
             pList = ','.join (["h2_sValue_t P%d"%i for i in range (param)])
@@ -264,11 +248,11 @@ class GenGeneratorFromDb:
                         for j, p in enumerate(insn["parameters"]):
                             if p == 'r':
                                 args.append("P%d.regNro"%j)
-                                conds.append("P%d.ValOrReg == REGISTER"%j)
+                                conds.append("P%d.ValOrReg == H2REGISTER"%j)
                                 nbr += 1
                             elif p == 'i':
                                 args.append("P%d.valueImm"%j)
-                                conds.append("P%d.ValOrReg == VALUE"%j)
+                                conds.append("P%d.ValOrReg == H2VALUE"%j)
                                 nbi += 1
                         s = self.SEM_INSN_FORMAT.format (P = pReg, ar = insn["arith"], sn = insn["semname"], wl = insn["wordlen"], vl = insn["vectorlen"], cond = " && ".join(conds), mn = insn["macroname"], arg = ", ".join(args))
                         codeList.append (s)
@@ -281,11 +265,41 @@ class GenGeneratorFromDb:
             w += self.SEM_MESG                             #
             for i in range(paramList[0]):
                 w += self.SEM_PARAM.format (N=i)           # add "printf" for each input h2_sValue parameter
+            w += "return immValueZero;";
         return self.SEM_FN_BODYW.format(arch=self.archname, sem=semname, paramN=paramN, paramList = pList, codeList = "\n".join (codeList), warningMsg = w)
+
+    def genOneInstructionSelectorHeader(self, semname):
+        """ Generate one C instruction selector header
+        """
+        is_mem_access  = semname in ['W']
+        pReg = "P0" if not is_mem_access else "P1"
+        # Get existing parameter variant number (rrr, rri, ...)
+        paramList = list(set([len(i[0]) for i in self.isa.getInsnParameters(semname)]))
+        insnNumber = 0
+        paramN = 0
+        pList = ""
+        for param in paramList:
+            paramN = param
+            #  print (paramN, semname)
+            self.Trace("genGenerator : %s %s %s"%(self.archname, semname, param))
+            params = []
+            pList = ','.join (["h2_sValue_t P%d"%i for i in range (param)])
+        # If generator has no parameter : no possible fail (no instruction to select)
+        if 0 == len(paramList) or paramList[0] == 0 :
+            w = ""
+        else: # Generate C code when the instruction selector failed
+            w = self.SEM_FAILED_MSG.format (sem = semname) # Warning msg
+            w += self.SEM_MESG                             #
+            for i in range(paramList[0]):
+                w += self.SEM_PARAM.format (N=i)           # add "printf" for each input h2_sValue parameter
+            w += "return immValueZero;";
+        return self.SEM_FN_HEADER.format(arch=self.archname, sem=semname, paramN=paramN, paramList = pList)
 
     def genGenerator(self):
         """ Generate instruction selector & low level optimisations"""
         s = ""
+        for semname in self.lSem:
+            s += self.genOneInstructionSelectorHeader (semname)
         for semname in self.lSem:
             s += self.genOneInstructionSelector (semname)+"\n"
         return s

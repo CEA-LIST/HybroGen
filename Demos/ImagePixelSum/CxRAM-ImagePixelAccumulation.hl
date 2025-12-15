@@ -1,0 +1,99 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include "ReadPgmImage.h"
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
+// Compute the sum of the image cxram lines, accumulate the result in partialSum
+typedef  void (*pifiii)(h2_cxram_line_t *, h2_cxram_line_t *);
+pifiii genSumReduction(h2_insn_t * ptr, int totalLine)
+{
+#[
+  int 32 1 sumImage(int[] 16 8 partialSum, int[] 16 8 image)
+    {
+      int 32 1 lineNumber;
+      partialSum[0] = 0;
+      for (lineNumber = 0; lineNumber < #(totalLine); lineNumber = lineNumber + 1)
+        {
+          partialSum[0] = partialSum[0] + image[lineNumber];
+        }
+    }
+]#
+ return (pifiii) ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  int resultOK, lineNo, columnNo, imageSize, usableCxRamSize, cxRamLineCount, chunkCount;
+  long riscvSum, cxRamSum;
+  h2_insn_t * ptr;
+  pifiii generatedSumReduction;
+  h2_cxram_line_t *in, *res;
+  short_image_struct * theImage;
+
+  h2_init_cxram ();
+  in  = &h2_cxram_tiles[1]; // CxRAM image chunk
+  res = &h2_cxram_tiles[0]; // Sumation Result
+  if (argc < 2)
+	{
+	  printf("Give a PGM image file name \n");
+	  exit(-1);
+	}
+  theImage = readPgmImage(argv[1]);
+
+  ptr = h2_malloc (1024);  // Create compilette
+  // CSRAM may contain 2^14 lines
+  // Can use 256 maximum lines because 256 pixels with a maxVal of 256 would overflow
+  cxRamLineCount = 128;
+  generatedSumReduction = genSumReduction(ptr, cxRamLineCount);
+  printf ("Code generated\n");
+  usableCxRamSize = cxRamLineCount * 16; // x 16 bytes per line
+  printf ("Chunk size : %d (cxRamSize) %d (lines)\n", usableCxRamSize, cxRamLineCount);
+  imageSize = sizeof (short) * (theImage->width)*(theImage->height); // Image size (bytes)
+  cxRamSum = 0; 									// Initialization
+
+  for (chunkCount = 0; chunkCount < imageSize / usableCxRamSize; chunkCount++)
+	{ 													// Image sum by chunks of cxRamSize
+	  // Copy data from DRAM to CSRAM
+	  bcopy (&theImage->pixelsArray[chunkCount*usableCxRamSize / 2], &in->i16[0], usableCxRamSize);
+	  generatedSumReduction (res, in);						// Compute partial sum for a full chunk
+	  for (columnNo = 0; columnNo < 8; columnNo ++) 		// Riscv reduction
+		{
+		  cxRamSum += res->i16[columnNo];
+		}
+	}
+
+  /* Remaining image sum */
+  int remainingChunk = imageSize % usableCxRamSize;
+  printf ("Compute %d lines (%d bytes)\n", remainingChunk / 8, remainingChunk);
+  bcopy (&theImage->pixelsArray[chunkCount*usableCxRamSize/2], &in->i16[0], imageSize % usableCxRamSize);
+  generatedSumReduction = genSumReduction(ptr, remainingChunk / (2*8));
+// Copy data from DRAM to CSRAM
+  generatedSumReduction(res, in); 	// Compute partial sum for the remaining part
+  for (columnNo = 0; columnNo < 8; columnNo ++) 			// Riscv reduction
+	cxRamSum += res->i16[columnNo];
+  printf("%ld : CxRAM Sum of all pixels\n", cxRamSum);
+
+  riscvSum = 0;
+  for (lineNo=0; lineNo < theImage->height; lineNo++)
+    {
+      for (columnNo=0; columnNo < theImage->width; columnNo++)
+        {
+          riscvSum += theImage->pixelsArray[lineNo*theImage->width+columnNo];
+        }
+    }
+  printf("%ld : C (riscv) Sum of all pixels\n", riscvSum);
+
+  /* Return result as error value */
+  resultOK = 0;
+  if (riscvSum != cxRamSum)
+    {
+      printf("Erreur addition\n");
+      resultOK = -1;
+    }
+  return resultOK;
+}

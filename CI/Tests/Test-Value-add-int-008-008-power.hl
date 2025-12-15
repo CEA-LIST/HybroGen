@@ -1,0 +1,47 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+/* C compilette prototype vector version*/
+typedef int8_t v8_8_int_t __attribute__ ((vector_size (8*sizeof (int8_t))));
+typedef v8_8_int_t (*functionPointer)(v8_8_int_t, v8_8_int_t);
+functionPointer genSingleOp(h2_insn_t * ptr) /* C compilette prototype */
+{
+
+#[
+int 8 8 compilette(int 8 8 a, int 8 8 b)
+{
+	int 8 8 r;
+	r = a + b;
+	return r;
+}
+]#
+	return (functionPointer) ptr;
+}
+int main(int argc, char * argv[])
+{
+  functionPointer fPtr;
+  int i, returnValue;
+  if (argc < 16)
+    {
+      printf("Give 16 values\n");
+      exit(-1);
+   }
+  v8_8_int_t in0, in1, res;
+  for (int i = 0; i < 8; i++)
+  {
+  in0[i]  = atoi (argv[1+i]);
+  in0[i]  = atoi (argv[1+i]);
+  }
+  fPtr  = h2_malloc (1024);
+  fPtr = (functionPointer) genSingleOp(fPtr);
+  res = fPtr(in0, in1);
+  printf ("Simple operation on 2 variables (wordLen: 8, vectorLen 8):\n");
+  returnValue = 0;
+  for (i= 0; i < 8; i++)
+     {
+printf("%d + %d = %d\n", in0[i], in1[i], res[i]);
+if (res[i] != (in0[i] + in1[i]))
+	    returnValue = -1;
+     }
+  return returnValue;
+}

@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 /* Pointer on function which take 1 pointer, an index and return int */
-typedef  float   (*pifii)(float  *, int, float);
-typedef  double (*pifsi)(double *, int, float);
+typedef  float  (*pifii)(float  *, int, float);
+typedef  double (*pifsi)(double *, int, double);
 
 /* C compilette prototype */
 h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
@@ -12,8 +12,8 @@ h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
   #[
     int 32 1 Array_St (flt[] #(wordSize) 1 a, int 32 1 index, flt #(wordSize) 1 value)
     {
-	a[index] = value;
-      return 1;
+		a[index] = value;
+      	return 1;
     }
   ]#
   return (h2_insn_t *)ptr;
@@ -31,7 +31,7 @@ h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
 		}		 						\
       else		 						\
 		{		 						\
-		  if (ARRAY[i] != i)		 	\
+		  if (ARRAY[i] != (float) i)	\
 			{		 					\
 			  RESULT ++;		 		\
 			}		 					\
@@ -40,43 +40,49 @@ h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
 
 #define PRINTARRAY(MSG, ARRAY, LIMIT)\
   printf (MSG);						 \
-  for (int i = 0; i < LIMIT; i++) 	\
-	{ 								\
-      printf("%4f ", ARRAY[i]);     \
-	}								\
+  for (int i = 0; i < LIMIT; i++) 	 \
+	{ 								 \
+      printf("%2.2f ", ARRAY[i]);    \
+	}								 \
   printf ("\n");
 
 int main(int argc, char * argv[])
 {
   h2_insn_t * ptr;
   int in0, resultOK, loopLimit;
-  float in1;
-  float res32;
-  double res64;
+  float  in132,  res32;
+  double in164, res64;
   pifii fPtr32;
   pifsi fPtr64;
 
-  float  f32[] = {0, 1, 2, 3, 4, 5, 6, 7};
-  double f64[] = {0, 1, 10, 100, 1000, 10000, 1000, 100, 10, 1};
+  float  f32[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  double f64[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
   if (argc < 3)
     {
-      printf("Give 1 values\n");
+      printf("Give 2 values\n");
       exit(-1);
     }
 
-  in0  = atoi (argv[1]);   // Get the users values in1
-  in1  = atof (argv[2]);   // Get the users values in2
+  in0  = atoi (argv[1]);   // Get index value
+  in164 = in132  = atof (argv[2]);   // fp number to store
   resultOK = 0;
   loopLimit = sizeof(f32) / sizeof (float);
-
-  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  ptr  = h2_malloc (1024);  	// Allocate memory for 1024 instructions
   fPtr32 = (pifii) gen_Array_St(ptr, 32); // Generate instructions
-  res32  = fPtr32(f32, in0, in1);  // Call generated code
-  printf("%f, %f\n", f32[in0], in1);
-  
-  CHECK (f32, in0, resultOK, loopLimit, in1);
+  res32  = fPtr32(f32, in0, in132);  // Call generated code
+  printf("%2.2f, %2.2f\n", f32[in0], in132);
+  CHECK (f32, in0, resultOK, loopLimit, in132);
   PRINTARRAY("32 bits : ", f32, loopLimit);
+  printf ("ResultOK %d\n", resultOK);
+
+  loopLimit = sizeof(f64) / sizeof (double);
+  fPtr64 = (pifii) gen_Array_St(ptr, 64); // Generate instructions
+  res64  = fPtr64(f64, in0, in164);  // Call generated code
+  printf("%2.2f, %2.2f\n", f64[in0], in164);
+  CHECK (f64, in0, resultOK, loopLimit, in164);
+  PRINTARRAY("64 bits : ", f64, loopLimit);
+  printf ("ResultOK %d\n", resultOK);
 
   if (resultOK == 0)
 	return 0;

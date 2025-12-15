@@ -7,13 +7,24 @@ class H2SymbolTable:
         """Symbol table : name / register allocation correspondance"""
         self.symbolTable = {}
         self.regAlloc = {}
+        self.tempsNo = 0
 
     def add(self, variableName, datatype, registerNumber=None):
+        # breakpoint()
         if variableName in self.symbolTable:
             raise Exception ("Symbol table error (add)", "Already existing var: "+variableName)
         self.symbolTable[variableName] = datatype
         if None != registerNumber:
             self.setRegister (variableName, registerNumber)
+
+    def getTemps(self, dataType):
+        tempsName = "tmp%04d"%self.tempsNo
+        self.add (tempsName, dataType, -1)
+        self.tempsNo += 1
+        return tempsName
+
+    def resetTemps(self, dataType):
+        self.tempsNo = 0
 
     def get(self, variableName):
         if variableName in self.symbolTable:
@@ -28,9 +39,18 @@ class H2SymbolTable:
         decl = "\t/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */\n"
         for varName in self.symbolTable:
             v = self.get(varName)
-            #print(v)
-            structDef = "h2_sValue_t %s = {%s, '%s', %s, %s, %s, %s};"%(varName, "REGISTER", v["arith"][0], v["vectorLen"], v["wordLen"], self.regAlloc[varName], 0)
-            decl += "\t%s\n"%structDef
+            # print(varName, v)
+            arith = v["arith"]
+            vLen  = v["vectorLen"]
+            wLen  = v["wordLen"]
+            regNo = self.regAlloc[varName]
+            if '[]' in arith:
+                arith = "i"
+                wLen = 32 # TODO or 64 for aarch64 ?
+                vLen = 1
+            else:
+                arith = arith[0]
+            decl += f"\th2_sValue_t {varName} = {{H2REGISTER, '{arith}', {vLen}, {wLen}, {regNo}, 0}};\n"
         return decl
 
     def __iter__(self):

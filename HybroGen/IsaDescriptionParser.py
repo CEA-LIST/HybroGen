@@ -1,53 +1,56 @@
-# Generated from IsaDescription.g4 by ANTLR 4.7.2
+# Generated from IsaDescription.g4 by ANTLR 4.9.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
-from typing.io import TextIO
 import sys
+if sys.version_info[1] > 5:
+	from typing import TextIO
+else:
+	from typing.io import TextIO
 
 def serializedATN():
     with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\22")
+        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\20")
         buf.write("\u0085\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7")
         buf.write("\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r\4\16")
         buf.write("\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22\4\23\t\23")
-        buf.write("\4\24\t\24\4\25\t\25\3\2\3\2\3\2\3\3\3\3\3\3\6\3\61\n")
-        buf.write("\3\r\3\16\3\62\3\4\3\4\3\4\6\48\n\4\r\4\16\49\3\4\3\4")
-        buf.write("\3\5\3\5\3\5\7\5A\n\5\f\5\16\5D\13\5\3\6\3\6\3\7\3\7\3")
-        buf.write("\7\3\7\3\7\3\b\3\b\3\t\6\tP\n\t\r\t\16\tQ\3\n\3\n\3\n")
-        buf.write("\5\nW\n\n\3\13\3\13\3\f\3\f\3\f\3\f\3\f\5\f`\n\f\3\f\3")
-        buf.write("\f\3\r\3\r\3\r\3\r\3\r\3\16\3\16\3\17\3\17\3\17\3\17\3")
-        buf.write("\17\3\17\3\17\5\17r\n\17\3\20\3\20\3\21\3\21\3\22\3\22")
-        buf.write("\3\23\3\23\3\24\3\24\3\25\3\25\7\25\u0080\n\25\f\25\16")
-        buf.write("\25\u0083\13\25\3\25\2\2\26\2\4\6\b\n\f\16\20\22\24\26")
-        buf.write("\30\32\34\36 \"$&(\2\3\3\2\n\f\2}\2*\3\2\2\2\4\60\3\2")
-        buf.write("\2\2\6\64\3\2\2\2\bB\3\2\2\2\nE\3\2\2\2\fG\3\2\2\2\16")
-        buf.write("L\3\2\2\2\20O\3\2\2\2\22V\3\2\2\2\24X\3\2\2\2\26Z\3\2")
-        buf.write("\2\2\30c\3\2\2\2\32h\3\2\2\2\34j\3\2\2\2\36s\3\2\2\2 ")
-        buf.write("u\3\2\2\2\"w\3\2\2\2$y\3\2\2\2&{\3\2\2\2(}\3\2\2\2*+\5")
-        buf.write("\4\3\2+,\5\b\5\2,\3\3\2\2\2-\61\5\n\6\2.\61\5\6\4\2/\61")
-        buf.write("\5\16\b\2\60-\3\2\2\2\60.\3\2\2\2\60/\3\2\2\2\61\62\3")
-        buf.write("\2\2\2\62\60\3\2\2\2\62\63\3\2\2\2\63\5\3\2\2\2\64\65")
-        buf.write("\7\3\2\2\65\67\7\20\2\2\668\7\17\2\2\67\66\3\2\2\289\3")
-        buf.write("\2\2\29\67\3\2\2\29:\3\2\2\2:;\3\2\2\2;<\7\21\2\2<\7\3")
-        buf.write("\2\2\2=A\5\n\6\2>A\5\16\b\2?A\5\f\7\2@=\3\2\2\2@>\3\2")
-        buf.write("\2\2@?\3\2\2\2AD\3\2\2\2B@\3\2\2\2BC\3\2\2\2C\t\3\2\2")
-        buf.write("\2DB\3\2\2\2EF\7\16\2\2F\13\3\2\2\2GH\5\20\t\2HI\7\4\2")
-        buf.write("\2IJ\5\34\17\2JK\7\21\2\2K\r\3\2\2\2LM\7\21\2\2M\17\3")
-        buf.write("\2\2\2NP\5\22\n\2ON\3\2\2\2PQ\3\2\2\2QO\3\2\2\2QR\3\2")
-        buf.write("\2\2R\21\3\2\2\2SW\5\24\13\2TW\5\26\f\2UW\5\30\r\2VS\3")
-        buf.write("\2\2\2VT\3\2\2\2VU\3\2\2\2W\23\3\2\2\2XY\7\17\2\2Y\25")
-        buf.write("\3\2\2\2Z[\7\20\2\2[\\\7\5\2\2\\_\7\17\2\2]^\7\22\2\2")
-        buf.write("^`\7\17\2\2_]\3\2\2\2_`\3\2\2\2`a\3\2\2\2ab\7\6\2\2b\27")
-        buf.write("\3\2\2\2cd\7\7\2\2de\5\32\16\2ef\5\26\f\2fg\7\b\2\2g\31")
-        buf.write("\3\2\2\2hi\7\t\2\2i\33\3\2\2\2jk\5\36\20\2kl\5 \21\2l")
-        buf.write("m\7\17\2\2mn\7\17\2\2no\5&\24\2oq\5\"\22\2pr\5(\25\2q")
-        buf.write("p\3\2\2\2qr\3\2\2\2r\35\3\2\2\2st\7\20\2\2t\37\3\2\2\2")
-        buf.write("uv\t\2\2\2v!\3\2\2\2wx\7\20\2\2x#\3\2\2\2yz\7\20\2\2z")
-        buf.write("%\3\2\2\2{|\7\20\2\2|\'\3\2\2\2}\u0081\5$\23\2~\u0080")
-        buf.write("\5$\23\2\177~\3\2\2\2\u0080\u0083\3\2\2\2\u0081\177\3")
-        buf.write("\2\2\2\u0081\u0082\3\2\2\2\u0082)\3\2\2\2\u0083\u0081")
-        buf.write("\3\2\2\2\f\60\629@BQV_q\u0081")
+        buf.write("\4\24\t\24\3\2\3\2\3\2\3\3\3\3\3\3\6\3/\n\3\r\3\16\3\60")
+        buf.write("\3\4\3\4\3\4\6\4\66\n\4\r\4\16\4\67\3\4\3\4\3\5\3\5\3")
+        buf.write("\5\7\5?\n\5\f\5\16\5B\13\5\3\6\3\6\3\7\3\7\3\7\3\7\3\7")
+        buf.write("\3\b\3\b\3\t\6\tN\n\t\r\t\16\tO\3\n\3\n\3\n\5\nU\n\n\3")
+        buf.write("\13\3\13\3\f\3\f\3\f\3\f\3\f\5\f^\n\f\3\f\3\f\3\r\3\r")
+        buf.write("\3\r\3\r\3\r\5\rg\n\r\3\r\3\r\3\16\3\16\3\16\3\16\3\16")
+        buf.write("\3\16\3\16\5\16r\n\16\3\17\3\17\3\20\3\20\3\21\3\21\3")
+        buf.write("\22\3\22\3\23\3\23\3\24\3\24\7\24\u0080\n\24\f\24\16\24")
+        buf.write("\u0083\13\24\3\24\2\2\25\2\4\6\b\n\f\16\20\22\24\26\30")
+        buf.write("\32\34\36 \"$&\2\3\3\2\7\t\2\177\2(\3\2\2\2\4.\3\2\2\2")
+        buf.write("\6\62\3\2\2\2\b@\3\2\2\2\nC\3\2\2\2\fE\3\2\2\2\16J\3\2")
+        buf.write("\2\2\20M\3\2\2\2\22T\3\2\2\2\24V\3\2\2\2\26X\3\2\2\2\30")
+        buf.write("a\3\2\2\2\32j\3\2\2\2\34s\3\2\2\2\36u\3\2\2\2 w\3\2\2")
+        buf.write("\2\"y\3\2\2\2${\3\2\2\2&}\3\2\2\2()\5\4\3\2)*\5\b\5\2")
+        buf.write("*\3\3\2\2\2+/\5\n\6\2,/\5\6\4\2-/\5\16\b\2.+\3\2\2\2.")
+        buf.write(",\3\2\2\2.-\3\2\2\2/\60\3\2\2\2\60.\3\2\2\2\60\61\3\2")
+        buf.write("\2\2\61\5\3\2\2\2\62\63\7\3\2\2\63\65\7\r\2\2\64\66\7")
+        buf.write("\f\2\2\65\64\3\2\2\2\66\67\3\2\2\2\67\65\3\2\2\2\678\3")
+        buf.write("\2\2\289\3\2\2\29:\7\16\2\2:\7\3\2\2\2;?\5\n\6\2<?\5\16")
+        buf.write("\b\2=?\5\f\7\2>;\3\2\2\2><\3\2\2\2>=\3\2\2\2?B\3\2\2\2")
+        buf.write("@>\3\2\2\2@A\3\2\2\2A\t\3\2\2\2B@\3\2\2\2CD\7\13\2\2D")
+        buf.write("\13\3\2\2\2EF\5\20\t\2FG\7\4\2\2GH\5\32\16\2HI\7\16\2")
+        buf.write("\2I\r\3\2\2\2JK\7\16\2\2K\17\3\2\2\2LN\5\22\n\2ML\3\2")
+        buf.write("\2\2NO\3\2\2\2OM\3\2\2\2OP\3\2\2\2P\21\3\2\2\2QU\5\24")
+        buf.write("\13\2RU\5\26\f\2SU\5\30\r\2TQ\3\2\2\2TR\3\2\2\2TS\3\2")
+        buf.write("\2\2U\23\3\2\2\2VW\7\f\2\2W\25\3\2\2\2XY\7\r\2\2YZ\7\5")
+        buf.write("\2\2Z]\7\f\2\2[\\\7\17\2\2\\^\7\f\2\2][\3\2\2\2]^\3\2")
+        buf.write("\2\2^_\3\2\2\2_`\7\6\2\2`\27\3\2\2\2ab\7\20\2\2bc\7\5")
+        buf.write("\2\2cf\7\f\2\2de\7\17\2\2eg\7\f\2\2fd\3\2\2\2fg\3\2\2")
+        buf.write("\2gh\3\2\2\2hi\7\6\2\2i\31\3\2\2\2jk\5\34\17\2kl\5\36")
+        buf.write("\20\2lm\7\f\2\2mn\7\f\2\2no\5$\23\2oq\5 \21\2pr\5&\24")
+        buf.write("\2qp\3\2\2\2qr\3\2\2\2r\33\3\2\2\2st\7\r\2\2t\35\3\2\2")
+        buf.write("\2uv\t\2\2\2v\37\3\2\2\2wx\7\r\2\2x!\3\2\2\2yz\7\r\2\2")
+        buf.write("z#\3\2\2\2{|\7\r\2\2|%\3\2\2\2}\u0081\5\"\22\2~\u0080")
+        buf.write("\5\"\22\2\177~\3\2\2\2\u0080\u0083\3\2\2\2\u0081\177\3")
+        buf.write("\2\2\2\u0081\u0082\3\2\2\2\u0082\'\3\2\2\2\u0083\u0081")
+        buf.write("\3\2\2\2\r.\60\67>@OT]fq\u0081")
         return buf.getvalue()
 
 
@@ -61,14 +64,14 @@ class IsaDescriptionParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "'ARCH'", "'|'", "'['", "']'", "'('", 
-                     "')'", "'-'", "'i'", "'u'", "'f'", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "':'" ]
+    literalNames = [ "<INVALID>", "'ARCH'", "'|'", "'['", "']'", "'i'", 
+                     "'u'", "'f'", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "<INVALID>", "<INVALID>", "':'" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "WS", "COMMENT", 
-                      "INT", "NAME", "NEWLINE", "SEMICOL" ]
+                      "WS", "COMMENT", "INT", "NAME", "NEWLINE", "SEMICOL", 
+                      "CINLINE" ]
 
     RULE_isadescription = 0
     RULE_headerlines = 1
@@ -82,18 +85,17 @@ class IsaDescriptionParser ( Parser ):
     RULE_binvalue = 9
     RULE_regbin = 10
     RULE_expbin = 11
-    RULE_op = 12
-    RULE_asmdescr = 13
-    RULE_extname = 14
-    RULE_arith = 15
-    RULE_opname = 16
-    RULE_regName = 17
-    RULE_semname = 18
-    RULE_reglist = 19
+    RULE_asmdescr = 12
+    RULE_extname = 13
+    RULE_arith = 14
+    RULE_opname = 15
+    RULE_regName = 16
+    RULE_semname = 17
+    RULE_reglist = 18
 
     ruleNames =  [ "isadescription", "headerlines", "archline", "isalines", 
                    "commentline", "isaline", "emptyline", "bindescr", "binelem", 
-                   "binvalue", "regbin", "expbin", "op", "asmdescr", "extname", 
+                   "binvalue", "regbin", "expbin", "asmdescr", "extname", 
                    "arith", "opname", "regName", "semname", "reglist" ]
 
     EOF = Token.EOF
@@ -104,25 +106,24 @@ class IsaDescriptionParser ( Parser ):
     T__4=5
     T__5=6
     T__6=7
-    T__7=8
-    T__8=9
-    T__9=10
-    WS=11
-    COMMENT=12
-    INT=13
-    NAME=14
-    NEWLINE=15
-    SEMICOL=16
+    WS=8
+    COMMENT=9
+    INT=10
+    NAME=11
+    NEWLINE=12
+    SEMICOL=13
+    CINLINE=14
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.7.2")
+        self.checkVersion("4.9.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
 
 
     class IsadescriptionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -156,9 +157,9 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 0, self.RULE_isadescription)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 40
+            self.state = 38
             self.headerlines()
-            self.state = 41
+            self.state = 39
             self.isalines()
         except RecognitionException as re:
             localctx.exception = re
@@ -169,6 +170,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class HeaderlinesContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -215,24 +217,24 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 2, self.RULE_headerlines)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 46 
+            self.state = 44 
             self._errHandler.sync(self)
             _alt = 1
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                 if _alt == 1:
-                    self.state = 46
+                    self.state = 44
                     self._errHandler.sync(self)
                     token = self._input.LA(1)
                     if token in [IsaDescriptionParser.COMMENT]:
-                        self.state = 43
+                        self.state = 41
                         self.commentline()
                         pass
                     elif token in [IsaDescriptionParser.T__0]:
-                        self.state = 44
+                        self.state = 42
                         self.archline()
                         pass
                     elif token in [IsaDescriptionParser.NEWLINE]:
-                        self.state = 45
+                        self.state = 43
                         self.emptyline()
                         pass
                     else:
@@ -241,7 +243,7 @@ class IsaDescriptionParser ( Parser ):
 
                 else:
                     raise NoViableAltException(self)
-                self.state = 48 
+                self.state = 46 
                 self._errHandler.sync(self)
                 _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
 
@@ -254,6 +256,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ArchlineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -292,23 +295,23 @@ class IsaDescriptionParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 50
+            self.state = 48
             self.match(IsaDescriptionParser.T__0)
-            self.state = 51
+            self.state = 49
             self.match(IsaDescriptionParser.NAME)
-            self.state = 53 
+            self.state = 51 
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 52
+                self.state = 50
                 self.match(IsaDescriptionParser.INT)
-                self.state = 55 
+                self.state = 53 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==IsaDescriptionParser.INT):
                     break
 
-            self.state = 57
+            self.state = 55
             self.match(IsaDescriptionParser.NEWLINE)
         except RecognitionException as re:
             localctx.exception = re
@@ -319,6 +322,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class IsalinesContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -366,29 +370,29 @@ class IsaDescriptionParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 64
+            self.state = 62
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.T__4) | (1 << IsaDescriptionParser.COMMENT) | (1 << IsaDescriptionParser.INT) | (1 << IsaDescriptionParser.NAME) | (1 << IsaDescriptionParser.NEWLINE))) != 0):
-                self.state = 62
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.COMMENT) | (1 << IsaDescriptionParser.INT) | (1 << IsaDescriptionParser.NAME) | (1 << IsaDescriptionParser.NEWLINE) | (1 << IsaDescriptionParser.CINLINE))) != 0):
+                self.state = 60
                 self._errHandler.sync(self)
                 token = self._input.LA(1)
                 if token in [IsaDescriptionParser.COMMENT]:
-                    self.state = 59
+                    self.state = 57
                     self.commentline()
                     pass
                 elif token in [IsaDescriptionParser.NEWLINE]:
-                    self.state = 60
+                    self.state = 58
                     self.emptyline()
                     pass
-                elif token in [IsaDescriptionParser.T__4, IsaDescriptionParser.INT, IsaDescriptionParser.NAME]:
-                    self.state = 61
+                elif token in [IsaDescriptionParser.INT, IsaDescriptionParser.NAME, IsaDescriptionParser.CINLINE]:
+                    self.state = 59
                     self.isaline()
                     pass
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 66
+                self.state = 64
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
@@ -401,6 +405,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class CommentlineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -429,7 +434,7 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 8, self.RULE_commentline)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 67
+            self.state = 65
             self.match(IsaDescriptionParser.COMMENT)
         except RecognitionException as re:
             localctx.exception = re
@@ -440,6 +445,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class IsalineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -476,13 +482,13 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 10, self.RULE_isaline)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 69
+            self.state = 67
             self.bindescr()
-            self.state = 70
+            self.state = 68
             self.match(IsaDescriptionParser.T__1)
-            self.state = 71
+            self.state = 69
             self.asmdescr()
-            self.state = 72
+            self.state = 70
             self.match(IsaDescriptionParser.NEWLINE)
         except RecognitionException as re:
             localctx.exception = re
@@ -493,6 +499,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class EmptylineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -521,7 +528,7 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 12, self.RULE_emptyline)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 74
+            self.state = 72
             self.match(IsaDescriptionParser.NEWLINE)
         except RecognitionException as re:
             localctx.exception = re
@@ -532,6 +539,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BindescrContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -565,16 +573,16 @@ class IsaDescriptionParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 77 
+            self.state = 75 
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 76
+                self.state = 74
                 self.binelem()
-                self.state = 79 
+                self.state = 77 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.T__4) | (1 << IsaDescriptionParser.INT) | (1 << IsaDescriptionParser.NAME))) != 0)):
+                if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.INT) | (1 << IsaDescriptionParser.NAME) | (1 << IsaDescriptionParser.CINLINE))) != 0)):
                     break
 
         except RecognitionException as re:
@@ -586,6 +594,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BinelemContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -622,22 +631,22 @@ class IsaDescriptionParser ( Parser ):
         localctx = IsaDescriptionParser.BinelemContext(self, self._ctx, self.state)
         self.enterRule(localctx, 16, self.RULE_binelem)
         try:
-            self.state = 84
+            self.state = 82
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [IsaDescriptionParser.INT]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 81
+                self.state = 79
                 self.binvalue()
                 pass
             elif token in [IsaDescriptionParser.NAME]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 82
+                self.state = 80
                 self.regbin()
                 pass
-            elif token in [IsaDescriptionParser.T__4]:
+            elif token in [IsaDescriptionParser.CINLINE]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 83
+                self.state = 81
                 self.expbin()
                 pass
             else:
@@ -652,6 +661,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BinvalueContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -680,7 +690,7 @@ class IsaDescriptionParser ( Parser ):
         self.enterRule(localctx, 18, self.RULE_binvalue)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 86
+            self.state = 84
             self.match(IsaDescriptionParser.INT)
         except RecognitionException as re:
             localctx.exception = re
@@ -691,6 +701,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class RegbinContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -729,23 +740,23 @@ class IsaDescriptionParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 88
+            self.state = 86
             self.match(IsaDescriptionParser.NAME)
-            self.state = 89
+            self.state = 87
             self.match(IsaDescriptionParser.T__2)
-            self.state = 90
+            self.state = 88
             self.match(IsaDescriptionParser.INT)
-            self.state = 93
+            self.state = 91
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==IsaDescriptionParser.SEMICOL:
-                self.state = 91
+                self.state = 89
                 self.match(IsaDescriptionParser.SEMICOL)
-                self.state = 92
+                self.state = 90
                 self.match(IsaDescriptionParser.INT)
 
 
-            self.state = 95
+            self.state = 93
             self.match(IsaDescriptionParser.T__3)
         except RecognitionException as re:
             localctx.exception = re
@@ -756,18 +767,23 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ExpbinContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def op(self):
-            return self.getTypedRuleContext(IsaDescriptionParser.OpContext,0)
+        def CINLINE(self):
+            return self.getToken(IsaDescriptionParser.CINLINE, 0)
 
+        def INT(self, i:int=None):
+            if i is None:
+                return self.getTokens(IsaDescriptionParser.INT)
+            else:
+                return self.getToken(IsaDescriptionParser.INT, i)
 
-        def regbin(self):
-            return self.getTypedRuleContext(IsaDescriptionParser.RegbinContext,0)
-
+        def SEMICOL(self):
+            return self.getToken(IsaDescriptionParser.SEMICOL, 0)
 
         def getRuleIndex(self):
             return IsaDescriptionParser.RULE_expbin
@@ -787,53 +803,27 @@ class IsaDescriptionParser ( Parser ):
 
         localctx = IsaDescriptionParser.ExpbinContext(self, self._ctx, self.state)
         self.enterRule(localctx, 22, self.RULE_expbin)
+        self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
+            self.state = 95
+            self.match(IsaDescriptionParser.CINLINE)
+            self.state = 96
+            self.match(IsaDescriptionParser.T__2)
             self.state = 97
-            self.match(IsaDescriptionParser.T__4)
-            self.state = 98
-            self.op()
-            self.state = 99
-            self.regbin()
+            self.match(IsaDescriptionParser.INT)
             self.state = 100
-            self.match(IsaDescriptionParser.T__5)
-        except RecognitionException as re:
-            localctx.exception = re
-            self._errHandler.reportError(self, re)
-            self._errHandler.recover(self, re)
-        finally:
-            self.exitRule()
-        return localctx
-
-    class OpContext(ParserRuleContext):
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
-            super().__init__(parent, invokingState)
-            self.parser = parser
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            if _la==IsaDescriptionParser.SEMICOL:
+                self.state = 98
+                self.match(IsaDescriptionParser.SEMICOL)
+                self.state = 99
+                self.match(IsaDescriptionParser.INT)
 
 
-        def getRuleIndex(self):
-            return IsaDescriptionParser.RULE_op
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterOp" ):
-                listener.enterOp(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitOp" ):
-                listener.exitOp(self)
-
-
-
-
-    def op(self):
-
-        localctx = IsaDescriptionParser.OpContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 24, self.RULE_op)
-        try:
-            self.enterOuterAlt(localctx, 1)
             self.state = 102
-            self.match(IsaDescriptionParser.T__6)
+            self.match(IsaDescriptionParser.T__3)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -843,6 +833,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class AsmdescrContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -891,7 +882,7 @@ class IsaDescriptionParser ( Parser ):
     def asmdescr(self):
 
         localctx = IsaDescriptionParser.AsmdescrContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 26, self.RULE_asmdescr)
+        self.enterRule(localctx, 24, self.RULE_asmdescr)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
@@ -924,6 +915,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ExtnameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -949,7 +941,7 @@ class IsaDescriptionParser ( Parser ):
     def extname(self):
 
         localctx = IsaDescriptionParser.ExtnameContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 28, self.RULE_extname)
+        self.enterRule(localctx, 26, self.RULE_extname)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 113
@@ -963,6 +955,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ArithContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -986,13 +979,13 @@ class IsaDescriptionParser ( Parser ):
     def arith(self):
 
         localctx = IsaDescriptionParser.ArithContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 30, self.RULE_arith)
+        self.enterRule(localctx, 28, self.RULE_arith)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 115
             _la = self._input.LA(1)
-            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.T__7) | (1 << IsaDescriptionParser.T__8) | (1 << IsaDescriptionParser.T__9))) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << IsaDescriptionParser.T__4) | (1 << IsaDescriptionParser.T__5) | (1 << IsaDescriptionParser.T__6))) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1006,6 +999,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class OpnameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1031,7 +1025,7 @@ class IsaDescriptionParser ( Parser ):
     def opname(self):
 
         localctx = IsaDescriptionParser.OpnameContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 32, self.RULE_opname)
+        self.enterRule(localctx, 30, self.RULE_opname)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 117
@@ -1045,6 +1039,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class RegNameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1070,7 +1065,7 @@ class IsaDescriptionParser ( Parser ):
     def regName(self):
 
         localctx = IsaDescriptionParser.RegNameContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 34, self.RULE_regName)
+        self.enterRule(localctx, 32, self.RULE_regName)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 119
@@ -1084,6 +1079,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class SemnameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1109,7 +1105,7 @@ class IsaDescriptionParser ( Parser ):
     def semname(self):
 
         localctx = IsaDescriptionParser.SemnameContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 36, self.RULE_semname)
+        self.enterRule(localctx, 34, self.RULE_semname)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 121
@@ -1123,6 +1119,7 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ReglistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1152,7 +1149,7 @@ class IsaDescriptionParser ( Parser ):
     def reglist(self):
 
         localctx = IsaDescriptionParser.ReglistContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 38, self.RULE_reglist)
+        self.enterRule(localctx, 36, self.RULE_reglist)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)

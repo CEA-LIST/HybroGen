@@ -1,0 +1,101 @@
+#include <stdio.h> // -*- c -*-
+#include <stdlib.h>
+
+typedef  int (*pifi)();
+
+pifi genConstAdd(pifi ptr, int  b)
+{
+  #[
+  int 32 1 add () // dummy argument (HybroLang bug)
+  {
+    int 32 1 r;
+    r =  42 + #(b);
+    return r;
+  }
+  ]#
+  return (pifi) ptr;
+}
+
+pifi genConstSub(pifi ptr, int  b)
+{
+  #[
+  int 32 1 add ()
+  {
+    int 32 1 r;
+    r =  42 - #(b);
+    return r;
+  }
+  ]#
+  return (pifi) ptr;
+}
+
+pifi genConstMul(pifi ptr, int  b)
+{
+  #[
+  int 32 1 add ()
+  {
+    int 32 1 r;
+    r =  42 * #(b);
+    return r;
+  }
+  ]#
+  return (pifi) ptr;
+}
+
+pifi genConstDiv(pifi ptr, int  b)
+{
+  #[
+  int 32 1 add ()
+  {
+    int 32 1 r;
+    r =  42 / #(b);
+    return r;
+  }
+  ]#
+  return (pifi) ptr;
+}
+
+int main(int argc, char * argv[])
+{
+  int in0, res;
+  int isOK = true;
+  pifi fPtr;
+
+  if (argc < 2)
+    {
+      printf("Give 1 values\n");
+      exit(-1);
+    }
+  in0  = atoi (argv[1]);   // Get the users values in0
+  fPtr  = (pifi) h2_malloc (1024);  // Allocate memory for 1024 instructions
+
+  printf("// Compilette for simple addition between constants\n");
+  printf("// code specialization on value = %d\n", in0);
+  fPtr = genConstAdd (fPtr, in0); // Generate instructions
+  res  = fPtr();  // Call generated code
+  printf("%d + %d = %d\n", 42, in0, res);
+  isOK &= (res == (42+in0));
+
+  printf("// Compilette for simple substraction between constants\n");
+  printf("// code specialization on value = %d\n", in0);
+  fPtr = genConstSub (fPtr, in0); // Generate instructions
+  res  = fPtr();  // Call generated code
+  printf("%d - %d = %d\n", 42, in0, res);
+  isOK &= (res == (42 - in0));
+
+  printf("// Compilette for simple multiplication between constants\n");
+  printf("// code specialization on value = %d\n", in0);
+  fPtr = genConstMul (fPtr, in0); // Generate instructions
+  res  = fPtr();  // Call generated code
+  printf("%d * %d = %d\n", 42, in0, res);
+  isOK &= (res == (42 * in0));
+
+  printf("// Compilette for simple division between constants\n");
+  printf("// code specialization on value = %d\n", in0);
+  fPtr = genConstDiv (fPtr, in0); // Generate instructions
+  res  = fPtr();  // Call generated code
+  printf("%d / %d = %d\n", 42, in0, res);
+  isOK &= (res == (42 / in0));
+
+  return isOK?0:1;
+}

@@ -1,0 +1,74 @@
+/* -*- c -*- */
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  float (*piff)(float, float);
+typedef  double (*pifd)(double, double);
+
+h2_insn_t * genAdd(h2_insn_t * ptr, int FloatWidth, float ConstValue)
+{
+  #[
+    flt #(FloatWidth) 1 add (flt #(FloatWidth) 1 a, flt #(FloatWidth) 1 b )
+ 	{
+      flt #(FloatWidth) 1 r;
+      r = a * b;
+      return r;
+	}
+  ]#
+  return (h2_insn_t *) ptr;
+}
+
+
+
+int main(int argc, char *argv[])
+{
+  h2_insn_t * ptr;
+  int isFloat = 1;
+  float  fdivider, fvalue, init, fthresold;
+  double ddivider, dvalue, dthresold;
+  char ans[10];
+  piff fPtr1;
+  pifd fPtr2;
+  //h2_insn_t * ptr;
+
+  if (argc < 4)
+    {
+      printf("%s <Initial Value> <Divider> <Threshold>\n", argv[0]);
+      exit(-1);
+    }
+
+  init = atof (argv[1]);
+  fdivider = atof (argv[2]);
+  ddivider = fdivider;
+  fthresold = atof (argv[3]) * 1000.0f;
+  dthresold = atof (argv[3]);
+  fvalue = init;
+  dvalue = init;
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr1 = (piff)genAdd (ptr, 32, fdivider);
+  /* Compilette * par une constante en float */
+  do
+    {
+      if ((fvalue < fthresold) && isFloat)
+        {
+          fPtr2 = (pifd)genAdd (ptr, 64, ddivider);
+          isFloat = 0;
+          dvalue = fvalue;
+          /* Compilette * par une constante en double */
+        }
+      if (isFloat)
+        {
+          printf ("float : %e %e\n", fvalue, fdivider );
+          fvalue = fPtr1(fvalue, fdivider);
+        }
+      else
+        {
+          printf ("double %e %e\n", dvalue, ddivider);
+          dvalue = fPtr2(dvalue, ddivider);
+        }
+      printf ("%d %d\n", (fvalue > fthresold), (dvalue > dthresold));
+      scanf ("%c", ans);
+    }
+  while ((fvalue > fthresold) || (dvalue > dthresold));
+  return 0;
+}

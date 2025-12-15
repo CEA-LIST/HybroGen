@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#include <fft_utils.h>
+#include <sine.h>
+
+
+void BitReverseCopy(cplx_t *Input, cplx_t *Output, uint32_t length, uint32_t *bit_reverse)
+{
+	int i;
+	for(i = 0; i < length; i += 1)
+	{
+		Output[bit_reverse[i]] = Input[i];
+	}
+}
+
+// Cooley-Tukey FFT algorithm, this version performs data re-ordering
+// using bit reversal and in-place computation to limit the memory
+// footprint (see Wikipedia page https://w.wiki/ps8 for more information)
+void FastFourierTransform(cplx_t *Input, cplx_t *Output, uint32_t length, uint32_t *bit_reverse)
+{
+	BitReverseCopy(Input, Output, length, bit_reverse);
+	for (uint32_t s = 1; s <= (uint32_t)log2(length); s += 1)
+	{
+		uint32_t m = 1 << s;
+		cplx_t w_m = twiddle(s);
+
+		for (uint32_t k = 0; k < length; k += m)
+		{
+			#if defined(CPLX32) || defined(CPLX16)
+			cplx_t w = cplx_new(flt_to_fixed(1), 0);
+			#else
+			cplx_t w = cplx_new(1, 0);
+			#endif
+			for (uint32_t j = 0; j < m/2; j += 1)
+			{
+				cplx_t t = cplx_mul(w, Output[k + j + m/2]);
+				cplx_t u = Output[k + j];
+				Output[k + j] = cplx_add(u, t);
+				Output[k + j + m/2] = cplx_sub(u, t);
+				w = cplx_mul(w, w_m);
+			}
+		}
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc != 3)
+	{
+		printf("USAGE : ./DFT [input.sine] [output.dft]\n");
+		exit(1);
+	}
+	char *filename = argv[1];
+
+	Sine1D *Input = ReadInputSine1D(filename);
+	Sine1D *Output = CreateSine1D(Input->length);
+
+	FastFourierTransform(Input->data, Output->data, Input->length, bit_reverse_);
+
+	WriteSine1DFile(Output, argv[2]);
+
+	return EXIT_SUCCESS;
+}

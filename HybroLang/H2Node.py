@@ -28,6 +28,20 @@ class H2Node():
     def __iter__(self):
         return self.sonsList.__iter__()
 
+    def getNodeName(self):
+        t = str(self.getNodeType())
+        if self.nodeType == H2NodeType.OPERATOR or self.nodeType == H2NodeType.W or self.nodeType == H2NodeType.R :
+            name = "_%s"%(self.getOpName())
+        elif self.nodeType == H2NodeType.VARIABLE: name = "_%s"%(self.getVariableName())
+        elif self.nodeType == H2NodeType.LABEL:    name = "_%s"%(self.getLabelName())
+        elif self.nodeType == H2NodeType.CALLBACK: name = "_%s"%(self.getCallbackName())
+        elif self.nodeType == H2NodeType.RTN:      name = "_%s"%("RETURN")
+        elif self.nodeType == H2NodeType.CONST:    name = "_%s"%(self.getConstValue())
+        elif self.isB() or self.isCmp():           name = "_%s"%(self.nodeType)
+        else:
+            fatalError("Unknown node %s"%self.nodeType)
+        return t+name
+
     def getStr(self, i = 0):
         s = str(self.nodeType)
         if self.nodeType == H2NodeType.OPERATOR or self.nodeType == H2NodeType.W or self.nodeType == H2NodeType.R :
@@ -48,6 +62,9 @@ class H2Node():
             s += ": %s\n"%(self.getLabelName())
         elif self.nodeType == H2NodeType.CALLBACK:
             s += ": %s\n"%(self.getCallbackName())
+        elif self.nodeType == H2NodeType.VCONF:
+            s += ": %s"%("VCONF")
+            s += ": %s\n"%(self.getOpType())
         elif self.nodeType == H2NodeType.RTN:
             s += ": %s\n"%("RETURN")
         elif self.nodeType == H2NodeType.CONST:
@@ -92,13 +109,13 @@ class H2Node():
     def hasLabelName (self):        		return None != self.labelName
     def isLabel(self):         			return self.hasLabelName()
 
-    def setNodeType (self, nodeType):    self.nodeType = nodeType
-    def getNodeType (self):        	   return self.nodeType
-    def hasType (self):        		   return self.nodeType != None
+    def setNodeType (self, nodeType):   self.nodeType = nodeType
+    def getNodeType (self):        	return self.nodeType
+    def hasType (self):        		return self.nodeType != None
 
-    def setOpType (self, opType):		self.opType = opType
-    def getOpType (self):				return self.opType
-    def hasOpType (self):				return self.opType != None
+    def setOpType (self, opType):	self.opType = opType
+    def getOpType (self):		return self.opType
+    def hasOpType (self):		return self.opType != None
 
     def setOpName (self, opName):       self.opName = self.sem[opName]
     def getOpName (self):        	return self.opName
@@ -115,14 +132,19 @@ class H2Node():
     def isBA(self):            return self.nodeType == H2NodeType.BA
     def isBcc(self):           return self.nodeType in (H2NodeType.BEQ, H2NodeType.BNE, H2NodeType.BLT, H2NodeType.BGT, H2NodeType.BGE, H2NodeType.BLE, H2NodeType.BEQZ, H2NodeType.BNEZ)
     def isMem(self):           return (self.nodeType == H2NodeType.W) or (self.nodeType == H2NodeType.R)
+    def isVCONF (self):        return self.nodeType == H2NodeType.VCONF
 
+    sem = {"*": "MUL", "+":"ADD", "/":"DIV", "-":"SUB", "=":"MV", "RTN":"RET",
+           "W":"W", "R":"R", "L":"LOOP", "MAC":"MAC", "^": "XOR",
+           "&":"AND", "|":"OR", "SL":"SL", "SR":"SR", "<<":"SL",
+           ">>":"SR", "LUI":"LUI", "INV":"INV", "NEG": "NEG",
+           "MVIF":"MVIF", "MVFI":"MVFI", "SL":"SL", "SR":"SR",
+           "OR":"OR", "AND":"AND", # TODO this line should be removed
+           }
 
-    sem = {"*": "MUL", "+":"ADD", "/":"DIV", "-":"SUB", "=":"MV", "W":"W", "R":"R", "L":"LOOP", "MAC":"MAC",
-           "^": "XOR", "&":"AND", "|":"OR", "SL":"SL",  "SR":"SR", "<<":"SL", ">>":"SR", "LUI":"LUI", "INV":"INV", "NEG": "NEG", "MVIF":"MVIF", "MVFI":"MVFI",
-           "SL":"SL",  "SR":"SR", "OR":"OR", "AND":"AND", # TODO this line should be removed
-    }
-
-    def getSemName (self):        	return self.sem[self.opName]
+    def getSemName (self):
+        if self.nodeType == H2NodeType.OPERATOR: return self.sem[self.opName]
+        else: return str(self.nodeType).split(".")[1] # Remove "HyNodeType." from node type
 
     def isVector(self): return (isinstance(self.opType['vectorLen'], int) and self.opType['vectorLen'] > 1) or (isinstance(self.opType['vectorLen'], str) and  self.opType['vectorLen'].isdigit() and int(self.opType['vectorLen']) > 1)
 
@@ -130,9 +152,6 @@ class H2Node():
         if self.nodeType != other.getNodeType(): return False
         if self.labelName != other.getLabelName(): return False
         if self.opName != other.getOpName(): return False
-        print ("opType:")
-        print (self.opType)
-        print (other.getOpType())
         if self.constValue != other.getConstValue(): return False
         if self.variableName != other.getVariableName(): return False
         return True

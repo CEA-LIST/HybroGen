@@ -28,7 +28,6 @@ class H2Aarch64Rewrite():
     def rewriteInsn(self):
         for insn in self.oldList :
             self.newList += self.createCMPandBCC (insn)
-        self.loadOptimize()
         # More to come !
 
     def getNewInsnList(self):
@@ -49,9 +48,14 @@ class H2Aarch64Rewrite():
         for i in range(0, len(self.oldList)):
             new = self.oldList[i]
             #print("Node :", str(i) + "\n", new)
+            #print("VAR : ", new.sonsList[1].sonsList[0].sonsList[0], "Vec", new.sonsList[1].sonsList[0].sonsList[0].isVector())
             if new.isOperator() and self.archName == "aarch64" and new.sonsList[1].isR() and new.isVector() :
-                #print("Node avant transforamtion :", str(i) + "\n", new)
-                new.sonsList[1] = new.sonsList[1].sonsList[0].sonsList[0]
-                new.nodeType = H2NodeType.R
-                new.opName = "R"
-                #print("Node apres transformation :\n", new)
+                print("Node avant transformation :", str(i) + "\n", new)
+                print("VAR : ", new.sonsList[0], "Vec Size : ", new.sonsList[0].opType['vectorLen'])
+                print("VAR :", new.sonsList[1].sonsList[0].sonsList[0], "VECTOR ? : ", new.sonsList[0].isVector(), "\nVec Size :", new.sonsList[1].sonsList[0].sonsList[0].opType['vectorLen'])
+                #new.sonsList[1].sonsList[0].sonsList[0].getStr()
+                #print("CONST :", new.sonsList[1].sonsList[0].sonsList[1].sonsList[0], "const val : ", new.sonsList[1].sonsList[0].sonsList[1].sonsList[0].getConstValue())
+                # new.sonsList[1] = new.sonsList[1].sonsList[0].sonsList[0]
+                # new.nodeType = H2NodeType.R
+                # new.opName = "R"
+                # print("Node apres transformation :\n", new)

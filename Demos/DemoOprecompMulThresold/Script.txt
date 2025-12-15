@@ -1,0 +1,8 @@
+
+Video steps to show / comment :
+* Montrer la date
+* Compilette source code
+* Main / call to compilette
+* Code generation process
+* Generated code
+* Run demonstrations

@@ -1,0 +1,11 @@
+/* -*- c -*- */
+if (isValue(P1))
+  { // Store constant (Should use RRI variant)
+	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RI W (power)\\n");
+    #endif
+	// MV const in tmp register
+	P1 = power_genMV_2(PTMP,  P1);
+	// No return continue instruction selection
+  }

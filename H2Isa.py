@@ -33,8 +33,16 @@ class IsaListener(IsaDescriptionListener):
     def enterBinvalue(self, ctx:IsaDescriptionParser.BinelemContext):
         l = len(ctx.INT().getText()) - 1
         self.currentInsn.addBinEncoding(ctx.INT().getText(), l, 0)
-    def exitExpbin(self, ctx:IsaDescriptionParser.ExpbinContext):
-        self.currentInsn.addOpBinEncoding(ctx.op().getText())
+    def enterExpbin(self, ctx:IsaDescriptionParser.ExpbinContext):
+        begin = int(ctx.INT()[0].getText())
+        if len(ctx.INT()) > 1:
+            end = int(ctx.INT()[1].getText())
+        else:
+            end = begin
+        cExpression = ctx.CINLINE().getText()[1:-1] # Remove { and }
+        self.currentInsn.addBinEncoding("(%s)"%cExpression, begin, end)
+        self.currentInsn.addToParameter("i")
+        # self.currentInsn.addOpBinEncoding(ctx.expbin().getText())
     def enterRegbin(self, ctx:IsaDescriptionParser.RegbinContext):
         regorconstname = ctx.NAME().getText()
         begin = int(ctx.INT()[0].getText())

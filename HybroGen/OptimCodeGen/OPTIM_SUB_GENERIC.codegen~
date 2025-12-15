@@ -1,0 +1,7 @@
+/* -*- c -*- */
+// if 2 operands are constants do evaluation (Thanks Kilian for the bug report)
+if  ((P2.ValOrReg == VALUE) && (P1.ValOrReg == VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return (h2_sValue_t) {VALUE, P1.arith, P1.wLen, P1.vLen, P1.valueImm - P2.valueImm };
+}
+

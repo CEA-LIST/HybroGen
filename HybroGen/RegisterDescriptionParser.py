@@ -1,9 +1,12 @@
-# Generated from RegisterDescription.g4 by ANTLR 4.7.2
+# Generated from RegisterDescription.g4 by ANTLR 4.9.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
-from typing.io import TextIO
 import sys
+if sys.version_info[1] > 5:
+	from typing import TextIO
+else:
+	from typing.io import TextIO
 
 def serializedATN():
     with StringIO() as buf:
@@ -91,13 +94,14 @@ class RegisterDescriptionParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.7.2")
+        self.checkVersion("4.9.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
 
 
     class RegisterdescriptionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -144,6 +148,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class HeaderlinesContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -218,6 +223,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class CommentlineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -257,6 +263,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class EmptylineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -296,6 +303,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterlinesContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -380,6 +388,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterlineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -461,6 +470,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterlistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -501,6 +511,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterprefixContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -554,6 +565,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterfunctionlistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -611,6 +623,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterfunctionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -650,6 +663,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterfunctionwnContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -703,6 +717,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegbankvecContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -747,6 +762,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegbankContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -790,6 +806,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class RegisterwidthContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -829,6 +846,7 @@ class RegisterDescriptionParser ( Parser ):
         return localctx
 
     class ExtensionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)

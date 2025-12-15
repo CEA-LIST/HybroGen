@@ -48,7 +48,7 @@ class ProxyDb:
 
     def __init__ (self, host, dbname, user, passwd, debug=False):
         self.queryDebug = debug
-        self.c = psycopg2.connect("host=%s dbname=%s user=%s password=%s"%(host, dbname, user, passwd))
+        self.c = psycopg2.connect(f"host={host} dbname={dbname} user={user} password={passwd}")
         self.dbCursor = self.c.cursor()
         for i in self.dbSchema:
             query = self.createTable(i)
@@ -183,11 +183,11 @@ Update if the same MacroName exists with different values for another column"""
 
     def setInstructionLen(self, archName, insnLen):
         """Insert into instructionlen one instruction lenght for  the architecture defined by archName """
-        query = 'insert into instructionlen values (\'%s\', \'%s\');'%(archName, insnLen)
+        query = f"insert into instructionlen values ('{archName}', '{insnLen}');"
         self.execQueries((query,))
 
     def setRegister(self, archName, extension, number, name, width, datatype, function):
-        query = 'insert into register values (\'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\', \'%s\');'%(archName, extension, number, name, datatype, width, function)
+        query = f"insert into register values ('{archName}', '{extension}', '{number}', '{name}', '{datatype}', '{width}', '{function}');"
         try:
             self.execQueries((query,))
         except (psycopg2.IntegrityError, psycopg2.InternalError):

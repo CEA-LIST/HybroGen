@@ -1,56 +1,40 @@
 #!/usr/bin/env python3
 
 from H2Utils import *
-from HybroGen.GenGeneratorFromDb import GenGeneratorFromDb
-from HybroLang.H2SymbolTable  import H2SymbolTable
-from HybroLang.H2LabelTable   import H2LabelTable
-from HybroLang.H2Node         import H2Node
-from HybroLang.H2NodeType     import H2NodeType
-import random
-import sys
-
-class H2Type():
-    typeCorrespondances = {'int' : 'i', 'flt' : 'f', 'uint': 'u', 'cpl': 'c',
-            'pix' : 'p', 'ipv4': '4', 'ipv6': '6', 'sint': 'i', 'suint':'u', 'int[]':'i'}
-
-    def __init__(self, a, w, v):
-        self.t = {"arith":a, "wordLen":w, "vectorLen":v}
-
-    def __iter__(self):
-        return iter(self.t)
-
-    def __str__(self):
-        return str(self.t)
-
-    def __getitem__(self, k):
-        return self.t[k]
-
-    def keys(self):
-        return self.t
-
+from HybroGen.GenGeneratorFromDb   import GenGeneratorFromDb
 from HybroLang.H2Aarch64Rewrite    import H2Aarch64Rewrite
+from HybroLang.H2RiscvRewrite      import H2RiscvRewrite
 from HybroLang.H2PowerRewrite      import H2PowerRewrite
 from HybroLang.H2CxRAMRewrite      import H2CxRAMRewrite
-from HybroLang.H2KalrayRewrite     import H2KalrayRewrite
+from HybroLang.H2TransformToMac    import H2TransformToMac
+from HybroLang.H2CodeGeneration    import H2CodeGeneration
 from HybroLang.H2ConstantOptimizer import H2ConstantOptimizer
-from HybroLang.H2RegisterAllocator import H2RegisterAllocator
+from HybroLang.H2LabelTable        import H2LabelTable
 from HybroLang.H2MovOptimize       import H2MovOptimize
-from HybroLang.H2IRFlattener       import H2IRFlattener
+from HybroLang.H2Node              import H2Node
+from HybroLang.H2NodeType          import H2NodeType
+from HybroLang.H2SymbolTable       import H2SymbolTable
+from HybroLang.H2Type              import H2Type
 from HybroLang.H2WindowRewrite     import H2WindowRewrite
+from HybroLang.H2RegCSI            import H2RegCSI
+from HybroLang.H2RegAllocTmp       import H2RegAllocTmp
+from HybroLang.H2Debug             import H2Debug
 
 class H2IR2():
     """Intermediate representation for HybroLang. Composed of list of
     expression tree, and the code generation"""
 
-    def __init__(self, platform, sTable, verbose = False, dbIds = None):
+    def __init__(self, platform, sTable, args, dbIds = None):
         self.IList = []
         self.platform = platform
         self.archMaster = self.platform["arch"][0]
-        self.verbose = verbose
+        self.verbose = args.verboseIR
         self.tmpVarNumber = 0
         self.labelNumber = 0
         self.dbIds = dbIds
         self.sTable = sTable
+        self.doShowTree = args.graphviz
+        self.args = args
 
     def __str__(self):
         tmp = "%s nodes :\n"%str(len(self.IList))
@@ -71,92 +55,67 @@ class H2IR2():
             print("%d:%s\n"%(i, irList[i]))
 
     def generateCodeGeneration(self, sTable, regTmp, lTable, regIn):
-        """ Generate code generator for an IR representation + symbol table """
-        insnCode = ""
-        callbackCode = ""
-        if self.verbose :
-            self.printIR(self.IList,"IR before code generation")
+        """ Generate C code generator from an IR representation + symbol table """
+        insnCode = ""     # Code generator code
+        callbackCode = "" # Callback for branch resolution
 
+
+        debug = H2Debug()
+        if self.verbose :   self.printIR(self.IList,"IR before code generation")
+        if self.doShowTree: debug.showTree(self.archMaster+": Initial IR", self.IList)
         # Generic optimization
         # * Simple mov transformation
-        if self.verbose:
-            print("H2MovOptimize pass")
         p = H2MovOptimize(self.IList, self.sTable, self.verbose)
         self.IList = p.getNewInsnList()
+        if self.doShowTree: debug.showTree(self.archMaster+": after Mv Optimize", self.IList)
         # Rewrite pass for exclusive different master architecture
         if self.archMaster in ("power"):
             p = H2PowerRewrite(self.platform, self.IList, self.verbose)
             self.IList = p.getNewInsnList()
-        elif self.archMaster in ("kalray"):
-            p = H2KalrayRewrite(self.archMaster, self.IList, self.verbose)
-            self.IList = p.getNewInsnList()
         elif self.archMaster in ("aarch64"):
             p = H2Aarch64Rewrite(self.archMaster, self.IList, self.verbose)
             self.IList = p.getNewInsnList()
+            p = H2TransformToMac(self.IList, self.verbose)
+            self.IList = p.getNewInsnList()
+        elif self.archMaster in ("riscv"):
+            p = H2RiscvRewrite(self.archMaster, self.IList, self.verbose)
+            self.IList = p.getNewInsnList()
+            p = H2TransformToMac(self.IList, self.verbose)
+            self.IList = p.getNewInsnList()
         elif self.platform["abi"] in ("CXRAM"):
         # Rewrite pass for second architecture
-            if self.verbose:
-                print("H2CxRAMRewrite pass")
             p = H2CxRAMRewrite(self.platform, lTable, sTable, regTmp, regIn, verbose=self.verbose, dbIds = self.dbIds)
             self.IList = p.rewriteInsns(self.IList)
             if self.verbose :
                 self.printIR (self.IList, "IR after H2CxRAMRewrite pass")
         else:
             self.trace("No specific rewrite for %s"%(self.platform))
+        if self.doShowTree: debug.showTree(self.archMaster+": After Arch specific optim.", self.IList)
 
-        self.trace("H2ConstantOptimizer pass")
         new = []
         p = H2ConstantOptimizer(self.archMaster, verbose=self.verbose)
         for i in self.IList :
             new += p.rewriteInsn(i)
         self.IList = new
-        if self.verbose :
-            self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
+        if self.verbose :   self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
+        if self.doShowTree: debug.showTree(self.archMaster+": After constant optim", self.IList)
 
-        self.trace("PASS : H2IRFlattener")
-        p = H2IRFlattener(self.platform, sTable, verbose=self.verbose)
-        self.IList = p.rewriteInsns(self.IList)
-        if self.verbose :
-            self.printIR (self.IList, "IR after H2IRFlattener pass")
-
-        self.trace("PASS : Window Rewrite")
         p = H2WindowRewrite(self.IList, self.archMaster, verbose=self.verbose)
         self.IList = p.getOptimizedInsnList()
-        if self.verbose :
-            self.printIR (self.IList, "IR after Window Rewrite")
+        if self.verbose :   self.printIR (self.IList, "IR after Window Rewrite")
+        if self.doShowTree: debug.showTree(self.archMaster+": after Window Rewrite", self.IList)
 
-        self.trace("PASS : H2RegisterAllocator")
-        p = H2RegisterAllocator(self.archMaster, sTable, regTmp, verbose=self.verbose)
-        self.IList = p.rewriteInsns(self.IList)
-        if self.verbose :
-            self.printIR (self.IList, "IR after H2RegisterAllocator pass")
+        r = H2RegCSI(self.IList, sTable, regTmp, regIn, self.args)
+        if self.verbose :   self.printIR (self.IList, "IR after reg alloc for sub expressions")
+        if self.doShowTree: debug.showTree(self.archMaster+": after regAlloc subexpressions", self.IList)
 
-        # Code generation
-        self.trace("PASS : Code generation")
-        for i in range(len(self.IList)):
-            insn = self.IList[i]
-            if self.verbose :
-                print ("Insn %d before code generation : \n%s\n"%(i, insn))
-            tmpCode, tmpCallbackCode = self.codeGeneration (insn, sTable, self.archMaster, 0)
-            insnCode += tmpCode
-            callbackCode += tmpCallbackCode
-            if self.verbose :
-                print("Generated code for insn %d:\n%s"%(i, tmpCode))
-        insnCode += "\t/* Call back code for loops */\n"
-        insnCode += "\th2_save_asm_pc = h2_asm_pc;\n"
-        insnCode += callbackCode
-        insnCode += "\th2_asm_pc = h2_save_asm_pc;\n"
-        insnCode += "\th2_end_codeGen = h2_getticks();\n"
-        insnCode += "\th2_iflush(ptr, h2_asm_pc);\n"
+        r = H2RegAllocTmp(self.IList, sTable, regTmp, regIn, self.args)
+        self.IList = r.getNewList()
+        if self.verbose :   self.printIR (self.IList, "IR after regAllocTmp")
+        if self.doShowTree: debug.showTree(self.archMaster+": after regAlloc tmp", self.IList)
 
-        initcode = "/* Code Generation of %d instructions */\n"%len (self.IList)
-        initcode += "/* Symbol table :*/\n%s\n\n"%(sTable.getCDecl())
-        initcode += "/* Label  table :*/\n%s\n\n"%(lTable.getCDecl())
-        initcode +="\th2_asm_pc = (h2_insn_t *) ptr;\n"
-        initcode +="\th2_codeGenerationOK = true;\n"
-        initcode +="\th2_start_codeGen = h2_getticks();\n"
-        self.trace(self)
-        return initcode + insnCode
+        cG = H2CodeGeneration (self.IList, sTable, regTmp, regIn, lTable, self.args)
+        return cG.getCode ()
 
     def gatherOpsAndTypes(self):
         prefixTuple = dict()
@@ -165,6 +124,8 @@ class H2IR2():
                 arith = insn.opType['arith']
                 opName = insn.getSemName()
                 prefixTuple.setdefault(arith, set()).add(opName)
+                # print(prefixTuple)
+                # print(self)
                 for child in insn.sonsList:
                     visit(child)
             elif insn.isB() or insn.isCmp():
@@ -186,139 +147,3 @@ class H2IR2():
         gen = GenGeneratorFromDb(self.archMaster, extList, abi, self.dbIds)
         prefixCode = gen.genAndGetCode(opsTypesTuples)
         return prefixCode
-
-    def codeGeneration(self, insn:H2Node, sTable, archMaster, tab):
-        """Generate code generators"""
-        code = ""
-        callback = ""
-        immValueZero = self.genImmValue(0) # TODO : optimize for const values
-        registerZero = self.genFixedRegister(0) # TODO : optimize for const values
-        # print(insn)
-        for i in range(len(insn.sonsList)):
-            tmpCode, tmpCallback = self.codeGeneration (insn.sonsList[i], sTable, archMaster, tab+1)
-            code += tmpCode
-            callback += tmpCallback
-        if insn.isOperator():
-            insnSemName = insn.getSemName()
-            if insnSemName in ["MV", "LUI"]:
-                destReg = self.getDestination(insn.sonsList[0])
-                srcR    = self.getDestination(insn.sonsList[1])
-                if str(destReg) != str(srcR):
-                    if self.archMaster == "aarch64":
-                        code += "\t%s_gen%s_3(%s, %s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcR, immValueZero)
-                    else:
-                        code += "\t%s_gen%s_2(%s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcR)
-            elif insnSemName in ["INV", "NEG"]:
-                destReg = self.getDestination(insn)
-                src    = self.getDestination(insn.sonsList[0])
-                code += "\t%s_gen%s_2(%s, %s);\n"%(archMaster, insn.getSemName(), destReg, src)
-            elif "MV" != insnSemName:
-                destReg = self.getDestination(insn)
-                srcL    = self.getDestination(insn.sonsList[0])
-                srcR    = self.getDestination(insn.sonsList[1])
-                if archMaster in ("riscv",) and insnSemName in ("MUL", "DIV"):
-                    code += "\t%s_gen%s_4(%s, %s, %s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcL, srcR, immValueZero)
-                else:
-                    code += "\t%s_gen%s_3(%s, %s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcL, srcR)
-
-            else:
-                fatalError("(codeGeneration) Unknown operator %s"%insn.getSemName())
-        elif insn.isR():
-            destReg = self.getDestination(insn.sonsList[0])
-            srcReg =  self.getDestination(insn.sonsList[1])
-            code += "\t%s_gen%s_3(%s, %s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcReg, immValueZero)
-        elif insn.isW():
-            destReg = self.getDestination(insn.sonsList[0])
-            srcReg =  self.getDestination(insn.sonsList[1])
-            code += "\t%s_gen%s_3(%s, %s, %s);\n"%(archMaster, insn.getSemName(), destReg, srcReg, immValueZero)
-        elif insn.isCmp():
-            if self.archMaster== "kalray":
-                cmpCond  = str(insn.nodeType).split (".")[1]
-                regDest = "(h2_sValue_t) {REGISTER, 'i', 1, 32, 63, 0}" # Hardwired 63
-                srcLeft  = insn.sonsList[0].getVariableName()  # TODO improve varorvalue handling
-                srcRight = insn.sonsList[1].getVariableName()
-                code += '\t%s_gen%s_3(%s, %s, %s);\n'%(archMaster,cmpCond, regDest, srcLeft, srcRight)
-            else:
-                srcLeft  = insn.sonsList[0].getVariableName()  # TODO improve varorvalue handling
-                srcRight = insn.sonsList[1].getVariableName()
-                if None == srcRight: # In case where loop limit is a CONST
-                    srcRight = self.genImmValue(insn.sonsList[1].getConstValue())
-                #val0 = "(h2_sValue_t) {VALUE, 'i', 1, 32, 0, 0}" # Hardwired 0
-                code += '\t%s_genCMP_2(%s, %s);\n'%(archMaster, srcLeft, srcRight)
-        elif insn.isB():
-            if insn.nodeType == H2NodeType.BA:
-                reg0 = "(h2_sValue_t) {REGISTER, 'i', 1, 32, 0, 0}" # Hardwired 0
-                if self.archMaster== "power" or archMaster== "kalray" or self.archMaster=="aarch64":
-                    target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
-                    code += '\t%s_genBA_1(%s);\n'%(archMaster, target)
-                    callback += '\th2_asm_pc = labelAddresses [%s];\n'%(insn.getSourceName()) # TODO not necessary if label defined before
-                    callback += '\t%s_genBA_1(%s);\n'%(archMaster, target)
-                elif  self.archMaster== "riscv":
-                    target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)*4")
-                    code += '\t%s_genBA_2(%s, %s);\n'%(archMaster, reg0, target)
-                    callback += '\th2_asm_pc = labelAddresses [%s];\n'%(insn.getSourceName()) # TODO not necessary if label defined before
-                    callback += '\t%s_genBA_2(%s, %s);\n'%(archMaster, reg0, target)
-            elif insn.isBcc():
-                branchCond  = str(insn.nodeType).split (".")[1]
-                if len(insn.sonsList) == 2:
-                    #riscv
-                    target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)*4")
-                    srcLeft  = insn.sonsList[0].getVariableName()  # TODO improve varorvalue handling
-                    srcRight = insn.sonsList[1].getVariableName()
-                    if None == srcRight: # In case where loop limit is a CONST
-                        srcRight = self.genImmValue(insn.sonsList[1].getConstValue())
-                    code += '\t%s_gen%s_3(%s, %s, %s);\n'%(archMaster, branchCond, srcLeft, srcRight, target)
-                    callback += '\th2_asm_pc = labelAddresses [%s];\n'%(insn.getSourceName()) # TODO not necessary if label defined before
-                    callback += '\t%s_gen%s_3(%s, %s, %s);\n'%(archMaster, branchCond, srcLeft, srcRight, target)
-                elif self.archMaster== "kalray":
-                    target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
-                    src = "(h2_sValue_t) {REGISTER, 'i', 1, 32, 63, 0}" # Hardwired 63
-                    code += '\t%s_gen%s_2(%s, %s);\n'%(archMaster, branchCond, src, target)
-                    callback += '\th2_asm_pc = labelAddresses [%s] + 1;\n'%(insn.getSourceName())
-                    callback += '\t%s_gen%s_2(%s, %s);\n'%(archMaster, branchCond, src, target)
-                else:
-                    #power and aarch64
-                    target = self.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
-                    code += '\t%s_gen%s_1(%s);\n'%(archMaster, branchCond, target)
-                    callback += '\th2_asm_pc = labelAddresses [%s] + 1;\n'%(insn.getSourceName())
-                    callback += '\t%s_gen%s_1(%s);\n'%(archMaster, branchCond, target)
-            else:
-                fatalError("(codeGeneration) unknown branch type %s"%insn)
-        elif insn.isLabel():
-                code += '\t%s_genLABEL(%s);\n'%(archMaster, insn.getLabelName())
-        elif insn.isRtn():
-                code += "\t%s_genRET_0();\n"%archMaster
-        return code, callback
-
-    def genImmValue(self, value):
-        return "(h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(%s)}"%(value)
-
-    def genFixedRegister(self, value):
-        return "(h2_sValue_t) {REGISTER, 'r', 1, 32, 0, %s}"%(value)
-
-    def getDestination (self, insn:H2Node):
-        if insn.isVariable():
-            return insn.getVariableName()
-        elif insn.isR():
-            return insn.getVariableName()
-        elif insn.isOperator():
-            if insn.hasVariableName():
-                return insn.getVariableName()
-            else:
-                d = insn.getOpType()
-                regNro = insn.getRegister()
-                arith = H2Type.typeCorrespondances[d['arith']]
-                return "(h2_sValue_t) {REGISTER, '%s', %s, %s, %s, 0}"%(arith, d["vectorLen"], d["wordLen"], regNro)
-        elif insn.isConst():
-            d = insn.getOpType()
-            value = insn.getConstValue()
-            arith = H2Type.typeCorrespondances[d['arith']]
-            return "(h2_sValue_t) {VALUE, '%s', %s, %s, 0, %s}"%(arith, d["vectorLen"], d["wordLen"], value)
-
-    def genTmpVarName(self):
-        varName = "h2_%08d"%self.tmpVarNumber
-        self.tmpVarNumber += 1
-        return varName
-
-    def getExpressionType(self, insn):
-        return insn.sonsList[0].getVariableName()

@@ -1,0 +1,13 @@
+#!/bin/tcsh
+
+
+if ($#argv < 1) then
+    echo "Give an architecture name"
+    echo "$0 [aarch64|riscv|power]"
+    exit -1
+endif
+
+setenv ARCH $1
+
+cd ../CodeExamples/
+./Regression.py ${ARCH}

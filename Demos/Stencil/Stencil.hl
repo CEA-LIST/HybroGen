@@ -1,0 +1,246 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <assert.h>
+#include "ReadPgmImage.h"
+
+typedef  int (*pifc)(int[],int,int,int,int);
+
+
+unsigned char clamp(int value) {
+  if (value < 0) return 0;
+  if (value > 255) return 255;
+  return (unsigned char)value;
+}
+
+
+
+pifc genKernel3x3(pifc ptr,int** Filter,int coeff)
+{
+  //printf("%i %i %i\n%i %i %i\n%i %i %i\ncoeff is : %i\n",Filter[0][0],Filter[0][1],Filter[0][2],Filter[1][0],Filter[1][1],Filter[1][2],Filter[2][0],Filter[2][1],Filter[2][2],coeff);
+  #[
+    int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 Inwidth, int 32 1 Inheight)
+    {
+
+      int 32 1 sum, ni, nj1, nj0, njm1;
+	  nj1  = column+1;
+	  nj0  = column;
+	  njm1 = column - 1;
+      ni = line-1;
+	  sum =       In[ni * Inwidth + njm1] * #(Filter[0][0]);
+	  sum = sum + In[ni * Inwidth + nj0]  * #(Filter[0][1]);
+	  sum = sum + In[ni * Inwidth + nj1]  * #(Filter[0][2]);
+
+	  ni = line;
+	  sum = sum + In[ni * Inwidth + njm1] * #(Filter[1][0]);
+	  sum = sum + In[ni * Inwidth + nj0]  * #(Filter[1][1]);
+	  sum = sum + In[ni * Inwidth + nj1]  * #(Filter[1][2]);
+
+      ni = line+1;
+	  sum = sum + In[ni * Inwidth + njm1] * #(Filter[2][0]);
+	  sum = sum + In[ni * Inwidth + nj0]  * #(Filter[2][1]);
+	  sum = sum + In[ni * Inwidth + nj1]  * #(Filter[2][2]);
+      return sum/#(coeff);
+    }
+  ]#
+  return ptr;
+}
+
+
+pifc genKernel5x5(pifc ptr,int** Filter,int coeff)
+{
+  //printf("%i %i %i\n%i %i %i\n%i %i %i\ncoeff is : %i\n",Filter[0][0],Filter[0][1],Filter[0][2],Filter[1][0],Filter[1][1],Filter[1][2],Filter[2][0],Filter[2][1],Filter[2][2],coeff);
+  #[
+    int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 Inwidth, int 32 1 Inheight)
+    {
+      int 32 1 sum, ni, njm2, njm1, nj1, nj2;
+	  njm2 = column - 2;
+	  njm1 = column - 1;
+	  nj1 = column + 1;
+	  nj2 = column + 2;
+
+      ni = line-2;
+	  sum =       In[ni * Inwidth + njm2]   * #(Filter[0][0]);
+      sum = sum + In[ni * Inwidth + njm1]   * #(Filter[0][1]);
+      sum = sum + In[ni * Inwidth + column] * #(Filter[0][2]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[0][3]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[0][4]);
+
+      ni = line-1;
+	  sum = sum + In[ni * Inwidth + njm2]   * #(Filter[1][0]);
+      sum = sum + In[ni * Inwidth + njm1]   * #(Filter[1][1]);
+      sum = sum + In[ni * Inwidth + column] * #(Filter[1][2]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[1][3]);
+      sum = sum + In[ni * Inwidth + nj2]    * #(Filter[1][4]);
+
+      ni = line;
+	  sum = sum + In[ni * Inwidth + njm2]   * #(Filter[2][0]);
+      sum = sum + In[ni * Inwidth + njm1]   * #(Filter[2][1]);
+      sum = sum + In[ni * Inwidth + column] * #(Filter[2][2]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[2][3]);
+      sum = sum + In[ni * Inwidth + nj2]    * #(Filter[2][4]);
+
+      ni = line+1;
+	  sum = sum + In[ni * Inwidth + njm2]   * #(Filter[3][0]);
+      sum = sum + In[ni * Inwidth + njm1]   * #(Filter[3][1]);
+	  sum = sum + In[ni * Inwidth + column] * #(Filter[3][2]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[3][3]);
+      sum = sum + In[ni * Inwidth + nj2]    * #(Filter[3][4]);
+
+      ni = line+2;
+	  sum = sum + In[ni * Inwidth + njm2]   * #(Filter[4][0]);
+      sum = sum + In[ni * Inwidth + njm1]   * #(Filter[4][1]);
+      sum = sum + In[ni * Inwidth + column] * #(Filter[4][2]);
+      sum = sum + In[ni * Inwidth + nj1]    * #(Filter[4][3]);
+      sum = sum + In[ni * Inwidth + nj2]    * #(Filter[4][4]);
+      return sum/#(coeff);
+    }
+  ]#
+  return ptr;
+}
+
+int kernel(imgStruct_t *In, imgStruct_t *Filter,int coeff,int line,int column,int offset)
+{
+  int sum = 0;
+  //printf("FilterHeight : %i\nFilterWidth : %i\n",Filter->width,Filter->height);
+  // kernel sum operation
+  for (int ki = 0; ki < Filter->height; ki++) {
+    for (int kj = 0; kj < Filter->width; kj++) {
+        int ni = (line + ki) - offset;
+        int nj = (column + kj) - offset;
+        sum += In->pixelsArray[ni][nj] * Filter->pixelsArray[ki][kj];
+        //printf("In->pixelsArray[%i][%i] : %i\nFilter->pixelsArray[%i][%i] : %i\nsum : %i\n",ni,nj,In->pixelsArray[ni][nj],ki,kj,Filter->pixelsArray[ki][kj],sum);
+    }
+  }
+  //printf("kernel result is : %d\n",sum/coeff);
+
+  return clamp(sum / coeff); // good value for pgm + divide by coefficient of the stencil
+}
+
+
+void convolution(imgStruct_t *In, imgStruct_t *Out, imgStruct_t *Filter,int coeff)
+{
+  assert (Filter->width == Filter->height); // only square filter
+  int offset = Filter->width/2;
+  for (int line = offset; line < In->height-offset; line++){
+    for (int column = offset; column < In->width-offset; column++){
+
+        Out->pixelsArray[line][column] =  kernel(In,Filter,coeff,line,column,offset); // write result of kernel operation for this pixel
+      }
+    }
+}
+
+void convolutionH4(imgStruct_t* In, imgStruct_t *Out, imgStruct_t *Filter, int coeff)
+{
+  int result;
+  assert (Filter->width == Filter->height);
+  int offset = Filter->width/2;
+  pifc kernelGenerated = NULL;
+  ticks_t startConv = h2_getticks();
+  if(Filter->width == 5){
+    kernelGenerated = (pifc)h2_malloc(8192);
+    kernelGenerated = genKernel5x5 (kernelGenerated, (int**)Filter->pixelsArray, coeff);
+  }
+  else{
+    kernelGenerated = (pifc)h2_malloc(1025);
+    kernelGenerated = genKernel3x3 (kernelGenerated, (int**)Filter->pixelsArray, coeff);
+
+  }
+  ticks_t endConv = h2_getticks();
+  endConv = endConv - startConv;
+  //  printf("generation Time compilette : %lu ticks\n",endConv);
+
+  for (int line = offset; line < (In->height)-offset; line++)
+    {
+      for (int column = offset; column < (In->width)-offset; column++)
+        {
+           result = kernelGenerated((int *) In->pixelsArray, line, column, In->width, In->height);
+          //printf("kernelH4 result is : %d\n",result);
+          Out->pixelsArray[line][column] = clamp(result);
+          // printf ("%d %d\n\n", GET(Out, line, column), tmpValue);
+        }
+    }
+  //free(kernelGenerated);
+}
+
+void compareImages(imgStruct_t *img1, imgStruct_t *img2)
+{
+  for(int line = 0 ; line < img1->height ; line++)
+	{
+	  for(int column = 0 ; column < img1->width ; column++)
+		{
+		  //printf("%i\n",Out->pixelsArray[i][j]);
+		  if(img1->pixelsArray[line][column] != img2->pixelsArray[line][column])
+			{
+			  printf("Alert initial difference at %i %i : abort\n",line, column);
+			  exit(-1);
+			}
+		}
+	}
+}
+
+void printImage(imgStruct_t *img, int lineMax, int colMax)
+{
+  int line, column;
+  for(int line = 0 ; line < lineMax ; line++)
+	{
+	  for(int column = 0 ; column < colMax ; column++)
+		{
+		  printf("%02d ", img->pixelsArray[line][column]);
+		}
+	  printf("\n");
+	}
+  printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+  imgStruct_t *In, *InR, *OutH4, *OutStatic, *Filter;
+  char *filterImageName, *inputImageName;
+  if (argc < 6)
+    {
+      printf ("./Stencil <InputImageName> <outputImageName> <outputH4ImageName> <Filter Img> <Coeff Filter>\n");
+      exit(-1);
+    }
+
+  filterImageName  = argv[4];
+  inputImageName = argv[1];
+  In     = readPgmImage(inputImageName);
+  Filter = readPgmImage(filterImageName);
+
+  int coeff = atoi(argv[5]);
+  OutStatic = createImage (In->height, In->width);
+  OutH4     = createImage (In->height, In->width);
+  InR       = createImage (In->height, In->width);
+  //  printImage(In, 5, 5);
+
+  ticks_t startConv = h2_getticks();   // Static convolution
+  convolution (In, OutStatic, Filter, coeff);
+  ticks_t endConv = h2_getticks();
+  endConv = endConv - startConv;
+  //  printImage(OutStatic, 5, 5);
+
+  int * tmp = malloc(sizeof(int) * In->width * In->height);
+  for(int i = 0 ; i < In->height; i++)
+	{
+	  for(int j = 0 ; j < In->width ; j++)
+		{
+		  tmp[i * In->width + j] = In->pixelsArray[i][j];
+		}
+	}
+  InR->pixelsArray = (int **) tmp;
+  ticks_t startConvH4 = h2_getticks(); // Compilette convolution
+  convolutionH4(InR, OutH4, Filter, coeff);
+  ticks_t endConvH4 = h2_getticks();
+  endConvH4 = endConvH4 - startConvH4;
+  //  printImage(OutH4, 5, 5);
+
+  compareImages(OutH4, OutStatic);
+  printf("%s;%ix%i;%ix%i;%lld;%lld\n", filterImageName, Filter->width, Filter->height, In->width, In->height, endConv, endConvH4);
+#if 0
+  writePgmImage(OutStatic, argv[2]);
+  writePgmImage(OutH4,argv[3]);
+#endif
+  return 0;
+}

@@ -1,4 +1,4 @@
-# Generated from IsaDescription.g4 by ANTLR 4.7.2
+# Generated from IsaDescription.g4 by ANTLR 4.9.2
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .IsaDescriptionParser import IsaDescriptionParser
@@ -116,15 +116,6 @@ class IsaDescriptionListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by IsaDescriptionParser#op.
-    def enterOp(self, ctx:IsaDescriptionParser.OpContext):
-        pass
-
-    # Exit a parse tree produced by IsaDescriptionParser#op.
-    def exitOp(self, ctx:IsaDescriptionParser.OpContext):
-        pass
-
-
     # Enter a parse tree produced by IsaDescriptionParser#asmdescr.
     def enterAsmdescr(self, ctx:IsaDescriptionParser.AsmdescrContext):
         pass
@@ -188,3 +179,5 @@ class IsaDescriptionListener(ParseTreeListener):
         pass
 
 
+
+del IsaDescriptionParser

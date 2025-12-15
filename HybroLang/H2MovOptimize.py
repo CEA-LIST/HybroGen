@@ -12,7 +12,7 @@ class H2MovOptimize():
         else:
             self.newList = self.oldList
         if verbose:
-            print ("Mov optimize from old %d insn to new %d insn"%(len (self.oldList), len (self.newList)))
+            print ("Mov optimize pass : from old %d insn to new %d insn"%(len (self.oldList), len (self.newList)))
             for i in range(len(self.newList)):
                 print("%d : %s \n"%(i, self.newList[i]))
 
@@ -37,7 +37,7 @@ class H2MovOptimize():
                 srcNode  = new.sonsList[1]
                 replacedNode = current.sonsList[0]
                 # print("Optimize opportunity %s <- %s"%(destNode.getVariableName(), srcNode.getVariableName()))
-                # print(" %s %s "%(current.sonsList[0].getVariableName(),srcNode.getVariableName()))
+                # print(" %s %s "%(current.sonsList[0].getVariableName(),srcNode.getVariableName()))
                 if self.areVariableSimilar(replacedNode, srcNode):
                     # destNode.setOpType (srcNode.getOpType ()) # Should we transfert datatype ?
                     current.sonsList[0] = destNode

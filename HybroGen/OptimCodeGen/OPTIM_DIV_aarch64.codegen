@@ -1,0 +1,9 @@
+/* -*- c -*- */
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI div (aarch64)\\n");
+    #endif
+	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
+}

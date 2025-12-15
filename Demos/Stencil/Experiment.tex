@@ -1,0 +1,457 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % Provides \boxed command
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage[a4paper, top=3 cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\doublespacing % Pour un double interligne
+\usepackage{verbatim}
+
+
+\begin{document}
+
+\section{Stencil Experiment}
+
+\subsection{Principles}
+
+First we take the convolution matrix operation. and we focused on optimise the Kernel(image processing operation). The goal is to take an image apply a filter on it using the convolution matrix operation. And we are going to do that with a simple code and with a code optimised with Compilette and compare which one is better and on which case. The pseudo code of the matrix Convolution operation look like : 
+
+\begin{verbatim}
+function convolution(inputImage, outputImage, filter, coefficient):
+	assert filter.width == filter.height  // only allow square filters
+	offset = filter.width / 2
+	for line from offset to (inputImage.height - offset - 1):
+		for column from offset to (inputImage.width - offset - 1):
+			outputImage[line][column] = kernel(inputImage, filter, coefficient, line, column, offset)
+\end{verbatim}
+
+
+
+\begin{verbatim}
+function kernel(inputImage(the image we do the operation on), filter(the matrix), 
+coefficient(the coefficient of the matrix), pixelYposition, pixelXposition, offset(sizeFilter/2),
+offset (basicly Filter->size/2)):
+	sum = 0
+	
+	for ki from 0 to filter.height - offset:
+		for kj from 0 to filter.width - offset:
+			ni = (line + ki) - offset
+			nj = (column + kj) - offset	
+			sum = sum + (inputImage[ni][nj] * filter[ki][kj])
+	
+	return clamp(sum / coefficient)
+
+\end{verbatim}
+
+\begin{verbatim}
+	function clamp(value):
+	if value < 0:
+	return 0
+	if value > 255:
+	return 255
+\end{verbatim}
+
+
+Our goal with this experimentation is to turn kernel into a compilette for each filter. the goal to make a proof of work that a run time recompilation of the kernel function will greatly improve the performance of the convolution function.
+
+
+\subsection{Experimentation 3x3 Filter}
+
+This experiment is made on a aarch64 architecture.
+We are taking a lot of image with well-knows resolution(see table 1) and we are going to execute the convolution matrix product on each image and see the execution time of the standars C code and the execution time of the optimised with compilette code.
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		\textbf{Width} & \textbf{Height} & \textbf{Size (byte)} \\
+		\hline
+		320  & 240  & 76\,800 \\
+		640  & 480  & 307\,200 \\
+		800  & 600  & 480\,000 \\
+		1024 & 768  & 786\,432 \\
+		1280 & 720  & 921\,600 \\
+		1280 & 1024 & 1\,310\,720 \\
+		1366 & 768  & 1\,049\,088 \\
+		1440 & 900  & 1\,296\,000 \\
+		1600 & 900  & 1\,440\,000 \\
+		1600 & 1200 & 1\,920\,000 \\
+		1680 & 1050 & 1\,764\,000 \\
+		1920 & 1080 & 2\,073\,600 \\
+		1920 & 1200 & 2\,304\,000 \\
+		2048 & 1080 & 2\,211\,840 \\
+		2560 & 1440 & 3\,686\,400 \\
+		2560 & 1600 & 4\,096\,000 \\
+		3200 & 1800 & 5\,760\,000 \\
+		3840 & 2160 & 8\,294\,400 \\
+		4096 & 2160 & 8\,847\,360 \\
+		5120 & 2880 & 14\,745\,600 \\
+		7680 & 4320 & 33\,177\,600 \\
+		\hline
+	\end{tabular}
+	\caption{size in Byte of an PGM image calculated by his resolution}
+\end{table}
+
+
+
+
+
+\subsubsection{GaussFilter}
+
+In this experimentation we will be using a Gauss3x3 filter: 
+
+\[
+\frac{1}{16}
+\begin{bmatrix}
+	1 & 2 & 1 \\
+	2 & 4 & 2 \\
+	1 & 2 & 1
+\end{bmatrix}
+\]
+
+
+Here is a plot that show you for each size the convolution time in ticks for an image of size in bytes.
+
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.1\linewidth]{Gauss3x3Plot.png}
+	\label{fig:enter-label}
+\end{figure}
+
+\newpage
+let zoom in. I am going to develop for the resolution 3840x2160 why hybrogen more faster than the classic C code using formulas.
+ 
+The formula for hybrogen implementation is : 
+\[
+T = \sum_{c=0}^{C}T_c+\sum_{e=0}^ET_e
+\]
+The formula for the standards C implementation is : 
+\[
+	T = \sum_{e=0}^ET_e
+\]
+
+So the standars C implementation as we previously see take 87625375 ticks so 
+
+\[
+	\sum_{e=0}^ET_e = 87625375\ ticks = T
+\] 
+
+And for HybroGen implementation we have measured
+\[
+	\sum_{c=0}^{C}T_c = 325187\ ticks
+\]
+And we also have measured
+\[
+	T = 30711937\ ticks 
+\]
+so we put 
+\[
+	 \sum_{e=0}^ET_e = T - \sum_{c=0}^{C}T_c
+\]
+
+and we find an execution time of the recompile code at
+\[
+	\sum_{e=0}^ET_e = 30386750\ ticks
+\]
+
+So that demonstrate that the algorithm recompile dynamicly with HybroGen using compilette is 288\% more efficient than the classic C algorithm.
+
+\subsubsection{BlurFilter}
+
+In this experimentation we will be using a Blur filter: 
+
+\[
+\frac{1}{9}
+\begin{bmatrix}
+	1 & 1 & 1 \\
+	1 & 1 & 1 \\
+	1 & 1 & 1
+\end{bmatrix}
+\]
+
+
+Here is a plot that show you for each size the convolution time in ticks for an image of size in bytes.
+
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.1\linewidth]{BlurPlot.png}
+	\label{fig:enter-label}
+\end{figure}
+
+\newpage
+let zoom in. I am going to develop for the resolution 3840x2160 why hybrogen more faster than the classic C code using formulas.
+
+The formula for hybrogen implementation is : 
+\[
+T = \sum_{c=0}^{C}T_c+\sum_{e=0}^ET_e
+\]
+The formula for the standards C implementation is : 
+\[
+T = \sum_{e=0}^ET_e
+\]
+
+So the standars C implementation as we previously see take 87625375 ticks so 
+
+\[
+\sum_{e=0}^ET_e = 81970312\ ticks = T
+\] 
+
+And for HybroGen implementation we have measured
+\[
+\sum_{c=0}^{C}T_c = 303625\ ticks
+\]
+And we also have measured
+\[
+T = 28502250\ ticks 
+\]
+so we put 
+\[
+\sum_{e=0}^ET_e = T - \sum_{c=0}^{C}T_c
+\]
+
+and we find an execution time of the recompile code at
+\[
+\sum_{e=0}^ET_e = 28198625\ ticks
+\]
+
+So that demonstrate that the algorithm recompile dynamicly with HybroGen using compilette is 287,5\% more efficient than the classic C algorithm.
+
+
+
+\subsection{Experimentation 5x5 Filter}
+
+\subsubsection{Id Filter}
+we will be doing the same as the last experimentation but with a 5x5 Id Filter : 
+
+\[
+\frac{1}{1}
+\begin{bmatrix}
+	0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 \\ 
+	0 & 0 & 1 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 
+\end{bmatrix}
+\]
+
+So here is the plot that show you for each image size the convolution time for compilette solution and standars C solution in ticks : 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.1\linewidth]{IdPlot.png}
+	\label{fig:enter-label}
+\end{figure}
+
+\newpage
+
+
+
+again let zoom in. I am going to develop for the resolution 3840x2160 why hybrogen more faster than the classic C code using formulas.
+
+The formula for HybroGen implementation is : 
+\[
+T = \sum_{c=0}^{C}T_c+\sum_{e=0}^ET_e
+\]
+The formula for the standards C implementation is : 
+\[
+T = \sum_{e=0}^ET_e
+\]
+
+So the standars C implementation as we previously see take 187184375 ticks so 
+
+\[
+\sum_{e=0}^ET_e = 187184375\ ticks = T
+\] 
+
+And for HybroGen implementation we have measured
+\[
+\sum_{c=0}^{C}T_c = 725062\ ticks
+\]
+And we also have measured
+\[
+T = 40980437\ ticks 
+\]
+so we put 
+\[
+\sum_{e=0}^ET_e = T - \sum_{c=0}^{C}T_c
+\]
+
+and we find an execution time of the recompile code at
+\[
+\sum_{e=0}^ET_e = 40255375\ ticks
+\]
+
+So that demonstrate that the algorithm recompile dynamicly with HybroGen using compilette is 457\% more efficient than the classic C algorithm.
+
+
+
+
+\subsubsection{Null Filter}
+we will be doing the same as the last experimentation but with a 5x5 Null Filter : 
+
+\[
+\frac{1}{1}
+\begin{bmatrix}
+	0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 \\ 
+	0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 
+\end{bmatrix}
+\]
+
+So here is the plot that show you for each image size the convolution time for compilette solution and standars C solution in ticks : 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.1\linewidth]{NullPlot.png}
+	\label{fig:enter-label}
+\end{figure}
+
+\newpage
+
+
+
+again let zoom in. I am going to develop for the resolution 3840x2160 why hybrogen more faster than the classic C code using formulas.
+
+The formula for HybroGen implementation is : 
+\[
+T = \sum_{c=0}^{C}T_c+\sum_{e=0}^ET_e
+\]
+The formula for the standards C implementation is : 
+\[
+T = \sum_{e=0}^ET_e
+\]
+
+So the standars C implementation as we previously see take 187184375 ticks so 
+
+\[
+\sum_{e=0}^ET_e = 179043875\ ticks = T
+\] 
+
+And for HybroGen implementation we have measured
+\[
+\sum_{c=0}^{C}T_c = 688687\ ticks
+\]
+And we also have measured
+\[
+T = 38334437\ ticks 
+\]
+so we put 
+\[
+\sum_{e=0}^ET_e = T - \sum_{c=0}^{C}T_c
+\]
+
+and we find an execution time of the recompile code at
+\[
+\sum_{e=0}^ET_e = 37645750\ ticks
+\]
+
+So that demonstrate that the algorithm recompile dynamicly with HybroGen using compilette is 467\% more efficient than the classic C algorithm.
+
+
+
+\subsubsection{Gauss 5x5 Filter}
+we will be doing the same as the last experimentation but with a 5x5 Gauss Filter : 
+
+\[
+\frac{1}{256}
+\begin{bmatrix}
+	1 & 4 & 6 & 4 & 1 \\
+	4 & 16 & 24 & 16 & 4 \\ 
+	6 & 24 & 36 & 24 & 6 \\
+	4 & 16 & 24 & 16 & 4 \\
+	1 & 4 & 6 & 4 & 1 
+\end{bmatrix}
+\]
+
+So here is the plot that show you for each image size the convolution time for compilette solution and standars C solution in ticks : 
+
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.1\linewidth]{Gauss5x5Plot.png}
+	\label{fig:enter-label}
+\end{figure}
+
+\newpage
+
+
+
+again let zoom in. I am going to develop for the resolution 3840x2160 why hybrogen more faster than the classic C code using formulas.
+
+The formula for HybroGen implementation is : 
+\[
+T = \sum_{c=0}^{C}T_c+\sum_{e=0}^ET_e
+\]
+The formula for the standards C implementation is : 
+\[
+T = \sum_{e=0}^ET_e
+\]
+
+So the standars C implementation as we previously see take 179324250 ticks so 
+
+\[
+\sum_{e=0}^ET_e = 179324250\ ticks = T
+\] 
+
+And for HybroGen implementation we have measured
+\[
+\sum_{c=0}^{C}T_c = 689312\ ticks
+\]
+And we also have measured
+\[
+T = 43204312\ ticks 
+\]
+so we put 
+\[
+\sum_{e=0}^ET_e = T - \sum_{c=0}^{C}T_c
+\]
+
+and we find an execution time of the recompile code at
+\[
+\sum_{e=0}^ET_e = 42515000\ ticks
+\]
+
+So that demonstrate that the algorithm recompile dynamicly with HybroGen using compilette is 415\% more efficient than the classic C algorithm.
+
+
+
+
+\subsection{Experimentation conclusion}
+
+This experimentation demonstrates that hybroGen can optimize very simple operation like the kernel Operation with a more than decent gain in efficiency and also power consumption economy(less cycle less consumption in theory).The more you repeat an operation with similar data during a calculus the more HybroGen is a well-suited solution for your application. Also the difference of eficiency gain between 3x3 and 5x5 Gauss Filter experiment proof that the bigger is the calculus and the bigger are the data input(Filter) the more HybroGen is efficient compare to a classic C implementation.
+
+
+
+\subsection{which application does use matrix convolution}
+
+\begin{itemize}
+	\item \textbf{Classic Image Processing}
+	\begin{itemize}
+		\item \textbf{GIMP} : user-defined convolution (contrast, edge detection, sharpening, blur)
+		\item \textbf{Adobe Photoshop} : filter effects using kernels (blur, sharpening, edge detection)
+		\item \textbf{ImageJ} : \texttt{Convolve} plugin to apply 2D kernels
+		\item \textbf{OpenCV} : \texttt{cv2.filter2D()} function for custom kernel filtering
+		\item \textbf{Matlab / Octave} : functions \texttt{imfilter}, \texttt{conv2}, \texttt{fspecial}
+	\end{itemize}
+	
+	\item \textbf{Deep Learning / Machine Learning}
+	\begin{itemize}
+		\item \textbf{TensorFlow} : \texttt{Conv2D}, \texttt{Conv3D} layers using kernels learned by the neural network
+		\item \textbf{Keras} : high-level API using \texttt{Conv2D} convolution layers
+		\item \textbf{PyTorch} : \texttt{torch.nn.Conv2d} module with trainable kernel parameters
+		\item \textbf{Caffe} : model architecture with convolution layers (learned kernels)
+	\end{itemize}
+	
+	\item \textbf{Video Processing / Real-Time Effects}
+	\begin{itemize}
+		\item \textbf{FFmpeg} : \texttt{convolution} filter using user-defined matrices
+		\item \textbf{OBS Studio (with plugins)} : some filters apply kernels for blur or edge detection effects
+	\end{itemize}
+\end{itemize}
+
+
+\end{document}
+

@@ -11,8 +11,18 @@ from HybroGen.RegisterDescriptionListener import RegisterDescriptionListener
 from HybroGen.Register import Register
 from HybroGen.ProxyDb import *
 import time
-       
+
 class RegisterListener(RegisterDescriptionListener):
+    """ Parse a register line definition containing:
+    * BankSet (or extension name)
+    * Arithmetic used
+    * Reg # range
+    * Register width
+    * Textual description
+    Example :
+    A64     i      $r0-7      64      O0-7    # Function Ouput registers
+    A64     i      $r9-28     64      T9-28   # Temporaries registers
+    """
     def __init__(self, archname, db):
         self.archname = archname
         self.db = db
@@ -34,10 +44,10 @@ class RegisterListener(RegisterDescriptionListener):
             self.currentReg.setRegisterName(int(tmp[1:]))
         if ctx.INT() != None:
             self.currentReg.setRegisterName(ctx.INT().getText())
- 
+
     def enterRegisterfunction(self, ctx:RegisterDescriptionParser.RegisterfunctionContext):
         self.currentReg.setFunction(ctx.FUNCNAME())
-        
+
     def enterRegisterfunctionwn(self, ctx:RegisterDescriptionParser.RegisterfunctionwnContext):
         if (ctx.INT() == None or len(ctx.INT().getText())== 0):
             self.currentReg.setFunction(ctx.REGWN())
@@ -48,10 +58,10 @@ class RegisterListener(RegisterDescriptionListener):
             indMax = int(ctx.INT().getText())
             for i in range(indMin, indMax + 1):
                 self.currentReg.setFunction(functionType + '{:02d}'.format(i))
-    
+
     def enterRegisterwidth(self, ctx:RegisterDescriptionParser.RegisterwidthContext):
         self.currentReg.setRegisterWidth(ctx.INT().getText())
-        
+
     def exitRegisterline(self, ctx:RegisterDescriptionParser.RegisterlineContext):
         prefix = self.currentReg.getPrefix()
         lRegisterName = self.currentReg.getRegisterName()
@@ -79,10 +89,10 @@ def insertDb(archName, dbId):
     db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     try:
         l = RegisterDescriptionLexer(antlr4.FileStream(filename, "utf8"))
-    except FileNotFoundError:        
+    except FileNotFoundError:
         print("Error : no file HybroGen/arch/%s/h2-%s.register"%(archName, archName))
         sys.exit(0)
-    
+
     s = CommonTokenStream(l)
     p = RegisterDescriptionParser(s)
     t = p.registerdescription()
@@ -93,7 +103,7 @@ def insertDb(archName, dbId):
 def dropDb(dbIds):
     db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
     db.dropDb()
-    
+
 def usage(msg):
     print("Error : %s"%msg)
     print("%s %s [ArchName] "%("H2Register", argList.keys()))
@@ -105,11 +115,11 @@ if __name__ == '__main__':
     import argparse
 
     p = argparse.ArgumentParser("Hybrogen register handling")
-    p.add_argument ("-a", "--arch",   nargs=1,  default="none", help="Give arch name")
-    p.add_argument ('-p', '--dropDb', action='store_true',  help="Delete all database tables")
+    p.add_argument ("-a", "--arch",     nargs=1,  default="none", help="Give arch name")
+    p.add_argument ('-p', '--dropDb',   action='store_true',  help="Delete all database tables")
     p.add_argument ('-i', '--insertDb', action='store_true', help="Insert a register in the database")
-    p.add_argument ('-n', '--initDb',  action='store_true',  help="Init DB")
-    p.add_argument ('-d', '--dbIds',  default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
+    p.add_argument ('-n', '--initDb',   action='store_true',  help="Init DB")
+    p.add_argument ('-d', '--dbIds',    default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
     args = p.parse_args()
     archName = args.arch[0]
     ids = args.dbIds.split(":")

@@ -206,6 +206,8 @@ i1[11:5] r2[4:0] r1[4:0] 010 i1[4:0] 0100111 | RV32F f 1 32 W FSW r1 r2 i1
 # 1101001 00010 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.D.L
 # 1101001 00011 r1[4:0] rm r3[4:0] 1010011 | RV64D f 1 64 FCVT.D.LU
 # 1111001 00000 r1[4:0] 000 r3[4:0] 1010011 | RV64D f 1 64 FMV.D.X
+i1[11:0] r1[4:0] 011 r2[4:0]         0000111 | RV64D f 1 64 R FLW r2 r1 i1
+i1[11:5] r2[4:0] r1[4:0] 011 i1[4:0] 0100111 | RV64D f 1 64 W FSW r1 r2 i1
 
 # Small float extension from ethz.ch
 # Rounding Mode Mnemonic Meaning
@@ -655,7 +657,8 @@ r3[4:0] 10 r2[4:0] r1[4:0] i1[2:0] r4[4:0] 1000011 	| RV32Xf16 f 1 16 MADD FMADD
 # funct6 vm r2[4:0] r1[4:0] 000 v0[4:0] 1010111 OP-V (OPIVV)vector-vector
 # vm 0 -> vector result, only where v0[i].LSB = 1
 # vm 1 -> unmasked
-000000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADD r0 r1 r2
+000000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RV32V i 4 32 ADD ADD r0 r1 r2
+000000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RV32V i 2 64 ADD ADD r0 r1 r2
 #000000 0 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 ADD VADD.t r0 r1 r2
 000010 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 SUB VSUB r0 r1 r2
 # 000100 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111 | RISCVV i 1 32 vminu
@@ -848,18 +851,28 @@ r3[4:0] 10 r2[4:0] r1[4:0] i1[2:0] r4[4:0] 1000011 	| RV32Xf16 f 1 16 MADD FMADD
 # 001011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vasub
 # 001110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vslide1up
 # 001111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vslide1down
-# 010000 1 00000 r1[4:0] 110 r0[4:0] 1010111 | RISCVV I 1 32 vmv.s.x
+010111 1 00000 i0[4:0] 011 r0[4:0] 1010111 | RV32V i 2 32 mv vmv.v.i r0 i0
+010111 1 00000 i0[4:0] 011 r0[4:0] 1010111 | RV32V i 4 32 mv vmv.v.i r0 i0
+010111 1 00000 i0[4:0] 011 r0[4:0] 1010111 | RV32V i 2 64 mv vmv.v.i r0 i0
+
+010111 1 00000 r1[4:0] 000 r0[4:0] 1010111 | RV32V i 2 32 mv vmv.v.v r0 r1
+010111 1 00000 r1[4:0] 000 r0[4:0] 1010111 | RV32V i 4 32 mv vmv.v.v r0 r1
+010111 1 00000 r1[4:0] 000 r0[4:0] 1010111 | RV32V i 2 64 mv vmv.v.v r0 r1
 # 100000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vdivu
 # 100001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vdiv
 # 100010 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vremu
 # 100011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vrem
 # 100100 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulhu
-# 100101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmul
+100101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 2 32 mul vmul r0 r1 r2
+100101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 4 32 mul vmul r0 r1 r2
+100101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 2 64 mul vmul r0 r1 r2
 # 100110 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulhsu
 # 100111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmulh
 # 101001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmadd
 # 101011 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vnmsub
-# 101101 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vmacc
+101101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 2 32 mac vmacc r0 r1 r2
+101101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 4 32 mac vmacc r0 r1 r2
+101101 1 r2[4:0] r1[4:0] 010 r0[4:0] 1010111 | RV32V i 2 64 mac vmacc r0 r1 r2
 # 101111 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vnmsac
 # 110000 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwaddu
 # 110001 1 r2[4:0] r1[4:0] 110 r0[4:0] 1010111 | RISCVV i 1 32 vwadd
@@ -994,6 +1007,37 @@ r3[4:0] 10 r2[4:0] r1[4:0] i1[2:0] r4[4:0] 1000011 	| RV32Xf16 f 1 16 MADD FMADD
 # Formats for Vector Configuration Instructions under OP-V major opcode
 #i0[4:2]:       vsew[2:0]   Standard element width (SEW) setting
 #i0[5] i0[1:0]: vlmul[2:0]  Vector register group multiplier (LMUL) setting
-# 0 i0[10:0] r1[4:0] 111 r0[4:0] 1010111 | RISCVV i 1 32 vsetvli r0 r1 i0
+#0 i0[10:0] r1[4:0] 111 r0[4:0] 1010111 | RV32V i 3 32 add vsetvli r0 r1 i0
+#11001101000000100111000001010111     | RV32V i 4 32 vconf vsetivli
+
+#FOR v0.7
+#0 | zimm[10:0] | rs1 | 1 1 1 | rd |1010111| vsetvli
+# 00000000100000110111000001010111                | RV32V i 4 32 vconf vsetvli
+# 000 000 1 00000 r1[4:0] 111 r0[4:0] 0000111     | RV32V i 4 32 r vle.v r0 r1
+# 000 000 1 00000 r0[4:0] 111 r1[4:0] 0100111     | RV32V i 4 32 w vse.v r0 r1
+# 000000 1 r2[4:0] r1[4:0] 000 r0[4:0] 1010111    | RV32V i 4 32 ADD ADD r0 r1 r2
+
+# FOR v1.0
+1 1 0 0 11 i0[2:0] 000 00100 111 00000 1010111    | RV32V i 16 8 vconf vsetivli i0
+1 1 0 0 11 i0[2:0] 000 00100 111 00000 1010111    | RV32V i 8 16 vconf vsetivli i0
+1 1 0 0 11 i0[2:0] 000 00100 111 00000 1010111    | RV32V i 4 32 vconf vsetivli i0
+1 1 0 0 11 i0[2:0] 000 00010 111 00000 1010111    | RV32V i 2 64 vconf vsetivli i0
+
+000000 1 00000 r0[4:0] 110 r1[4:0] 0100111    | RV32V i 16 8 w vse32.v r0 r1
+000000 1 00000 r1[4:0] 110 r0[4:0] 0000111    | RV32V i 16 8 r vle32.v r0 r1
+000000 1 00000 r0[4:0] 110 r1[4:0] 0100111    | RV32V i 8 16 w vse32.v r0 r1
+000000 1 00000 r1[4:0] 110 r0[4:0] 0000111    | RV32V i 8 16 r vle32.v r0 r1
+000000 1 00000 r0[4:0] 110 r1[4:0] 0100111    | RV32V i 4 32 w vse32.v r0 r1
+000000 1 00000 r1[4:0] 110 r0[4:0] 0000111    | RV32V i 4 32 r vle32.v r0 r1
+000000 1 00000 r0[4:0] 110 r1[4:0] 0100111    | RV32V i 2 64 w vse32.v r0 r1
+000000 1 00000 r1[4:0] 110 r0[4:0] 0000111    | RV32V i 2 64 r vle32.v r0 r1
+
+#0 00011010010 01101 111 00000 1010111     | RV32V i 4 32 add vsetvli
+#Decodage de vsetvli 
+#r1 -> requested application vector length
+#r0 -> vector length
+#r1 != 0 vl is set to x[r1]
+#0 00011010010 01101   111 00000   1010111
+#              01101
 #r2 -> vtype like zimm
 # 1 000000 r2[4:0] r1[4:0] 111 r0[4:0] 1010111 | RISCVV i 1 32 vsetvl r0 r1 r2

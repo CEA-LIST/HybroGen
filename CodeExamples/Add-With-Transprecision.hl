@@ -25,7 +25,6 @@ h2_insn_t * genAdd(h2_insn_t * ptr, int FloatWidth)
 
 int main(int argc, char * argv[])
 {
-  h2_insn_t * ptr;
   float in0, in1, resf;
   double resd;
 #if 0
@@ -41,19 +40,19 @@ int main(int argc, char * argv[])
     }
   in0  = atof(argv[1]);    // Get the users values in1 & in2
   in1  = atof(argv[2]);
-  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
-
+  fPtr1 = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr2 = h2_malloc (1024);  // Allocate memory for 1024 instructions
 #if 0
   fPtr1 = genAdd (ptr, 16); // Generate instructions
   resf  = fPtr1(in0, in1);         // Call generated code
   printf("(%d) %10.30f + %10.30f = %10.30f\n", 16, in0, in1, resf);
 #endif
 
-  fPtr1 = (pifff)genAdd (ptr, 32); // Generate instructions
+  fPtr1 = (pifff)genAdd (fPtr1, 32); // Generate instructions
   resf  = fPtr1(in0, in1);         // Call generated code
   printf("(%d) %10.30f + %10.30f = %10.30f\n", 32, in0, in1, resf);
 
-  fPtr2 = (pifdd)genAdd (ptr, 64); // Generate instructions
+  fPtr2 = (pifdd)genAdd (fPtr2, 64); // Generate instructions
   resd  = fPtr2(in0, in1);         // Call generated code
   printf("(%d) %10.30lf + %10.30lf = %10.30lf\n", 64, in0, in1, resd);
 

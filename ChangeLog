@@ -1,3 +1,18 @@
+2025-12-15  Henri-Pierre CHARLES HC227932  <hc227932@gre066469>
+
+	* Dynamic optimization : add optimization during code
+	generation. Instruction selectors are able to detect constant
+	values and do optimization. i.e. avoid operation & return the
+	unmodified source register (see HybroGen/OptimCodeGen/)
+
+	* Demonstrators : add more complex demonstrators (directory Demos)
+
+	* Major modifications since V4 : use dynamic register allocation /
+	deallocation during code generation
+
+	* Switch from internal github to the public one to improve
+	collaborations
+
 2023-11-30  Henri-Pierre Charles  <hc227932@gre061041>
 
 	* Demonstrators for new article

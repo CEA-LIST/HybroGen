@@ -4,18 +4,18 @@ import copy
 
 class H2WindowRewrite():
     ''' Optimize mov on the flat IR
-    Replace :
+    * Replace : h2_00000127 = 16; h2_00000127 = h2_00000126 << h2_00000127;
+    * with    :                   h2_00000127 = h2_00000126 << 16;
+    (assuming that there is an opcode withe immediate variant)
 86 H2NodeType.OPERATOR: =: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
 	H2NodeType.VARIABLE: h2_00000127
 	H2NodeType.CONST: 16: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
-
 87 H2NodeType.OPERATOR: =: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
 	H2NodeType.VARIABLE: h2_00000127
 	H2NodeType.OPERATOR: SL: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
 		H2NodeType.VARIABLE: h2_00000126
 		H2NodeType.VARIABLE: h2_00000127
 by
-
 86 H2NodeType.OPERATOR: =: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
 	H2NodeType.VARIABLE: h2_00000127
 	H2NodeType.OPERATOR: SL: {'arith': 'int', 'wordLen': '32', 'vectorLen': '1'}
@@ -32,7 +32,7 @@ Gain 1 instruction & (1 physical register)
         self.optimizeCount = 0
         self.doMoveOptimize()
         if verbose:
-            print ("Window Rewrite : insn len before %d / after %d (gain %d insn)"%(len(self.oldList), len(self.newList), self.optimizeCount))
+            print ("PASS : Window Rewrite : insn len before %d / after %d (gain %d insn)"%(len(self.oldList), len(self.newList), self.optimizeCount))
 
     def isMovConst(self, insn):
         return insn.isOperator() and "=" == insn.getOpName() and insn.sonsList[1].isConst()

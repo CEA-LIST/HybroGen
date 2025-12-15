@@ -1,0 +1,26 @@
+/* -*- c -*- */
+if  ((P1.ValOrReg == H2VALUE) && (P2.ValOrReg == H2REGISTER))
+    { // Transform RIR in RRI : P1 & P2 permutation
+       h2_sValue_t PTMP = P2;
+       P2 = P1;
+       P1 = PTMP;
+    }
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
+  { // X * NPowerOf2 = X << N (immediate shift left)
+	int shiftValue = h2_log2(P2.valueImm);
+    #ifdef H2_DEBUG_INSN
+      printf ("Optim for * %d (power of 2) -> sl %d (aarch64)\n", P2.valueImm, shiftValue);
+    #endif
+	// Instruction shift left immediat
+	P2.valueImm = shiftValue;
+	return aarch64_genSL_3(P0, P1, P2);
+  }
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI mul (aarch64)\n");
+    #endif
+	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
+	// No return continue instruction selection
+}

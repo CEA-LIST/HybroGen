@@ -31,7 +31,6 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 # Installation Dependency
 
 * Grammar use ANTLR4 with python4 backend
-   * `sudo apt install antlr4`
    * `pip3 install antlr4-python3-runtime==4.7.2`
 
 * Compilation need a postresql database. To install postgresql and configure it you can use this commands :
@@ -44,14 +43,18 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
    * `sudo -i -u postgres`
    * `createdb hybrogen`
    * `createuser --pwprompt hybrogen` # the default password in the code is "hybrogen"
+   * Under psql prompt
+       * `GRANT ALL PRIVILEGES ON DATABASE hybrogen TO hybrogen;`
+       * `CREATE SCHEMA hybrogen AUTHORIZATION hybrogen;`  (new in postgresql15)
 
   It is a good practice to not create the database under your own
   username. (The database could be multiuser accessible)
 
+* Debuging need graphviz https://graphviz.readthedocs.io/en/stable/
+	* sudo apt install python3-pygraphviz
 
 * Qemu build need ninja
   * `sudo apt install ninja-build`
-
 
 # Hybrogen installation
 
@@ -60,32 +63,32 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 * Clone HybroGen in a directory to extract the source files (with git or fetch / tar)
 * `git clone git@github.com:CEA-LIST/HybroGen.git`
 * or
-  * `wget https://github.com/CEA-LIST/HybroGen/archive/refs/tags/v4.0.tar.gz`
-  * `tar xf v4.0.tar.gz`
-* Choose a target directory to install the release e.g. `/opt/H4.0/`
+  * `wget https://github.com/CEA-LIST/HybroGen/archive/refs/tags/v5.0.tar.gz`
+  * `tar xf v5.0.tar.gz`
+* Choose a target directory to install the release e.g. `/opt/H5.0/`
 * For each platforms riscv, aarch64, powerpc, cxram-linux
 
-  Run `./GenCrossTools.py -a <platform> -p /opt/H4.0/ -w /opt/H4.0/tmp`
+  Run `./GenCrossTools.py -a <platform> -p /opt/H5.0/ -w /opt/H5.0/tmp`
 
   This command will generate the cross-compiler environment (gcc, gdb,
   qemu, linux-headers). This command could take some time to run.
 
 
-  * Run `./GenCrossTools.py -a riscv -p /opt/H4.0/ -w /opt/H4.0/tmp -s`
+  * Run `./GenCrossTools.py -a riscv -p /opt/H5.0/ -w /opt/H5.0/tmp -s`
     * This will generate the shell environment (csh like or bash like)
     * A full installation could be :
 ```
-./GenCrossTools.py -a aarch64 -p /opt/H4.0/ -w /opt/H4.0/tmp
-./GenCrossTools.py -a aarch64 -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+./GenCrossTools.py -a aarch64 -p /opt/H5.0/ -w /opt/H5.0/tmp
+./GenCrossTools.py -a aarch64 -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
-./GenCrossTools.py -a riscv   -p /opt/H4.0/ -w /opt/H4.0/tmp
-./GenCrossTools.py -a riscv   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+./GenCrossTools.py -a riscv   -p /opt/H5.0/ -w /opt/H5.0/tmp
+./GenCrossTools.py -a riscv   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
-./GenCrossTools.py -a powerpc   -p /opt/H4.0/ -w /opt/H4.0/tmp
-./GenCrossTools.py -a powerpc   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+./GenCrossTools.py -a powerpc   -p /opt/H5.0/ -w /opt/H5.0/tmp
+./GenCrossTools.py -a powerpc   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
-./GenCrossTools.py -a cxram-linux   -p /opt/H4.0/ -w /opt/H4.0/tmp
-./GenCrossTools.py -a cxram-linux   -p /opt/H4.0/ -w /opt/H4.0/tmp -s
+./GenCrossTools.py -a cxram-linux   -p /opt/H5.0/ -w /opt/H5.0/tmp
+./GenCrossTools.py -a cxram-linux   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
 ```
 
@@ -96,9 +99,13 @@ architecture depending on your computing power and bandwith.
 
 HybroGen is mainly written in with python but need some build
 
-* Run `make buildGrammar` to build the ANTLR lexer / parser
 * Run `make DbPopulate` to populate the SQL database with instructions description
 * Congratulation, HybroGen is ready to work !
+
+If you want to play with grammar / lexer / parser, you'll need some more steps:
+* Install
+   * `sudo apt install antlr4`
+   * `make buildGrammar` to build the ANTLR lexer / parser
 
 ## For Computing in memory platform aka CXRAM
 
@@ -109,17 +116,17 @@ Follow instructions on this repository : https://github.com/CEA-LIST/csram-qemu-
 
 ## Run some examples / démonstration
 
-* Some code examples are located in the this sub directory : CodeExamples
+* Some code examples are located in the this sub directory : `CodeExamples`
 
 For example to run an demonstration for the power architecture here is
 the command. Adapt for other architectures / demonstrations.
 
-** `cd CodeExamples/`
-** `source /opt/H4.0/powerpc/.cshrc`
-** `./RunDemo.py -a power -i Array-Mult-Specialization`
+  * `cd CodeExamples/`
+  * `source /opt/H5.0/powerpc/.cshrc`
+  * `./RunDemo.py -a power -i Array-Mult-Specialization`
 
-* Regression can be run in the same directory : `./Regression.py power`
-
+* Regression can be run in the same directory :
+  * `./Regression.py power`
 
 # Execution dependencies
 

@@ -3,6 +3,7 @@
 demo ={
     # CodeExample Name          | Tests datas sets
     "Or32":  			(("170", "85"), ("255", "255"), ("170", "255"),),
+    "Simple-Mac":  		(("2", "5", "8"),),
     "And32":  			(("255", "0"), ("255", "255"), ("170", "255"),),
     "Add8x1":  			(("39.0", "3.0"),),
     "Add16xX":			(("-l", "2", "1", "2",  "3", "4"),
@@ -38,6 +39,7 @@ demo ={
     "Loop-in-If"  : (("1", "10"), ("0", "10"), ),
     "Loop"        : (("6", "7"), ("1000", "2"), ("2", "1000"), ),
     "LoopNest"    : (("1",), ("7",), ("42",)),
+    "Constants-Operations"  : (("1",), ("7",), ("42",)),
     "Add8x16"     : (("1.0", "2.0", "2.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", "1.0", )),
     "CxRAM-SimpleSub8" : ( ("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", ),
                           ("1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", ),
@@ -73,24 +75,10 @@ demo ={
     "CxRAM-Convolution32" : (("",),),
     "CxRAM-Broadcast32" :  (("",),),
     "CxRAM-MatrixMultiplication" : (("",),),
-    "CxRAM-BoucleTest" :  (("",),)
-
-}
-
-archCompiler = {
-    "riscv":  ("riscv32-unknown-elf-gcc", ),
-    "cxram":  ("riscv32-unknown-linux-gcc", ),
-    "power":  ("powerpc64le-linux-gnu-gcc", ),
-    "kalray": ("kvx-elf-gcc-7.5.0", ),
-    "aarch64":("aarch64-linux-gnu-gcc",),
-}
-
-archExec = {
-    "riscv":  ("qemu-riscv32",),
-    "cxram":  ("qemu-riscv32",), # Plugin is in the shell QEMU_PLUGIN variable environment
-    "power":  ("qemu-ppc64le", ),
-    "kalray": ("kvx-mppa", "--",),
-    "aarch64":("qemu-aarch64",),
+    "CxRAM-BoucleTest" :  (("",),),
+    "Simple-Vector-Add" : (("1", "2", "3", "4", "5", "6", "7", "8"),),
+    "FloatMatrixMultiplication" : (("",),),
+    "MatrixMultiplication" : (("",),)
 }
 
 def fatalError(msg, code):
@@ -98,7 +86,7 @@ def fatalError(msg, code):
     sys.exit(code)
 
 def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
-#    print (cmdAndArgs)
+    print (cmdAndArgs)
     if (doPrint):
         if wdir != None:
             print("-->cd %s"%(wdir))
@@ -117,29 +105,30 @@ def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
     return 0
 
 def compile (File, Arch, Debug, Verbose):
-    compilerAndArg = archCompiler[Arch[0]]
+    compilerAndArg = [config.getCompilerForArch(Arch[0])]
     cmd(("rm", "-f", File, File+".c"), Verbose)
     o1 = 0
     o2 = 0
     cmdH2 = tuple(["../HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
-    if Debug:
-        cmdH2 += ("--debug",)
-        compilerAndArg += ("-g", "-DH2_DEBUG", "-DASM_DEBUG")
-    if Verbose:
-        cmdH2 += ("--verboseParsing",)
     o0 = cmd (["which", compilerAndArg[0]], Verbose)
     if 0 != o0:
         fatalError ("C Compiler not found (environment pb ?)", -1)
+    if Debug:
+        cmdH2 += ("--debug",)
+    if Verbose:
+        cmdH2 += ("--verboseParsing",)
     o1 = cmd(cmdH2, Verbose)
     if 0 != o1:
         fatalError ("Hybrogen compiler error", -2)
-    o2 = cmd(compilerAndArg + ("-DQEMU_TARGET", "-Wall", "-o", File, File+".c"), Verbose)
+    if Debug:
+        compilerAndArg += ["-g", "-DH2_DEBUG_INSN", "-DH2_DEBUG_REGISTER"]
+    o2 = cmd(compilerAndArg + ["-DQEMU_TARGET", "-Wall", "-o", File, File+".c"], Verbose)
     if o2 != 0:
         fatalError ("C compilation compiler error", -3)
     return 0
 
 def run(File, Arch, Verbose):
-    emulatorAndArgs = archExec[Arch]
+    emulatorAndArgs = (config.getQemuForArch(Arch),)
 #    print(emulatorAndArgs)
     output = 0
     if demo[File] is None:
@@ -159,8 +148,11 @@ def clean(Verbose):
 
 if __name__ == "__main__":
     import sys, subprocess, argparse
+    sys.path.append("..")
+    from SwConfig import SwConfig
 
-    exampleMsg = "Arch in : %s\nDemo in %s"%(str(archExec.keys()), str(demo.keys()))
+    config = SwConfig()
+    exampleMsg = "Arch in : %s\nDemo in %s"%(config.getKeys(), str(demo.keys()))
     p = argparse.ArgumentParser("HybroLang Demo compiler / compiler / launcher", epilog = exampleMsg)
     p.add_argument ('-g', '--debug',  action='store_true', help="debug version")
     p.add_argument ('-c', '--clean',  action='store_true', help="clean directory")

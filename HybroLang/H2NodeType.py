@@ -31,3 +31,4 @@ class H2NodeType(Enum):
     BEQZ     = 25
     MVIF     = 26
     MVFI     = 27
+    VCONF    = 28

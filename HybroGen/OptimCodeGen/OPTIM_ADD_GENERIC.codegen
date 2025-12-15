@@ -1,0 +1,22 @@
+/* -*- c -*- */
+// If 2 operands are constants do addition
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return sValueDef(H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm + P2.valueImm );
+}
+if (isInt0 (P2))
+  { // P0 = P1 + 0
+    #ifdef H2_DEBUG_INSN
+	printf ("Optim add for 0 (generic) return reg %d\n", P1.regNro);
+    #endif
+	P1.dontFree = true;
+	return P1;
+  }
+if (isInt0 (P1))
+  { // P0 = 0 + P2
+    #ifdef H2_DEBUG_INSN
+    printf ("Optim add for 0  (generic) return reg %d\n", P2.regNro);
+    #endif
+	P2.dontFree = true;
+    return P2;
+  }

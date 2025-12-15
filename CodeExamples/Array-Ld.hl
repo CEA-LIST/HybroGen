@@ -49,7 +49,7 @@ int main(int argc, char * argv[])
     }
   in0  = atoi (argv[1]);       // Get the users values in1
   resultOK = 0;
-  printf ("Size of 10 INTs %d, SHORTs %d, CHARs %d \n", sizeof (a32), sizeof (a16), sizeof (a8));
+  printf ("Size of 10 INTs %ld, SHORTs %ld, CHARs %ld \n", sizeof (a32), sizeof (a16), sizeof (a8));
   ptr  = h2_malloc (1024);     		 // Allocate memory for 1024 instructions
   fPtr32 = (pifii) genAdd (ptr, 32); // Generate instructions
   res  =  fPtr32(a32, in0);         	 // Call generated code

@@ -1,0 +1,207 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#include "pixmap.h"
+
+#include "software_dima.h"
+#include "csram_base.h"
+
+#define nearest(n, m) (((n)|(m - 1)) + 1 - m)
+#define min(n, m) (n < m ? n : m)
+
+#define KERN_WIDTH  3
+#define KERN_HEIGHT 3
+#define KERN_CENTER 4
+#ifdef H2_CXRAM
+int8_t G_x[] = {1, 0, -1, 2, 0, -2, 1, 0, -1};
+int8_t G_y[] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+
+typedef void (*genInitializeKernelsType)(int16_t *, int16_t *);
+genInitializeKernelsType genInitializeKernels(h2_insn_t *ptr)
+{
+#[
+	int 16 8 initializeKernels(int[] 16 8 G_x, int[] 16 8 G_y)
+	{
+		G_x[0] = 1;
+		G_x[1] = 0;
+		G_x[2] = 65535;
+		G_x[3] = 2;
+		G_x[4] = 0;
+		G_x[5] = 65534;
+		G_x[6] = 1;
+		G_x[7] = 0;
+		G_x[8] = 65535;
+
+		G_y[0] = 1;
+		G_y[1] = 2;
+		G_y[2] = 1;
+		G_y[3] = 0;
+		G_y[4] = 0;
+		G_y[5] = 0;
+		G_y[6] = 65535;
+		G_y[7] = 65534;
+		G_y[8] = 65535;
+	}
+]#
+	return (genInitializeKernelsType *)ptr;
+}
+
+typedef void (*genSobelConvolutionType)(uint16_t *, uint16_t*, uint16_t *, uint16_t *, uint16_t *, uint16_t *, uint16_t *, uint32_t);
+genSobelConvolutionType genSobelConvolution(h2_insn_t *ptr)
+{
+#[
+	int 16 8 SobelConvolution(int[] 16 8 res, int[] 16 8 res_x, int[] 16 8 res_y, int[] 16 8 img, int[] 16 8 G, int[] 16 8 tmp, int 32 1 len, int 32 1 kern_size)
+	{
+		int 32 1 i;
+		int 32 1 j;
+		for (i = 0; i < len; i = i + 1)
+		{
+			for (j = 0; j < kern_size; j = j + 1)
+			{
+				// Computation of G_x
+				tmp[0] = G[i] * img[9*i + j];
+				res_x[i] = res_x[i] + tmp[0];
+				// Computation of G_y
+				tmp[0] = G[kern_size + i] * img[9*i + j];
+				res_y[i] = res_y[i] + tmp[0];
+			}
+			res[i] = res_x[i] * res_x[i]
+			tmp[0] = res_y[i] * res_y[i];
+			res[i] = res[i] + tmp[0];
+		}
+	}
+]#
+	return (genSobelConvolutionType *)ptr;
+}
+
+#define row_malloc(nline) &_csram_stack[nline * CSRAM_VECSIZE];\
+							   _csram_stack = &_csram_stack[nline * CSRAM_VECSIZE];
+
+#define NB_INT16_PER_ROW (CSRAM_VECSIZE / sizeof(int16_t))
+#define NB_ROWS_PER_RESULT (1)
+#define NB_ROWS_PER_CONVOLUTION (KERN_WIDTH * KERN_HEIGHT)
+#define NB_ROWS_PER_CONV_AND_RES (NB_ROWS_PER_RESULT + NB_ROWS_PER_CONVOLUTION)
+#define NB_TEMP_ROWS (1)
+PixMap *SobelConvolution(PixMap *src)
+{
+	h2_insn_t *ptr;
+	genInitializeKernelsType initKernCode;
+	genSobelConvolutionType genSobelCode;
+
+	ptr = h2_malloc(1024);
+	genSobelCode = (genSobelConvolutionType)genSobelConvolution(ptr);
+	printf("h2_malloc@genSobelCode OK\n");
+	ptr = h2_malloc(1024);
+	initKernCode = (genInitializeKernelsType)genInitializeKernels(ptr);
+	printf("h2_malloc@initKernCode OK\n");
+
+	init_csram();
+	int16_t *_csram_stack = _csram;
+	int16_t *G_x, *G_y, *img, *res, tmp;
+
+	tmp = row_malloc(NB_TEMP_ROWS);
+	G_x = row_malloc(NB_ROWS_PER_CONVOLUTION);
+	G_y = row_malloc(NB_ROWS_PER_CONVOLUTION);
+	initKernCode(G_x, G_y);
+
+	uint32_t free_space = CSRAM_BASE_SIZE - ((uint32_t)_csram_stack - (uint32_t)_csram);
+	uint32_t usable_space = free_space - (free_space % NB_ROWS_PER_CONV_AND_RES);
+	uint32_t nb_row_for_res = usable_space * NB_ROWS_PER_RESULT / NB_ROWS_PER_CONV_AND_RES;
+	uint32_t nb_row_for_img = usable_space - nb_row_for_res;
+	img = row_malloc(nb_row_for_img);
+	res = row_malloc(nb_row_for_res);
+	int max_nb_img_windows = nb_row_for_img * NB_INT16_PER_ROW/ NB_ROWS_PER_CONVOLUTION;
+
+	printf("free_space = %d\n", free_space);
+	printf("usable_space = %d\n", usable_space);
+	printf("nb_row_for_res = %d\n", nb_row_for_res);
+	printf("nb_row_for_img = %d\n", nb_row_for_img);
+	printf("max_nb_img_windows = %d\n", max_nb_img_windows);
+
+
+	uint32_t width = src->width, height=src->height, padding=src->padding;
+	uint32_t h_begin = padding, h_end = padding + height;
+	uint32_t w_begin = padding, w_end = padding + width;
+	PixMap *pixmap = pixmap_clone_empty(src);
+	for (int i = h_begin; i < h_end; i += 1)
+	{
+		for (int j = w_begin; j < w_end; j += 1)
+		{
+			for (int ik = -1; ik <= 1; ik += 1)
+			{
+				for (int jk = -1; jk <= 1; jk += 1)
+				{
+				}
+			}
+		}
+	}
+	return pixmap;
+}
+#else
+int8_t G_x[] = {1, 0, -1, 2, 0, -2, 1, 0, -1};
+int8_t G_y[] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+
+PixMap *SobelConvolution(PixMap *src)
+{
+	uint32_t width = src->width, height=src->height, padding=src->padding;
+	uint32_t h_begin = padding, h_end = padding + height;
+	uint32_t w_begin = padding, w_end = padding + width;
+	PixMap *res = pixmap_clone_empty(src);
+	for (int i = h_begin; i < h_end; i += 1)
+	{
+		for (int j = w_begin; j < w_end; j += 1)
+		{
+			int16_t res_x = 0;
+			int16_t res_y = 0;
+			for (int ik = -1; ik <= 1; ik += 1)
+			{
+				for (int jk = -1; jk <= 1; jk += 1)
+				{
+					res_x += src->data[(i + ik) * width + (j + jk)] * G_x[(ik + 1) * KERN_WIDTH + (jk + 1)];
+					res_y += src->data[(i + ik) * width + (j + jk)] * G_y[(ik + 1) * KERN_WIDTH + (jk + 1)];
+				}
+			}
+			int16_t res_G = sqrt((res_x * res_x) + (res_y * res_y));
+			if (res_G > pixmap_8bit_threshold)
+				res_G = pixmap_8bit_threshold;
+			res->data[i * width + j] = res_G;
+		}
+	}
+	return res;
+}
+#endif
+
+/******************************************************************************/
+/* Main code starts here :                                                    */
+/******************************************************************************/
+int main(int argc, char * argv[])
+{
+	if (argc != 3) {
+		printf("USAGE : ./SobelConvolution <src_img> <output_path>\n");
+		printf("Supported formats are : [ pgm ]\n");
+		exit(1);
+	}
+	init_csram();
+	
+
+	// Loading of Source Image
+	PixMap *p_src = pixmap_load(argv[1], 1);
+	char *output_path = argv[2];
+	
+	*to_counter = 1;
+	PixMap *p_res = SobelConvolution(p_src);
+	*to_counter = 0;
+	
+	pixmap_save(p_res, output_path);
+
+	return 0;
+}

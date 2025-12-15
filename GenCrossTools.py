@@ -5,7 +5,7 @@ urlDataBase = {}                # Will contain rootDatabase + platform dependent
 rootDataBase = {
     'mpfr' :     {
         'url': 'https://ftp.gnu.org/gnu/mpfr/mpfr-{RELEASE}.tar.xz',
-        'release':'4.2.0',
+        'release':'4.1.0',
         'confargs' : ('--prefix={PREFIX}', '--program-prefix={TARGET}-', "--with-gmp={PREFIX}"),
         'targetbuild':'all',
         'targetinstall':'install',
@@ -19,13 +19,13 @@ rootDataBase = {
     },
     'mpc' :     {
         'url': 'http://www.multiprecision.org/downloads/mpc-{RELEASE}.tar.gz',
-        'release':'1.3.1',
+        'release':'1.2.1',
         'confargs' : ('--prefix={PREFIX}', '--program-prefix={TARGET}-', '--with-mpfr={PREFIX}', '--with-gmp={PREFIX}'),
         'targetbuild':'all',
         'targetinstall':'install',
     },
     'gcc'  :     {'url':'https://ftp.gnu.org/gnu/gcc/gcc-{RELEASE}/gcc-{RELEASE}.tar.gz',
-                  'release':'13.2.0',
+                  'release':'10.2.0',
                   'confargs': ( '--prefix={PREFIX}', '--program-prefix={TARGET}-',
                                 '--target={TARGET}', '--build=x86_64-linux-gnu', '--host=x86_64-linux-gnu',
                                 '--with-gnu-as', '--with-gnu-ld', '--disable-nls',
@@ -44,7 +44,7 @@ rootDataBase = {
     },
     # Links between binutils & gcc : https://wiki.osdev.org/Cross-Compiler_Successful_Builds
     'binutils' : {'url':'https://ftp.lip6.fr/pub/gnu/binutils/binutils-{RELEASE}.tar.gz',
-                  'release':'2.40',
+                  'release':'2.36.1',
                   'confargs':  ('--prefix={PREFIX}', '--program-prefix={TARGET}-', '--target={TARGET}'
                                 '--disable-nls', '--disable-werror', '--target={TARGET}'
                   ),
@@ -54,28 +54,30 @@ rootDataBase = {
     'gdb'  :     {'url':'https://ftp.lip6.fr/pub/gnu/gdb/gdb-{RELEASE}.tar.gz',
                   'release':'10.1',
                   'confargs': ('--prefix={PREFIX}', '--target={TARGET}',  '--program-prefix={TARGET}-',
-                               '--enable-werror=no',
+                               '--enable-werror=no',  '--with-mpfr={PREFIX}', '--with-gmp={PREFIX}',
                   ),
                   'targetbuild':   'all',
                   'targetinstall': 'install',
     },
     'linux' :  {
         'url': 'https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-{RELEASE}.tar.gz',
-        'release': '5.18.17',
+        'release': '5.4.60',
         'confargs': '',
         'targetbuild':   'headers_install',
         },
     'newlib': { 'url':'https://sourceware.org/pub/newlib/newlib-{RELEASE}.tar.gz',
-                'release' : '4.3.0.20230120',
+                'release' : '4.1.0',
                 'confargs' : ('--prefix={PREFIX}', '--target={TARGET}', '--disable-multilib', '--enable-lite-exit'),
                 # --enable-newlib-register-fini --enable-newlib-global-atexit # Other interesting configuration parameters
                 'targetbuild':   'all',
                 'targetinstall': 'install',
     },
     'glibc': { 'url':'https://ftp.gnu.org/gnu/glibc/glibc-{RELEASE}.tar.gz',
-               'release' : '2.37',
-               'confargs' : ('--prefix={PREFIX}/{TARGET}', '--build=x86_64-pc-linux-gnu', '--host={TARGET}', '--target={TARGET}',
+               'release' : '2.33',
+               'confargs' : ('--prefix={PREFIX}/{TARGET}', '--build=x86_64-pc-linux-gnu',
+                             '--host={TARGET}', '--target={TARGET}',
                              '--with-headers={PREFIX}/{TARGET}/include/',
+                             # '--disable-werror',
                              '--disable-multilib', 'libc_cv_forced_unwind=yes',
                ),
                # 'targetbuild':   ('install-bootstrap-headers=yes', 'install-headers'),
@@ -83,7 +85,7 @@ rootDataBase = {
     },
     'qemu' : {
         'url':'https://download.qemu.org/qemu-{RELEASE}.tar.xz',
-        'release': '8.0.3',
+        'release': '5.2.0',
         'confargs' : ('--prefix={PREFIX}', '--target-list={TARGET}',
                       '--enable-plugins', '--gdb={PREFIX}/bin/{TARGET}-gdb'),
         'targetbuild':   'all',
@@ -91,7 +93,7 @@ rootDataBase = {
     },
     'isl' : {
         'url': 'https://sourceforge.net/projects/libisl/files/isl-{RELEASE}.tar.gz',
-        'release': '0.26',
+        'release': '0.23',
         'confargs' : ('--prefix={PREFIX}', '--with-gmp-prefix={PREFIX}', '--with-gmp=system'),
         'targetbuild':   'all',
         'targetinstall': 'install',
@@ -267,14 +269,7 @@ def install(tool, archTriplet, arch, args):
         buildTool    (tool, archTriplet, arch, args)
         installTool  (tool, archTriplet, arch, args)
         cmd (("touch", flagFile), args.verbose)
-targetsAlias = {
-    'aarch64':       {'triplet': 'aarch64-linux-gnu',        'qemu':'aarch64-linux-user'},
-    'riscv':         {'triplet': 'riscv32-linux-gnu',        'qemu':'riscv32-linux-user'},
-    'powerpc':       {'triplet': 'powerpc64le-linux-gnu',    'qemu':'ppc64le-linux-user'},
-    'cxram-linux':   {'triplet': 'riscv32-unknown-linux',    'qemu':'riscv32-linux-user'},
-    'cxram-bm':      {'triplet': 'riscv32-unknown-elf',      'qemu':'riscv32-linux-user'},
-    'kalray':        {'triplet': 'kvx-elf'},
-    }
+
 optSubDirs = ("src", "build", "tgz")
 
 def checkDependency(args):
@@ -350,7 +345,7 @@ def testCompile(archName, archTriplet, args, fileName, env):
     cmd(['%s/bin/%s-gcc'%(args.prefix, archTriplet), "-v"], environ=env)
     cmd(['%s/bin/%s-gcc'%(args.prefix, archTriplet), "-c", cCode, ], environ=env)
     cmd(['%s/bin/%s-gcc'%(args.prefix, archTriplet), cCode, "-o", binCode], environ=env)
-    if archName == "powerpc":
+    if archName == "power":
         qname = "qemu-ppc64le"
     elif archName in ("riscv", "cxram-bm", "cxram-linux"):
         qname = "qemu-riscv32"
@@ -378,18 +373,20 @@ def writeIfNotExist(outputFileName, data):
         print ("File exists : "+outputFileName)
 def removeInstallDirs(args):
     for d in args.arch:
-        triplet = targetsAlias[d[0]]['triplet']
+        triplet = config.getTripletForArch(d[0])
         commande = ["rm", "-rf", args.archprefix+"/"+d[0]]
         cmd (commande, args.verbose, doExec = args.donot)
 
 if __name__ == '__main__' :
     import argparse, os, sys, subprocess, multiprocessing
+    from CI.SwConfig import SwConfig
 
+    config = SwConfig()
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--arch', help='Target architectures',
-                        choices=targetsAlias.keys(), nargs="+", action="append", required=True)
-    parser.add_argument('-p', '--archprefix', help='Installation prefix', default="/opt/H2/")
-    parser.add_argument('-w', '--workingdir', help='Working directory',   default="/opt/H2/tmp/")
+                        choices=config.getKeys(), nargs="+", action="append", required=True)
+    parser.add_argument('-p', '--archprefix', help='Installation prefix', default="/opt/H5.0/")
+    parser.add_argument('-w', '--workingdir', help='Working directory',   default="/opt/H5.0/tmp/")
     parser.add_argument('-v', '--verbose',    help='Verbose',                      action='store_true')
     parser.add_argument('-n', '--donot',      help='Do nothing, just print actions', action='store_false')
     parser.add_argument('-c', '--clean',      help='Clean build directories',      action='store_true')
@@ -414,9 +411,8 @@ if __name__ == '__main__' :
             removeSubDirs(args)
     elif args.test:
         for a in args.arch:
-            archName = a[0]
-            args.prefix = "%s%s/"%(args.archprefix, archName)
-            testInstall(archName, targetsAlias[archName]['triplet'], args)
+            args.prefix = "%s%s/"%(args.archprefix, a[0])
+            testInstall(a[0], config.getTripletForArch(a[0]), args)
     elif args.shell:            # Generate shell environment for args.arch
         binList = []
         libList = []
@@ -424,7 +420,7 @@ if __name__ == '__main__' :
             thePrefix = args.archprefix
             binList.append("%s%s/bin/"%(thePrefix, a[0]))
             libList.append("%s%s/lib/"%(thePrefix, a[0]))
-            libList.append("%s%s/%s/lib/"%(thePrefix, a[0], targetsAlias[a[0]]["triplet"]))
+            libList.append("%s%s/%s/lib/"%(thePrefix, a[0], config.getTripletForArch(a[0])))
             fail = False
             # Generate environment variable depending on the parent shell
             binList.append ("/bin/") # Needed on CEA aar environment
@@ -439,7 +435,7 @@ if __name__ == '__main__' :
                     qemuPlugin = "%s%s/libexec/qemu/libCxRAM-qemu-plugin.so"%(args.archprefix, a[0])
                     shEnv += "export QEMU_PLUGIN=%s\n"%qemuPlugin
                 writeIfNotExist(args.archprefix+a[0]+"/.bashrc", shEnv)
-            elif parentProcessName in ("csh", "-csh", "tcsh", "-tcsh"):
+            elif parentProcessName in ("/bin/tcsh", "/bin/csh", "csh", "-csh", "tcsh", "-tcsh"):
                 cshEnv  = "setenv PATH %s:${PATH}\n"% ":".join(binList)
                 cshEnv += "setenv LD_LIBRARY_PATH %s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
                 if a[0] in ("cxram-linux", "cxram-bm", ):
@@ -462,7 +458,7 @@ if __name__ == '__main__' :
         checkDependency(args)
         for a in args.arch:
             archName = a[0]
-            if archName not in targetsAlias.keys():
+            if archName not in config.getKeys():
                 usage("Unknown arch")
         for a in args.arch:
             urlDataBase = {}
@@ -473,34 +469,32 @@ if __name__ == '__main__' :
             Step("== Start build ==", "cross tools", archName)
             checkDirs(args)
             # gcc dependencies
-            archTriplet = targetsAlias[archName]['triplet']
+            archTriplet = config.getTripletForArch(archName)
             install("binutils", archTriplet, archName, args)
             install("gmp",      archTriplet, archName, args)
             install("isl",      archTriplet, archName, args)
             install("mpfr",     archTriplet, archName, args)
             install("mpc",      archTriplet, archName, args)
+            # Transform the archname to make linux build happy (& newlib)
             theArch = archName
-            if archName in ("cxram-bm", "cxram-linux"):
-                theArch = "riscv"
-            elif archName == "aarch64":
-                theArch = "arm64"
+            if archName in ("cxram-bm", "cxram-linux"): theArch = "riscv"
+            elif archName == "aarch64":                 theArch = "arm64"
+            elif archName == "power":                   theArch = "powerpc"
             buildLinuxIncludes("linux", archTriplet, theArch, args)
 
             # Additionnal configuration parameter
             urlDataBase['qemu']['confargs'] += ('--interp-prefix=%s/%s/'%(args.prefix, archTriplet),)
-            if archName == "cxram-bm":
-                urlDataBase['gcc']['confargs'] += ("--with-newlib", "--with-arch=rv32gc", "--with-abi=ilp32",)
-            elif archName == "cxram-linux":
+            if archName == "cxram":
                 urlDataBase['gcc']['confargs'] += ("--with-arch=rv32gc", "--with-abi=ilp32",)
-            elif archName == "powerpc":
-                urlDataBase['gcc']['confargs'] += ('--with-long-double-128', ) #'--with-long-double-format=ibm', # for power)
+            elif archName == "power":
+                urlDataBase['gcc']['confargs'] += ('--with-long-double-128', '--with-long-double-format=ibm', ) # for power
 
             # Build 1st gcc steps
             install("gcc",      archTriplet, archName, args)
             # Build glibc (power) or newlib (riscv & csram) and gcc last steps
-            if archName in ("powerpc", "cxram-linux", "aarch64", "riscv"):
+            if archName in ("power", "cxram-linux", "aarch64", "riscv"):
                 buildGlibcAndGcc("glibc",      archTriplet, archName, args) # glibc 1 step, gcc last step, glibc laststep
-            elif archName in ("cxram-bm"):
+            elif archName in ("cxram-bm",):
                 install("newlib",   archTriplet, theArch, args) # newlib
                 Step("Build gcc last step", "gcc", archTriplet)
                 toolName2 = 'gcc-'+ urlDataBase["gcc"]["release"]
@@ -512,11 +506,11 @@ if __name__ == '__main__' :
             else:
                 usage("Which libc / includes for architecture %s ?"%archName)
             install("gdb",      archTriplet, archName, args)
-            install("qemu",     targetsAlias[archName]['qemu'], archName, args)
+            install("qemu",     config.getQemuTripletForArch(archName), archName, args)
             # Additionnal stuff
-            if archName in ("cxram-bm", "cxram-linux"):
+            if archName in ("cxram"):
                 installQemuPlugin("csram-qemu-plugin", args)
-            if archName == "powerpc" : #and (not os.path.islink(linkFile)):
+            if archName == "power" : #and (not os.path.islink(linkFile)):
                 linkFile = "%s/%s/lib64"%(args.prefix, archTriplet)
                 cmd (("ln", "-s", "lib", "lib64"), args.verbose, "%s/%s/"%(args.prefix, archTriplet), doExec = args.donot)
 #

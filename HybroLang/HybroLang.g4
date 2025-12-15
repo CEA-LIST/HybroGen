@@ -8,7 +8,8 @@ function		: fndcl fnbody									;
 fndcl		 	: datatype Name fnprototype						;
 fnprototype 	: '(' paramdcllist ')'							;
 fnbody			: '{' (localvardef)* actionlist returnexpr? '}'	;
-paramdcllist    : vardcl ( ',' vardcl)*							;
+paramdcllist    : vardcl ( ',' vardcl)*
+				| ; // Possible empy parameter list
 localvardef		: vardcllist ';'								;
 vardcllist		: vardcl ( ',' Name)*							;
 vardcl			: datatype Name             					;

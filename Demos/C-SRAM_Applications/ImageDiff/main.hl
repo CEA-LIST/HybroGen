@@ -1,0 +1,234 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+#include "pixmap.h"
+
+#include "software_dima.h"
+#include "csram_base.h"
+
+#define nearest(n, m) (((n)|(m - 1)) + 1 - m)
+#define min(n, m) (n < m ? n : m)
+
+/******************************************************************************/
+/* HybroLang kernels, to be called by pixmap_ImageDiff                        */
+/* TODO : once the DIMA is implemented, unify both RISC-V and CxRAM variants  */
+/******************************************************************************/
+#if defined(H2_RISCV) || defined(H2_CXRAM)
+#ifdef H2_CXRAM
+typedef  void (*ImageDiffType)(int8_t *, int8_t * , int8_t *, uint32_t);
+ImageDiffType genImageDiff(h2_insn_t * ptr, uint32_t width, uint32_t height)
+#else
+typedef  void (*ImageDiffType)(int8_t *, int8_t * , int8_t *);
+ImageDiffType genImageDiff(h2_insn_t * ptr, uint32_t width, uint32_t height)
+#endif
+{
+#ifdef H2_CXRAM
+#[
+	int 8 16 ImageDiff(int[] 8 16 a, int 8 16 b, sint[] 8 16 res, int 31 1 len)
+	{
+		int 31 1 i;
+		for(i = 0; i < len; i = i + 1)
+		{
+			res[i] = a[i] - b[i];
+		}
+	}
+]#
+#else
+#[
+	int 8 16 ImageDiff(int[] 8 1 a, int 8 1 b, sint[] 8 1 res)
+	{
+		int 32 1 i, j;
+		for(i = 0; i < #(height); i = i + 1)
+		{
+			for(j = 0; j < #(width); j = j + 1)
+			{
+				// val = a[i * #(height) + j] - b[i * #(height) + j];
+				// if (val < 0)
+				// {
+				// 	val = 0;
+				// }
+				// res[i * #(height) + j] = val;
+				res[i * #(height) + j] = a[i * #(height) + j] - b[i * #(height) + j];
+			}
+		}
+	}
+]#
+#endif
+	return (ImageDiffType) ptr;
+}
+#endif
+
+/******************************************************************************/
+/* pixmap_ImageDiff, H2-based CxRAM variant                                   */
+/******************************************************************************/
+#ifdef H2_CXRAM
+PixMap *pixmap_ImageDiff(char *path, PixMap *a, PixMap *b)
+{
+	PixMap *c = pixmap_clone_empty(a);
+
+	int8_t *chunk_a, *chunk_b, *chunk_c;
+	uint32_t chunklen, nb_vec, data_size=a->data_size;
+
+	// HybroLang Code Generation
+	h2_insn_t * ptr;
+	ImageDiffType h2_ImageDiff;
+	ptr = h2_malloc (1024);
+	h2_ImageDiff = genImageDiff(ptr, -1, -1);
+
+	uint32_t csram_alloc_size = nearest(CSRAM_BASE_SIZE / 3, CSRAM_VECSIZE);
+	chunk_a = (int8_t *)&_csram[0 * csram_alloc_size];
+	chunk_b = (int8_t *)&_csram[1 * csram_alloc_size];
+	chunk_c = (int8_t *)&_csram[2 * csram_alloc_size];
+
+	for(int i = 0; i < data_size; i += csram_alloc_size)
+	{
+		chunklen = min(data_size - i, csram_alloc_size);
+		nb_vec = (chunklen / CSRAM_VECSIZE);
+		if (chunklen % CSRAM_VECSIZE)
+		{
+			nb_vec += 1;
+		}
+
+		soft_dima_transfer(&a->data[i], chunk_a, chunklen, 1, 1, false);
+		soft_dima_transfer(&b->data[i], chunk_b, chunklen, 1, 1, false);
+
+		h2_ImageDiff(chunk_a, chunk_b, chunk_c, nb_vec);
+
+		soft_dima_transfer(&c->data[i], chunk_c, chunklen, 1, 1, true);
+	}
+	return c;
+}
+#else
+/******************************************************************************/
+/* pixmap_ImageDiff, H2-based RISCV variant                                   */
+/******************************************************************************/
+#ifdef H2_RISCV
+PixMap *pixmap_ImageDiff(char *path, PixMap *a, PixMap *b)
+{
+	PixMap *c = pixmap_clone_empty(a);
+	uint32_t width=a->width, height=a->height;
+
+	// HybroLang Code Generation
+	h2_insn_t * ptr;
+	ImageDiffType h2_ImageDiff;
+	ptr = h2_malloc (1024);
+	h2_ImageDiff = genImageDiff(ptr, width, height);
+	h2_ImageDiff(a, b, c);
+	return c;
+}
+#else
+/******************************************************************************/
+/* pixmap_ImageDiff, C-based CXRAM variant                                    */
+/******************************************************************************/
+#ifdef C_CXRAM
+PixMap *pixmap_ImageDiff(char *path, PixMap *a, PixMap *b)
+{
+	PixMap *c = pixmap_clone_empty(a);
+
+	int8_t *chunk_a, *chunk_b, *chunk_c;
+	uint32_t chunklen, nb_vec, data_size=a->data_size;
+
+	uint32_t csram_alloc_size = nearest(CSRAM_BASE_SIZE / 3, CSRAM_VECSIZE);
+	chunk_a = (int8_t *)&_csram[0 * csram_alloc_size];
+	chunk_b = (int8_t *)&_csram[1 * csram_alloc_size];
+	chunk_c = (int8_t *)&_csram[2 * csram_alloc_size];
+
+	for(int i = 0; i < data_size; i += csram_alloc_size)
+	{
+		chunklen = min(data_size - i, csram_alloc_size);
+		nb_vec = (chunklen / CSRAM_VECSIZE);
+		if (chunklen % CSRAM_VECSIZE)
+		{
+			nb_vec += 1;
+		}
+
+		soft_dima_transfer(&a->data[i], chunk_a, chunklen, 1, 1, false);
+		soft_dima_transfer(&b->data[i], chunk_b, chunklen, 1, 1, false);
+
+		for(int j = 0; j < nb_vec; j += 1)
+		{
+			uint32_t idx = j * CSRAM_VECSIZE;
+			int8_t *vec_a = &chunk_a[idx];
+			int8_t *vec_b = &chunk_b[idx];
+			int8_t *vec_c = &chunk_c[idx];
+			_cm_subs8(*vec_c, *vec_a, *vec_b);
+		}
+
+		soft_dima_transfer(&c->data[i], chunk_c, chunklen, 1, 1, true);
+	}
+	return c;
+}
+#else
+/******************************************************************************/
+/* pixmap_ImageDiff, C-based RISCV variant                                    */
+/******************************************************************************/
+PixMap *pixmap_ImageDiff(char *path, PixMap *a, PixMap *b)
+{
+	PixMap *c = pixmap_clone_empty(a);
+
+	int32_t val;
+	uint32_t idx, width=a->width, height=a->height;
+
+	for(int i = 0; i < height; i += 1)
+	{
+		for(int j = 0; j < width; j += 1)
+		{
+			idx = i * height + j;
+			val = a->data[idx] - b->data[idx];
+			c->data[idx] = val < 0 ? 0 : (uint8_t)val;;
+		}
+	}
+	return c;
+}
+#endif
+#endif
+#endif
+
+/******************************************************************************/
+/* Main code starts here :                                                    */
+/******************************************************************************/
+int main(int argc, char * argv[])
+{
+	if (argc != 4) {
+		printf("USAGE : ./ImageDiff <src_img1> <src_img2> <dest_img>\n");
+		printf("Supported formats are : [ pgm ]\n");
+		exit(1);
+	}
+	init_csram();
+	
+
+	// Loading of Source Image 1
+	PixMap *p_src1 = pixmap_load(argv[1]);
+	// Loading of Source Image 2
+	PixMap *p_src2 = pixmap_load(argv[2]);
+	// Declaration of Result Image
+	PixMap *p_res;
+	char *output_path = argv[3];
+	
+	*to_counter = 1;
+	p_res = pixmap_ImageDiff(output_path, p_src1, p_src2);
+	*to_counter = 0;
+	
+	#ifdef DEBUG
+		printf("Source Image #1:\n");
+		pixmap_print(p_src1);
+		printf("Source Image #2:\n");
+		pixmap_print(p_src2);
+		printf("Result image :\n");
+		pixmap_print(p_res);
+	#endif
+	pixmap_save(p_res, output_path);
+
+	pixmap_free(p_src1);
+	pixmap_free(p_src2);
+	pixmap_free(p_res);
+	return 0;
+}

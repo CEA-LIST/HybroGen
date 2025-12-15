@@ -1,0 +1,16 @@
+
+    #[
+     for (i = 0; i < #(limit) ; i = i +1)
+    {
+        A = A + Alpha[i] * Beta[i];
+    }
+    #]
+
+
+    #if 0
+    a réécrire sous la forme
+    for ...
+       tmp1 = A - Alpha[i] ...
+       tmp2 = A + Beta[i]
+       A = tmp1 + tmp2
+   #endif

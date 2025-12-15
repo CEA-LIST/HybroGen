@@ -1,0 +1,22 @@
+/* -*- c -*- */
+
+/* if (isInt32_1(P0) && isInt0(P1)  && isInt0(P2) ) */
+/*   {  */
+/*     #ifdef H2_DEBUG_INSN */
+/*     // Store const 0 in memory (alias store, r31 interpreted as 0) */
+/*     printf ("Store 0 (aarch64)\\n"); */
+/*     #endif */
+/*     A64_STR_RRI_I_32_1(P0.regNro, 31, 0); */
+/*     return P0; */
+/*   } */
+
+if (isValue(P1))
+  { // Store constant (Should use RRI variant)
+	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RI W (aarch64)\\n");
+    #endif
+	// MV const in tmp register
+	P1 = aarch64_genMV_3(PTMP,  P1, immValueZero);
+	// No return continue instruction selection
+  }

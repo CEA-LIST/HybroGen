@@ -1,0 +1,9 @@
+/* -*- c -*- */
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI div (power)\\n");
+    #endif
+	P2 = power_genMV_2(PTMP,  P2);
+}

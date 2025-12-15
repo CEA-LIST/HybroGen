@@ -1,0 +1,103 @@
+// -*- c -*-
+
+code * rpnGenerator (char * expression, )
+
+typedef int (*pifi)(int);
+
+pifi rpn_compile(char *expr);
+
+int __attribute__((noinline)) static_f2c(int i)
+{
+    return (i-32)*5/9;
+}
+
+int __attribute__((noinline)) static_c2f(int i)
+{
+    return (i*9/5)+32;
+}
+
+int rpn_eval(char *expr, int value)
+{
+    int Stack[10];
+    int top = 0;
+    Stack[top++] = value;
+    while (*expr) {
+        char buf[32];
+        int n;
+        if (sscanf(expr, "%[0-9]%n", buf, &n)) {
+            expr += n - 1;
+            Stack[top++] = strtol(buf, 0, 0);
+        } else if (*expr == '+') {
+            Stack[top-2] = Stack[top-2] + Stack[top-1];
+            top--;
+        } else if (*expr == '-') {
+            Stack[top-2] = Stack[top-2] - Stack[top-1];
+            top--;
+        } else if (*expr == '*') {
+            Stack[top-2] = Stack[top-2] * Stack[top-1];
+            top--;
+        } else if (*expr == '/') {
+            Stack[top-2] = Stack[top-2] / Stack[top-1];
+            top--;
+        } else {
+            FPRINTF(stderr, "cannot compile: %s\n", expr);
+            abort();
+        }
+        ++expr;
+    }
+    if (1 != top) {
+        FPRINTF(stderr, "incorrect stack pointer\n");
+        abort();
+    }
+    return Stack[0];
+} /* rpn_eval */
+
+
+int 32 1 genAdd (int 32 1 a, int 32 1 b)
+{
+#[
+
+#]
+}
+int 32 1 genSub (int 32 1 a, int 32 1 b)
+{
+#[
+
+#]
+}
+
+int 32 1 genMul (int 32 1 a, int 32 1 b)
+{
+#[
+
+#]
+}
+int 32 1 genDiv (int 32 1 a, int 32 1 b)
+{
+#[
+	
+#]
+}
+
+// Compilette which generate code for a RPN (Reverse Poslish Notation)
+// expression. i.e. the evaluation of the expression "9*5/32+" should
+// give the result of the expression (input-32)*5/9;
+// 
+
+int main(int argv, char * argv)
+{
+  pifi c2f = rpn_compile("9*5/32+");
+  pifi f2c = rpn_compile("32-5*9/");
+      
+  start_tick = get_tick();
+  for (i = 0; i  <= 100; i+= 10) {
+    rpn_eval("9*5/32+", i);
+  }
+  for (i = 32; i <= 212; i+= 10) {
+    rpn_eval("32-5*9/", i);
+  }
+  printf("%llu ticks static compiled\n", (unsigned long long) get_tick() - start_tick);
+  
+  return 0;
+}
+

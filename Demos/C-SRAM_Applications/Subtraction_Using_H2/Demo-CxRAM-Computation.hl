@@ -1,0 +1,58 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+// Declaration of our HybroLang kernel (vector subtraction)
+typedef  void (*genSubType)(int16_t *, int16_t * , int16_t *);
+genSubType genSub(h2_insn_t * ptr)
+{
+#[
+	int 16 8 sub(int[] 16 8 a, int[] 16 8 b, int[] 16 8 res)
+	{
+		res[0] = a[0] * b[0];
+		res[1] = 42;
+		res[0] = res[1] - res[0];
+	}
+]#
+	return (genSubType)ptr;
+}
+
+int main(int argc, char * argv[])
+{
+	int i;
+	init_csram();
+
+	// Declaration of C-SRAM vectors
+	// TODO next : static memory allocation and management
+	int16_t *in1 = (int16_t *)&_csram[1 * CSRAM_VECSIZE];
+	int16_t *in2 = (int16_t *)&_csram[2 * CSRAM_VECSIZE];
+	int16_t *res = (int16_t *)&_csram[3 * CSRAM_VECSIZE];
+
+	// HybroLang Code Generation
+	h2_insn_t * ptr;
+	genSubType code;
+	ptr = h2_malloc (1024);  // 1024-byte block for dynamically compiled code
+	code = genSub(ptr);
+
+	// Execution of the dynamically compiled kernel
+
+	*to_counter = 1;  // Enable performance counters
+
+	// Initialization of C-SRAM vectors
+	for (i=0; i < 8; i++)
+	{
+		in1[i] = i;
+		in2[i] = 3;
+		res[i] = 0;
+	}
+	code (in1, in2, res);
+
+	*to_counter = 0;  // Disable performance counters
+
+	// Display of the the result to stdout
+	for (i=0; i < CSRAM_VECSIZE / sizeof(in1[0]); i++)
+		printf("res[%d] = %d\n", i, res[i]);
+	return EXIT_SUCCESS;
+}

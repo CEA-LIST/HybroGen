@@ -10,7 +10,7 @@ from H2Utils import *
 from HybroLang.H2LabelTable import H2LabelTable
 from HybroLang.H2SymbolTable import H2SymbolTable
 from HybroLang.H2Node import H2Node
-from HybroLang.H2IR2 import H2Type
+from HybroLang.H2Type import H2Type
 from HybroLang.H2RegisterBank import H2RegisterBank
 from HybroLang.H2NodeType import H2NodeType
 
@@ -45,6 +45,8 @@ class H2CxRAMRewrite():
         self.regTmp = regTmp
         self.lTable = lTable
         self.regIn = regIn
+        if self.verbose:
+            print("H2CxRAMRewrite pass")
 
         db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
         isa = IsaDb(db, "cxram", None)

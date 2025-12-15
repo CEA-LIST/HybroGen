@@ -8,8 +8,8 @@ class H2RegisterAllocationType(Enum):
     """
     Enumeration type to manipulate the allocation flags of H2RegisterBank
     """
-    FREE = 0
-    USED = 1
+    F = 0
+    X = 1
 
 regCorrespondances = {"int":"int","uint":"int","flt":"flt","sint":"int","suint":"int", "vint":"vint","int[]":"int"}
 class H2RegisterBank():
@@ -36,7 +36,7 @@ class H2RegisterBank():
         nb_registers = len(numberList[0])
         if 0 == nb_registers:
             fatalError ("Not enough defined registers (%d). Is the database initialized ?"%nb_registers)
-        alloc_flags = [H2RegisterAllocationType.FREE] * nb_registers
+        alloc_flags = [H2RegisterAllocationType.F] * nb_registers
         self.numberList = {arith: [numberList[0],numberList[1], alloc_flags]}
 
     def print(self, s):
@@ -50,9 +50,9 @@ class H2RegisterBank():
         regNameList = self.numberList[arith][1]
         alloc_flags = self.numberList[arith][2]
         try:
-            index = alloc_flags.index(H2RegisterAllocationType.FREE)
+            index = alloc_flags.index(H2RegisterAllocationType.F)
             regNo = numberList[index]
-            alloc_flags[index] = H2RegisterAllocationType.USED
+            alloc_flags[index] = H2RegisterAllocationType.X
             regName = regNameList[index]
             try:
                 for other_arith in self.numberList.keys():
@@ -62,13 +62,25 @@ class H2RegisterBank():
                         alloc_flags = self.numberList[other_arith][2]
                         index = regNameList.index(regName)
                         if regNameList.index(regName) != None:
-                            alloc_flags[index] = H2RegisterAllocationType.USED
+                            alloc_flags[index] = H2RegisterAllocationType.X
             except ValueError as ex:
                 pass
             self.print ("Allocated register %d for '%s'"%(regNo, arith))
             return regNo
         except ValueError as ex:
             fatalError("%s : No more register available for '%s'"%(self.bankName, arith))
+
+    def getRegisterMask (self, arith, initMask):
+        mask = initMask
+        for i in range(len(self.numberList[arith][0])):
+            regNo = self.numberList[arith][0][i]
+            if self.numberList[arith][2][i] == H2RegisterAllocationType.F:
+                mask &= (0xFFFFFFFF ^ (1 << regNo))
+        return mask # Assume a 32 register banck
+        # See h2-common.h for C declaration
+
+    def getCMask(self, initMask):
+        return self.getRegisterMask("int", initMask)
 
     def freeRegister(self, arith_: str, regNo: int):
         arith = regCorrespondances[arith_]
@@ -77,7 +89,7 @@ class H2RegisterBank():
         alloc_flags = self.numberList[arith][2]
         try:
             index = numberList.index(regNo)
-            alloc_flags[index] = H2RegisterAllocationType.FREE
+            alloc_flags[index] = H2RegisterAllocationType.F
             regName = regNameList[index]
             try:
                 for other_arith in self.numberList.keys():
@@ -87,7 +99,7 @@ class H2RegisterBank():
                         alloc_flags = self.numberList[other_arith][2]
                         index = regNameList.index(regName)
                         if regNameList.index(regName) != None:
-                            alloc_flags[index] = H2RegisterAllocationType.FREE
+                            alloc_flags[index] = H2RegisterAllocationType.F
             except ValueError as ex:
                 pass
         except ValueError as ex:
@@ -96,15 +108,17 @@ class H2RegisterBank():
 
     def add(self, arith, numberList):
          nb_registers = len(numberList[0])
-         alloc_flags = [H2RegisterAllocationType.FREE] * nb_registers
+         alloc_flags = [H2RegisterAllocationType.F] * nb_registers
          self.numberList.update({arith: [numberList[0],numberList[1], alloc_flags]})
          self.print("Adding arithmetic '%s' --->:" % arith)
          self.print("\n" + str(self))
 
+
     def __str__(self):
          s = "Register bank %s :\n" % self.bankName
          for arith in self.numberList.keys():
-             s += "- %s\n" % arith
-             s += "".join(map(lambda x: "%5d" % x, self.numberList[arith][0])) + "\n"
-             s += "".join(map(lambda x: "%5s" % x.name, self.numberList[arith][2])) + "\n"
+             s += "%s:\n" % arith
+             s += "".join(map(lambda x: "%s" %"%1d"%(x / 10) if 0 == (x % 10) else " ", self.numberList[arith][0])) + "\n"
+             s += "".join(map(lambda x: "%1d"%(x % 10), self.numberList[arith][0])) + "\n"
+             s += "".join(map(lambda x: "%1s"% x.name, self.numberList[arith][2])) + "\n"
          return s

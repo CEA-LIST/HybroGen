@@ -1,0 +1,30 @@
+CFLAGS = -g -DH2_DEBUG -I../../HybroGen/include
+
+newton:
+	HybroLang.py -c -a power -i Newton.hl -g
+	powerpc64le-linux-gnu-gcc-8 Newton.c -o Newton.power ${CFLAGS}
+
+run-newton:
+	make run-demo DEMOCODE=Newton.power DEMOARGS="17 1e-3"
+
+debug-newton: clean newton
+	make debug-demo DEMOCODE=Newton.power DEMOARGS="17 1e-3"
+
+divide:
+	HybroLang.py -c -a power -i DivideThreshold.hl -g
+	powerpc64le-linux-gnu-gcc-8 DivideThreshold.c -o DivideThreshold.power ${CFLAGS}
+
+run-divide:
+	make run-demo DEMOCODE=DivideThreshold.power DEMOARGS="4 .2 1e-10"
+
+
+debug-demo: 
+	echo "/opt/hybrotools/powerpc64le/bin/powerpc64le-linux-gdb $DEMOCODE"
+	echo "> target remote :5555"
+	qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ -g 5555 ${DEMOCODE} ${DEMOARGS}
+
+run-demo:
+	qemu-ppc64le -L /usr/powerpc64le-linux-gnu/ ${DEMOCODE} ${DEMOARGS}
+
+clean:
+	rm -f Newton.power Newton.c DivideThreshold.c DivideThreshold.power

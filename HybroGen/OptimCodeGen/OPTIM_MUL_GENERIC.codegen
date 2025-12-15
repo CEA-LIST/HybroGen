@@ -1,0 +1,29 @@
+/* -*- c -*- */
+  // if 2 operands are constants do multiplication evaluation (Thanks Kilian for the bug report)
+  if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+  {
+    return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm * P2.valueImm };
+  }
+  if (isInt0(P2) || isInt0(P1))
+   {    // X * 0 = 0 Avoid 1 operation mul & 1 mv
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *0 P2 (generic)\n");
+        #endif
+        return immValueZero;
+    }
+  if (isInt1(P2))
+    { // X * 1 = X propagate register result
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *1 P2 (generic)\n");
+        #endif
+		P1.dontFree = true;
+        return P1;
+    }
+  if (isInt1(P1))
+    { // 1 * X = X propagate register result
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *1 P1 (generic)\n");
+        #endif
+		P2.dontFree = true;
+        return P2;
+    }

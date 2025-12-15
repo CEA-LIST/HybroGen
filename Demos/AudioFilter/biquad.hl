@@ -1,0 +1,68 @@
+// -*- c -*-
+
+#include <stdio.h>
+
+typedef  void (*piff)(float *, float *, int size);
+
+// Extract from sox.sourceforge.net
+// https://sourceforge.net/p/sox/code/ci/master/tree/src/biquad.c
+// Wav Float file format : http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+h2_insn_t * genFilter (h2_insn_t * ptr, float b0, float b1, float b2, float a1, float a2)
+{
+  #[
+  int 32 1 filter(flt[] 32 1 signalIn, flt[] 32 1 signalOut, int 32 1 len)
+  {
+    flt 32 1 o0, o1, o2, i1, i2, tmp;
+	int 32 1 i;
+    for (i = 0; i < len; i = i +1)
+      {
+        tmp = signalIn[i];
+        o0 = tmp * #(b0) + i1 * #(b1) + i2 * #(b2) - o1 * #(a1) - o2 * #(a2);
+        i2 = i1;
+        i1 = tmp;
+        o2 = o1;
+        o1 = o0;
+        signalOut[i] = o0;
+  	   }
+    }
+  ]#
+  return (h2_insn_t *)ptr;
+}
+
+#define SIGNALSIZE 6*44100 // 6 sec at 44,1 Khz
+
+float signalIn[SIGNALSIZE], signalOut[SIGNALSIZE];
+
+int main(int argc, char * argv[])
+{
+  h2_insn_t * ptr;
+  float a1, a2, b0, b1, b2;
+  piff fPtr;
+  FILE * inFile, *outFile;
+  char msg[]= "// Compilette for audio filtering\n";
+  int nread;
+
+  if (argc < 8)
+    {
+      printf("Give 5 floating point values and 2 filenames\n");
+      printf("./biquadGive <b0> <b1> <b2> <a1> <a2> Infile.au OutFile.au\n");
+      exit(-1);
+    }
+  b0  = atof (argv[1]);
+  b1  = atof (argv[2]);
+  b2  = atof (argv[3]);
+  a1  = atof (argv[4]);
+  a2  = atof (argv[5]);
+  inFile = fopen (argv[6], "r");
+  nread = fread (signalIn, sizeof (float), SIGNALSIZE, inFile);
+  printf("%d sample read from %s\n", nread, argv[6]);
+  fclose(inFile);
+  /* ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions */
+  /* fPtr = genFilter (ptr, b0, b1, b2, a1, a2); */
+  /* res  = fPtr(in1, signalIn, signalOut);  // Call generated code */
+  // Write audio file
+  outFile = fopen (argv[7], "w");
+  fwrite (signalOut, sizeof (float), SIGNALSIZE, outFile);
+  fclose(outFile);
+  return 0;
+}

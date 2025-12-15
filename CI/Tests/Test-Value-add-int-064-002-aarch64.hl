@@ -1,0 +1,47 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+/* C compilette prototype vector version*/
+typedef int64_t v64_2_int_t __attribute__ ((vector_size (2*sizeof (int64_t))));
+typedef v64_2_int_t (*functionPointer)(v64_2_int_t, v64_2_int_t);
+functionPointer genSingleOp(h2_insn_t * ptr) /* C compilette prototype */
+{
+
+#[
+int 64 2 compilette(int 64 2 a, int 64 2 b)
+{
+	int 64 2 r;
+	r = a + b;
+	return r;
+}
+]#
+	return (functionPointer) ptr;
+}
+int main(int argc, char * argv[])
+{
+  functionPointer fPtr;
+  int i, returnValue;
+  if (argc < 4)
+    {
+      printf("Give 4 values\n");
+      exit(-1);
+   }
+  v64_2_int_t in0, in1, res;
+  for (int i = 0; i < 2; i++)
+  {
+  in0[i]  = atoi (argv[1+i]);
+  in0[i]  = atoi (argv[1+i]);
+  }
+  fPtr  = h2_malloc (1024);
+  fPtr = (functionPointer) genSingleOp(fPtr);
+  res = fPtr(in0, in1);
+  printf ("Simple operation on 2 variables (wordLen: 64, vectorLen 2):\n");
+  returnValue = 0;
+  for (i= 0; i < 2; i++)
+     {
+printf("%d + %d = %d\n", in0[i], in1[i], res[i]);
+if (res[i] != (in0[i] + in1[i]))
+	    returnValue = -1;
+     }
+  return returnValue;
+}

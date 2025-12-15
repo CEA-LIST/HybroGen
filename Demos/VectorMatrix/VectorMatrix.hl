@@ -1,0 +1,178 @@
+/* -*- c -*- */
+// https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/mesa/math/m_matrix.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <strings.h>
+#define T 4
+typedef int d_t;
+typedef d_t matrix_t [T][T];
+typedef d_t vector_t [T];
+typedef d_t (*pifvv)(vector_t, vector_t);
+
+pifvv genVectorMatrixProduct(pifvv ptr, matrix_t m)
+{
+  #[
+  int 32 1 add (int[] 32 1 o, int[] 32 1 i)
+   {
+     o[0] = i[0]*#(m[0][0]) + i[1]*#(m[1][0]) + i[2]*#(m[2][0]) + i[3]*#(m[3][0]);
+     o[1] = i[0]*#(m[0][1]) + i[1]*#(m[1][1]) + i[2]*#(m[2][1]) + i[3]*#(m[3][1]);
+     o[2] = i[0]*#(m[0][2]) + i[1]*#(m[1][2]) + i[2]*#(m[2][2]) + i[3]*#(m[3][2]);
+     o[3] = i[0]*#(m[0][3]) + i[1]*#(m[1][3]) + i[2]*#(m[2][3]) + i[3]*#(m[3][3]);
+   }
+  return o[3];
+  ]#
+  return ptr;
+}
+
+d_t VectorMatrixProductUnrolled (vector_t o, vector_t i, matrix_t m)
+{
+  o[0] = i[0]*m[0][0] + i[1]*m[1][0] + i[2]*m[2][0] + i[3]*m[3][0];
+  o[1] = i[0]*m[0][1] + i[1]*m[1][1] + i[2]*m[2][1] + i[3]*m[3][1];
+  o[2] = i[0]*m[0][2] + i[1]*m[1][2] + i[2]*m[2][2] + i[3]*m[3][2];
+  o[3] = i[0]*m[0][3] + i[1]*m[1][3] + i[2]*m[2][3] + i[3]*m[3][3];
+  return o[3];
+}
+
+#if 0 // What the binary code should be with a translation matrix
+d_t VectorMatrixProductUnrolledSR(vector_t o, vector_t i, matrix_t m)
+{
+
+  o[0] = m[0][0] * i[0] +                                 + m[3][0] * i[3];
+  o[1] =                  m[1][1] * i[1] +                + m[3][1] * i[3];
+  o[2] =                                   m[2][2] * i[2] + m[3][2] * i[3];
+  o[3] =                                                  +           i[3];
+  return o[3];
+}
+#endif
+d_t VectorMatrixProduct (vector_t o, vector_t i, matrix_t m)
+{
+  for (int column = 0; column < T; column++)
+    {
+      o[column] = 0;
+      // printf("o[%d] = ",column);
+      for (int line = 0; line < T; line++)
+        {
+          o[column] += i[line] * m[line][column];
+          //          printf("+ i[%d]*m[%d][%d]", line, line, column);
+        }
+      //      printf("\n");
+    }
+  //     printf("\n");
+  return o[3];
+}
+
+
+int VectorMatrixProductCount(matrix_t mat)
+{
+  int op = 0;
+  for (int column = 0; column < T; column++)
+    {
+      for (int line = 0; line < T; line++)
+        {
+          switch (mat[line][column])
+            {
+            case 0 : op += 0; break;
+            case 1 : op += 1; break;
+            default: op += 2; break;
+            }
+        }
+    }
+  return op;
+}
+
+
+void printMatrix (matrix_t m, char msg[])
+{
+  printf ("%s:\n", msg);
+  for (int column = 0; column < T; column++)
+    {
+      for (int line = 0; line < T; line++)
+        {
+          printf ("%4d ", m[line][column]);
+        }
+      printf ("\n");
+    }
+  printf ("\n");
+}
+
+void printVector (vector_t v, char msg[])
+{
+  for (int i = 0; i < T; i++)
+    printf ("%4d ", v[i]);
+  printf ("%s\n", msg);
+}
+
+bool vectorCompare(vector_t ref, vector_t other, char * msg, int doPrint)
+{
+  int has_differences = false;
+  for (int i = 0; i < T; i++)
+    {
+      if (ref[i] != other[i])
+        has_differences = true;
+      if (doPrint)
+        printf("%4d ", other[i]);
+    }
+  printf("%s : ", msg);
+  printf(" %s\n", (has_differences)?"NOT OK":"OK");
+  return has_differences;
+}
+
+int main (int argc, char *argv[])
+{
+  matrix_t m;
+  char *matrixName;
+  vector_t g0  = {1, 2, 3, 4}, g1  = {5, 6, 7, 8};
+  vector_t tmp0, tmp1, utmp0, utmp1, ctmp0, ctmp1;
+  uint64_t dateStart, dateStop, timeGeneral, timeCompilette, timeUnrolled;
+  pifvv vmProduct;
+  int tmp, doPrint;
+  unsigned long acc;
+  bool resultValid;
+
+  if (argc != 18)
+    {
+      printf ("Not enough arguments %d\n", argc);
+      printf ("VectorMatrix MatrixName M11 M12 ... M44\n");
+      exit (-1);
+    }
+  doPrint = 1;
+  acc = 0;
+  matrixName = argv[1];
+  for (int line = 0; line < 4; line++)
+    for (int column = 0; column < 4; column++)
+      {
+        m[line][column] = atoi (argv[2 + line*4+column]);
+      }
+  printMatrix(m, matrixName);
+  tmp = VectorMatrixProductCount (m);
+  printf("Operation count Matrix %s : %d speedup %.1f\n", matrixName, tmp, 32.0/tmp);
+
+#define DO(INSN, REPEAT, TIME) {dateStart = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  dateStop = h2_getticks(); TIME = dateStop - dateStart;}
+
+  printVector (g1, "Input  vector");
+  acc += VectorMatrixProduct (tmp0, g0, m); /* Cold start */
+  DO(acc += VectorMatrixProduct (tmp1, g1, m), 1000, timeGeneral)
+  printVector (tmp1, "Output vector   (general)");
+
+#if 0 // Possible test with a source level unrolled version
+  acc += VectorMatrixProductUnrolled (utmp0, g0, m);
+  DO(acc += VectorMatrixProductUnrolled (utmp1, g1, m), 1000, timeUnrolled);
+  vectorCompare(tmp1, utmp1, "Unrolled tmp0", doPrint);
+#endif
+
+  vmProduct = (pifvv) h2_malloc(1024);
+  vmProduct = genVectorMatrixProduct (vmProduct, m);
+  acc += vmProduct (ctmp0, g0);
+  DO(acc += vmProduct (ctmp1, g1), 1000, timeCompilette);
+    
+  resultValid = vectorCompare(tmp1, ctmp1, "Compilette tmp1", doPrint);
+  
+  printf ("General    ticks %lu\n", timeGeneral);
+  //  printf ("Unrolled   ticks %lu\n", timeUnrolled);
+  printf ("Compilette ticks %lu\n", timeCompilette);
+  //  printf ("Speedups unrolled   : %.2f%%\n", (float) 100.0*timeGeneral/timeUnrolled);
+  printf ("Speedups compilette : %.2f%%\n", (float) 100.0*timeGeneral/timeCompilette);
+  printf ("Accumulator value to avoid hard optimizations %ld\n", acc);
+  return resultValid;
+}

@@ -36,6 +36,7 @@ commonTestList = (
              "If",
              "If-in-Loop",
              "Loop-in-If",
+             "Constants-Operations",
 )
 cxramTestList =(
     "CxRAM-SimpleAnd",

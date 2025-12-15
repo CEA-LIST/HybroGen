@@ -16,7 +16,7 @@ class H2LabelTable:
 
     def getCDecl (self):
         if len(self.labelTable) > 0: # Avoid warning during C compilation
-            decl = "#define %s_genLABEL(LABEL_ID) labelAddresses[LABEL_ID] = h2_asm_pc;\n"%(self.archName)
+            decl = "#define %s_genLABEL_1(LABEL_ID) labelAddresses[LABEL_ID] = h2_asm_pc;\n"%(self.archName)
             decl += "h2_insn_t   * labelAddresses []={\n"
             for labelName in self.labelTable:
                 decl += "\t0, /* %s */\n"%labelName

@@ -1,0 +1,273 @@
+// -*- c -*-
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+
+//choose the data you want to use 
+#include "TensorConv.h"
+// #include "TensorConvLong.h"
+// #include "TensorConvPad.h"
+// #include "TensorConvStride.h"
+
+#define DATA_PER_LINE 16 // nombre de données par ligne
+#define TAILLE_MAX_FILTRE 255
+#define AFFICHAGE_CSRAM 0
+#define AFFICHAGE_PARAMETRES 0
+#define RESULT_WITH_QIM 1
+
+#if RESULT_WITH_QIM
+#include "csram_utils.h"
+#endif
+
+typedef void (*genMultiplyAccumulateType)(h2_cxram_line_t *, h2_cxram_line_t *, h2_cxram_line_t *, int inDepth, int resDepth);
+
+genMultiplyAccumulateType genMultiplyAccumulate(h2_insn_t *ptr)
+{
+#[
+	int 32 1 MultiplyAccumulate(int[] 8 16 filter, int[] 8 16 input,
+															int[] 8 16 res, int 32 1 inDepth, int 32 1 resDepth)
+	{
+		int 32 1 i;
+		int 32 1 j;
+		int 32 1 k;
+		for (i = 0; i < resDepth; i = i + 1)
+		{
+			res[i] = 0;
+			for (j = 0; j < inDepth; j = j + 1)
+			{
+				k = j * resDepth;
+				k = k + i;
+				res[i + 1] = input[j] + filter[inDepth * resDepth]; // offset
+				res[i + 1] = res[i + 1] * filter[k];								// multiply
+				res[i] = res[i] + res[i + 1];												// accumulate
+			}
+		}
+	}
+]#
+	return (genMultiplyAccumulateType) ptr;
+}
+
+typedef void (*genBroadcastInputType)(h2_cxram_line_t *, h2_cxram_line_t *, int inDepth);
+
+genBroadcastInputType genBroadcastInput(h2_insn_t *ptr)
+{
+#[
+	int 32 1 BroadcastInput(int[] 8 16 filter, int[] 8 1 data, int 32 1 inDepth)
+	{
+		int 32 1 i, limit;
+		limit = 0;
+		for (i = inDepth - 1; i >= limit; i = i - 1)
+		{
+			filter[i] = data[i];
+		}
+	}
+]#
+	return (genBroadcastInputType) ptr;
+}
+
+// charge les données du filtre dans la CxRAM pour effectuer la MAC
+// posibilité de charger le filtre en plusieurs morceaux si il dépase la taille maximum prévu (out_channel_begin, out_channel_end)
+void loadFilter(Tensor *filter, h2_cxram_line_t *in, int offset, int out_channel_begin, int out_channel_end)
+{
+	const int input_depth = filter->dims[3];
+	const int width = filter->dims[2];
+	const int height = filter->dims[1];
+	const int8_t *data = filter->data;
+	int index = 0;
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			for (int in_channel = 0; in_channel < input_depth; in_channel++)
+			{
+				for (int out_channel = out_channel_begin; out_channel < out_channel_end; out_channel++)
+				{
+					int8_t val = data[((out_channel * height + y) * width + x) * input_depth + in_channel];
+					in[0].i8[index++] = val;
+				}
+				if (out_channel_end % DATA_PER_LINE)
+				{
+					index += (DATA_PER_LINE - (out_channel_end % DATA_PER_LINE)); // alignement des filtres
+				}
+			}
+		}
+	}
+	// ajout de l'offset a la fin
+	for (int i = 0; i < DATA_PER_LINE; i++)
+	{
+		in[0].i8[index++] = offset;
+	}
+}
+
+// charge les données dans la CxRAM pour effectuer la MAC avec le filtre
+// prise en compte de la dialatation et du padding
+void loadInput(Tensor *input, Tensor *filter, const int batch, const int x_origin, const int y_origin, ConvParams params, h2_cxram_line_t *in)
+{
+	const int filter_height = filter->dims[1];
+	const int filter_width = filter->dims[2];
+	const int depth = input->dims[3];
+	const int width = input->dims[2];
+	const int height = input->dims[1];
+	const int8_t *data = input->data;
+	const int dilation_height = params.dilation_height;
+	const int dilation_width = params.dilation_width;
+	const int offset = params.input_offset;
+	int index = 0;
+	for (int filter_y = 0; filter_y < filter_height; filter_y++)
+	{
+		const int y = y_origin + dilation_height * filter_y;
+		for (int filter_x = 0; filter_x < filter_width; filter_x++)
+		{
+			const int x = x_origin + dilation_width * filter_x;
+
+			for (int channel = 0; channel < depth; channel++)
+			{
+				const int val = ((x >= 0) && (x < width) && (y >= 0) && (y < height)) ? data[((batch * height + y) * width + x) * depth + channel] : -offset; // zero padding avec -offset pour annulation lors du calcul
+																																																																											// toutes les colones de la CxRAM ont le meme filtre de chargé pour calcul en //
+				//  for (int i = 0; i < DATA_PER_LINE; i++)
+				//  {
+				in[0].i8[index++] = val;
+				// }
+			}
+		}
+	}
+}
+
+void printCxram(int len, int nb_ligne, char *mesg, h2_cxram_line_t *vectorLine)
+{
+	for (int i = 0; i < nb_ligne; i++)
+	{
+		printf("%s :", mesg);
+		for (int j = 0; j < len; j++)
+		{
+			printf(" %05d", vectorLine[i].i8[j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
+
+int main(int argc, char *argv[])
+{
+#if RESULT_WITH_QIM 
+	mmap_qemu_counters();
+	*to_counter = 1;
+#endif
+
+	int resultOK;
+	h2_insn_t *ptr;
+	genMultiplyAccumulateType h2_MacCode;
+	genBroadcastInputType h2_BroadcastCode;
+	h2_cxram_line_t *in1, *in2, *res;
+	OutputMac output;
+
+	output.dims[0] = outputRef.dims[0];
+	output.dims[1] = outputRef.dims[1];
+	output.dims[2] = outputRef.dims[2];
+	output.dims[3] = outputRef.dims[3];
+	const int batches = input.dims[0]; // et output(0)
+	const int filter_height = filter.dims[1];
+	const int filter_width = filter.dims[2];
+	const int filter_input_depth = filter.dims[3];
+	const int output_height = output.dims[1];
+	const int output_width = output.dims[2];
+	const int output_depth = output.dims[3]; // et filter(0)
+
+		// calcul des valeur constantes de la CxRAM
+	const int nbLineRes = output_depth % DATA_PER_LINE ? (output_depth / DATA_PER_LINE) + 1 : output_depth / DATA_PER_LINE;						// nombre de ligne utilisé par le résulat dans la CSRAM
+	const int nbLineInput = filter_height * filter_width * filter_input_depth;																												// nombre de ligne utilisé par l'input dans la CSRAM
+	const int nbLineFilter = nbLineInput * nbLineRes;																																									// nombre de ligne utilisé par le filtre dans la CSRAM
+	const int nbTimes = nbLineFilter % TAILLE_MAX_FILTRE ? (nbLineFilter / TAILLE_MAX_FILTRE) + 1 : nbLineFilter / TAILLE_MAX_FILTRE; // Nombre de passe a effectuer pour obtenir la profondeur totale de la sortie en divisant le chargement du filtre
+	const int nbLineResPerTime = nbLineRes % nbTimes ? nbLineRes / nbTimes + 1 : nbLineRes / nbTimes;
+	const int nbLineFilterPerTime = nbLineInput * nbLineResPerTime;
+
+	// parametres de convolutions
+	const int input_offset = params.input_offset;
+	const int pad_width = params.pad_width;
+	const int pad_height = params.pad_height;
+	const int stride_width = params.stride_width;
+	const int stride_height = params.stride_height;
+
+	h2_init_cxram();
+	in1 = &h2_cxram_tiles[0];																			// filtre
+	in2 = &h2_cxram_tiles[nbLineFilterPerTime + 1];								// input +1 pour l'offset
+	res = &h2_cxram_tiles[nbLineFilterPerTime + nbLineInput + 1]; // output +1 pour l'offset
+
+	ptr = h2_malloc(1024);
+	h2_MacCode = genMultiplyAccumulate(ptr);
+	ptr = h2_malloc(1024);
+	h2_BroadcastCode = genBroadcastInput(ptr);
+
+	for (int time = 0; time < nbTimes; time++)
+	{
+		const int out_channel_begin = time * nbLineResPerTime * DATA_PER_LINE;
+		const int out_channel_end = (out_channel_begin + nbLineResPerTime * DATA_PER_LINE) > output_depth ? output_depth : out_channel_begin + nbLineResPerTime * DATA_PER_LINE;
+		const int nbLineResThisTime = (out_channel_end - out_channel_begin) / DATA_PER_LINE;
+		loadFilter(&filter, in1, input_offset, out_channel_begin, out_channel_end);
+
+#if AFFICHAGE_PARAMETRES
+		printf("nbLineRes = %d, nbLineInput = %d, nbLineFilter = %d\n", nbLineRes, nbLineInput, nbLineFilter);
+		printf("nbTimes = %d, nbLineResPerTime =%d, nbLineFilterPerTime = %d, nbLineResThisTime = %d\n", nbTimes, nbLineResPerTime, nbLineFilterPerTime, nbLineResThisTime);
+		printf("\n");
+#endif
+
+#if AFFICHAGE_CSRAM // filtre
+		printCxram(DATA_PER_LINE, nbLineFilterPerTime + 1, "F", in1);
+		printf("fin filtre\n\n");
+#endif
+
+		for (int batch = 0; batch < batches; batch++)
+		{
+			for (int out_y = 0; out_y < output_height; out_y++)
+			{
+				const int in_y = (out_y * stride_height) - pad_height;
+				for (int out_x = 0; out_x < output_width; out_x++)
+				{
+					const int in_x = (out_x * stride_width) - pad_width;
+					loadInput(&input, &filter, batch, in_x, in_y, params, in2);
+					h2_BroadcastCode(in2, in2, nbLineInput);
+#if AFFICHAGE_CSRAM // Input
+					printCxram(DATA_PER_LINE, nbLineInput, "I", in2);
+					printf("fin Input\n\n");
+#endif
+					h2_MacCode(in1, in2, res, nbLineInput, nbLineResThisTime);
+#if AFFICHAGE_CSRAM // Res
+					printCxram(DATA_PER_LINE, nbLineResThisTime, "R", res);
+					printf("fin Res\n\n");
+					// return 1;
+#endif
+					for (int out_channel = out_channel_begin; out_channel < out_channel_end; out_channel++)
+					{
+						output.data[((batch * output_height + out_y) * output_width + out_x) * output_depth + out_channel] = res[0].i8[out_channel - out_channel_begin];
+						// const int out = ((batch * output_height + out_y) * output_width + out_x) * output_depth + out_channel;
+						// output.data[out] = res[0].i8[out_channel - out_channel_begin];
+						// printf("out = %d\n",out);
+						// if (out == 513) return 1;
+					}
+				}
+			}
+		}
+	}
+#if RESULT_WITH_QIM
+	*to_counter = 0;
+#endif
+	// test du résutat de la convolution
+	resultOK = 0;
+	for (int i = 0; i < (batches * output_height * output_width * output_depth); i++)
+	{
+		if (output.data[i] != outputRefMac.data[i])
+		{
+			resultOK = -1;
+			printf("output_data[%d] = %d, outputRef_data[%d] = %d\n", i, output.data[i], i, outputRefMac.data[i]);
+			printf("Erreur MAC\n");
+			break;
+		}
+	}
+	if (resultOK == 0)
+		printf("Convolution OK\n");
+	return resultOK;
+}
+// rajouter la quntisation et la fontion d'activation

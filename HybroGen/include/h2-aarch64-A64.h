@@ -3,7 +3,6 @@
 
 #define H2SYS 					/* Has  operating system */
 
-#include <stdint.h>
 #ifdef H2SYS
 #include <sys/mman.h>
 #endif
@@ -11,7 +10,7 @@
 typedef uint32_t   h2_insn_t;
 static  h2_insn_t  *h2_asm_pc;
 static  h2_insn_t  *h2_save_asm_pc;
-
+#define H2Aarch64SP  (h2_sValue_t) {REGISTER, 'i', 1, 32, 31, 0}
 /* aarch64 / power examples :
    https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h */
 
@@ -25,13 +24,15 @@ static inline ticks_t h2_getticks(void)
 static void h2_iflush(void *addr, void *last)
 {
 #ifdef H2SYS
-    long pageSize= getpagesize();
-    void *ptmp= (char *)((long)addr & ~(pageSize - 1));
-    if (mprotect(ptmp, (last - addr), PROT_READ | PROT_WRITE | PROT_EXEC))
+  __clear_cache((char *)addr, (char *)last); // Flush data cache where binary code were written
+  long pageSize= getpagesize();              // Make the page executable
+  void *ptmp= (char *)((long)addr & ~(pageSize - 1));
+  if (mprotect(ptmp, (last - addr), PROT_READ | PROT_WRITE | PROT_EXEC))
     {
-        perror("iflush: mprotect");
-        exit(-1);
+      perror("iflush: mprotect");
+      exit(-1);
     }
+    __clear_cache((char *)addr, (char *)last);
 #endif
 #ifdef H2_DEBUG
 	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;

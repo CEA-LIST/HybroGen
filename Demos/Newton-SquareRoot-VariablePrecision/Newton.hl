@@ -1,0 +1,74 @@
+/* -*- c -*- */
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
+#define True 1
+#define False 0
+#define FLOAT 32
+#define DOUBLE 64
+
+typedef  float  (*piff)(float,  float,  float);
+typedef  double (*pidd)(double, double, double);
+/* Newton square root demonstration with variable precision */
+h2_insn_t * genIterate(h2_insn_t * ptr, int FloatWidth)
+{
+  #[
+    flt #(FloatWidth) 1 iterate(flt #(FloatWidth) 1 u, flt #(FloatWidth) 1 val, flt #(FloatWidth) 1 div )
+    {
+	flt #(FloatWidth) 1 r, tmp1, tmp2;
+	tmp1 = val / u;
+	tmp2 = u + tmp1;
+	return tmp2 / div;
+    }
+  ]# 	  /* r = (u + (#(value) / u))  / 2.0*/
+
+  return (h2_insn_t *) ptr;
+}
+
+#define ABS(x) ((x < 0) ? -(x) : (x))
+
+int main(int argc, char **argv)
+{
+    int isFloat, iterationNumber;
+    double af, precf, precd, value, next, diff;
+    piff fPtr1;
+    pidd fPtr2;
+    h2_insn_t * ptr;
+    char input;
+    if (argc < 3)
+    {
+	printf ("Newton <value> <precision>\n");
+	exit(-1);
+    }
+    iterationNumber = 0;
+    af = atof (argv[1]);
+    precd = atof (argv[2]);
+    precf = 1; // precd * 1.e14;
+    ptr  = h2_malloc (1024);
+    isFloat = True;
+    printf ("Compute square root of %f\n", af);
+    printf ("With precision of %e (float)\n", precf);
+    printf ("With precision of %e (double)\n", precd);
+    next = 1.0;
+    diff = af;
+
+    fPtr1 = (piff) genIterate (ptr, FLOAT);
+    do
+    {
+	  if ((diff < precf) && isFloat)
+		{ 		/* Code re-generation with double for better precision */
+		  fPtr2 = (pidd) genIterate (ptr, DOUBLE);
+		  isFloat = False;
+		}
+	  value = next;
+	  next = (isFloat)?fPtr1(value, af, 2.0):fPtr2(value, af, 2.0);
+	  diff = ABS(next - value);
+	  printf("%3d %s : %.20f, %e\n",
+			 iterationNumber++,
+			 isFloat?"float ":"double",
+			 next, isFloat?precf:precd);
+    } while ( diff > precd);
+    return 0;
+}

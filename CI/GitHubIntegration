@@ -1,0 +1,14 @@
+#!/bin/tcsh -x
+
+rm -rf HybroGen-GitHub/
+git clone git@github.com:CEA-LIST/HybroGen.git HybroGen-GitHub
+(cd /tmp ; tar xf ~/X/H2/HybroGen-V4.0.tgz )
+cd HybroGen-GitHub
+cp -r /tmp/Hybrogen/* .
+cd CodeExamples/
+SetPower
+./Regression.py power
+SetAarch64
+./Regression.py aarch64
+SetRiscv
+./Regression.py riscv

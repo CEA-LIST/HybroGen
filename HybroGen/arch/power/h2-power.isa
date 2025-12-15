@@ -1,28 +1,29 @@
 # IBM power 8 instruction set
-# Power ISA v3 2015
+# Power ISA v3.0B March 29, 2017
 
 ARCH power 32
 
 # add Add
-011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100| p1 i 1 32 add add r0 r1 r2
+011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100     | p1 i 1 32 add add r0 r1 r2
 # add. Add
-#011111 r0[4:0] r1[4:0] r2[4:0]  01000 010101| p1 i 1 32 add add. r0 r1 r2
+#011111 r0[4:0] r1[4:0] r2[4:0]  01000 010101   | p1 i 1 32 add add. r0 r1 r2
 # addo Add
 #011111 r0[4:0] r1[4:0] r2[4:0]  11000 010100	| p1 i 1 32 add addo r0 r1 r2
 # addo. Add
 #011111 r0[4:0] r1[4:0] r2[4:0] 11000 010101	| p1 i 1 32 add addo. r0 r1 r2
 # addc[o][.] Add Carrying
-# 011111 ..... ..... ..... .0000 01010.| p1 addc[o][.]
+# 011111 ..... ..... ..... .0000 01010.         | p1 addc[o][.]
 # adde[o][.] Add Extended
-# 011111 ..... ..... ..... .0100 01010.| p1 adde[o][.]
+# 011111 ..... ..... ..... .0100 01010.         | p1 adde[o][.]
 # addg6s Add & Generate Sixes
-# 011111 ..... ..... ..... 00010 010100| power addg6s
-# addi Add Immediate
+# 011111 ..... ..... ..... 00010 010100         | power addg6s
+# addi Add Immediate p67
 001110 r0[4:0] r1[4:0] i0[15:0]					| p1  i 1 32 add addi r0 r1 i0
 # subi Add Immediate
-001110 r0[4:0] r1[4:0] (-i0[15:0])				| p1  i 1 32 sub subi r0 r1 i0
-# li load immediate
+001110 r0[4:0] r1[4:0] {-i0}[15:0]  			| p1  i 1 32 sub subi r0 r1 i0
+# li load immediate (alias addi with 0 reg#) p67
 001110 r0[4:0] 00000 i0[15:0]					| p1  i 1 32 mv li r0 i0
+001110 r0[4:0] 00000 i0[15:0]					| p1  i 1 64 mv li r0 i0
 # mv Add Immediate
 001110 r0[4:0] r1[4:0] 0000 0000 0000 0000 		| p1  i 1 32 mv mv r0 r1
 # addic Add Immediate Carrying
@@ -385,10 +386,10 @@ ARCH power 32
 # 111011 ..... ..... ..... ..... 11100.| ppc fmsubs[.]
 # fmul[.] Floating Multiply
 111111 r0[4:0] r1[4:0] 00000 r2[4:0] 11001 0	| p1 f 1 64 MUL fmul  r0 r1 r2
-111111 r0[4:0] r1[4:0] 00000  r2[4:0] 11001 1 	| p1 f 1 64 MUL fmul. r0 r1 r2
+111111 r0[4:0] r1[4:0] 00000 r2[4:0] 11001 1 	| p1 f 1 64 MUL fmul. r0 r1 r2
 # fmuls[.] Floating Multiply Single
-111011 r0[4:0] r1[4:0] 00000 r2[4:0]110010	| ppc f 1 32 MUL fmuls r0 r1 r2
-111011 r0[4:0] r1[4:0] 00000 r2[4:0]110011	| ppc f 1 32 MUL fmuls. r0 r1 r2
+111011 r0[4:0] r1[4:0] 00000 r2[4:0] 110010	    | ppc f 1 32 MUL fmuls r0 r1 r2
+111011 r0[4:0] r1[4:0] 00000 r2[4:0] 110011	    | ppc f 1 32 MUL fmuls. r0 r1 r2
 # fnabs[.] Floating Negative Absolute Value
 # 111111 ..... 00000 ..... 00100 01000.| p1 fnabs[.]
 # fneg[.] Floating Negate
@@ -865,7 +866,7 @@ ARCH power 32
 # stdx Store Dword Indexed
 # 011111 ..... ..... ..... 00100 101010| ppc stdx
 # stfd Store Floating Double
-# 110110 ..... ..... ..... ..... ......| p1 stfd
+110110 r0[4:0] r1[4:0] i0[15:0]	| p1 f 1 64 w stfd r1 r0 i0
 # stfdp Store Floating Double Pair
 # 111101 ..... ..... ..... ..... ....00| power stfdp
 # stfdpx Store Floating Double Pair Indexed

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-import sys
 from collections import OrderedDict
-from HybroLang.H2SymbolTable import H2SymbolTable
+from HybroLang.H2SymbolTable  import H2SymbolTable
 from HybroLang.H2RegisterBank import H2RegisterBank
-from HybroLang.H2Node import H2Node
-from HybroLang.H2IR2 import H2Type
-from HybroLang.H2NodeType import H2NodeType
+from HybroLang.H2Node         import H2Node
+from HybroLang.H2Type         import H2Type
+from HybroLang.H2NodeType     import H2NodeType
 
 # TODO : support floating-point
 # ( this is *not* gonna be easy... (^_^;) )
@@ -41,6 +40,8 @@ class H2ConstantOptimizer:
         self.archName = archName
         self.verbose = verbose
         self.optiOK = archName in H2ConstantOptimizer.integer_ranges.keys()
+        if verbose:
+            self.print("H2ConstantOptimizer pass")
         if not self.optiOK:
             self.print("!!! Warning !!! Integer ranges not defined for architecture %s" % archName)
 

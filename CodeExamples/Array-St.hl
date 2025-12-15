@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 /* Pointer on function which take 1 pointer, an index and return int */
+typedef  int (*pifli)(long int *,   int);
 typedef  int (*pifii)(int *,   int);
 typedef  int (*pifsi)(short *, int);
 typedef  int (*pifci)(char *,  int);
@@ -43,7 +44,7 @@ h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
   printf (MSG);						 \
   for (int i = 0; i < LIMIT; i++) 	\
 	{ 								\
-      printf("%4d ", ARRAY[i]);     \
+      printf(" %2d ", ARRAY[i]);     \
 	}								\
   printf ("\n");
 
@@ -51,45 +52,54 @@ int main(int argc, char * argv[])
 {
   h2_insn_t * ptr;
   int in0, res, resultOK, loopLimit;
+  pifli fPtr64;
   pifii fPtr32;
   pifsi fPtr16;
   pifci fPtr8;
 
-  int   a32[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  short a16[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-  char   a8[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
   if (argc < 2)
     {
-      printf("Give 1 values\n");
+      printf("Give 1 value\n");
       exit(-1);
     }
-
   in0  = atoi (argv[1]);   // Get the users values in1
-  printf ("Size of (bytes) 10 : INTs %d, SHORTs %d, CHARs %d\n", sizeof (a32), sizeof (a16), sizeof (a8));
+  printf ("Size of LONG INT %ld, INTs %ld, SHORTs %ld, CHARs %ld\n", sizeof (long int), sizeof (int), sizeof (short), sizeof (char));
   resultOK = 0;
-  loopLimit = sizeof(a32) / sizeof (int);
 
+  long int a64[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  loopLimit = sizeof(a64) / sizeof (long int);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
-  fPtr32 = (pifii) gen_Array_St(ptr, 32); // Generate instructions
+  fPtr64 = (pifii) gen_Array_St(ptr, 8 * sizeof (long int)); // Generate instructions
+  res  = fPtr64(a64, in0);  // Call generated code
+  CHECK (a64, in0, resultOK, loopLimit, 42);
+  PRINTARRAY("64 bits : ", a64, loopLimit);
+
+  int      a32[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  loopLimit = sizeof(a32) / sizeof (int);
+  ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
+  fPtr32 = (pifii) gen_Array_St(ptr, 8 * sizeof (int)); // Generate instructions
   res  = fPtr32(a32, in0);  // Call generated code
   CHECK (a32, in0, resultOK, loopLimit, 42);
   PRINTARRAY("32 bits : ", a32, loopLimit);
 
+  short    a16[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  loopLimit = sizeof(a16) / sizeof (short);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
-  fPtr16 = (pifsi) gen_Array_St(ptr, 16); // Generate instructions
+  fPtr16 = (pifsi) gen_Array_St(ptr, 8 * sizeof (short)); // Generate instructions
   res  = fPtr16(a16, in0);  // Call generated code
   PRINTARRAY("16 bits : ", a16, loopLimit);
   CHECK (a16, in0, resultOK, loopLimit, 42);
 
+  char      a8[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+  loopLimit = sizeof(a8) / sizeof (char);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
-  fPtr8 = (pifci) gen_Array_St(ptr, 8); // Generate instructions
+  fPtr8 = (pifci) gen_Array_St(ptr, 8 * sizeof (char)); // Generate instructions
   res  = fPtr8(a8, in0);  // Call generated code
   CHECK (a8, in0, resultOK, loopLimit, 42);
   PRINTARRAY("8  bits : ", a8, loopLimit);
 
-  if (resultOK == 0)
-	return 0;
-  else
+  if (resultOK != 0)
 	return -1;
+  return 0;
 }

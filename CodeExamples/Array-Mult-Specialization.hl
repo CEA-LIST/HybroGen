@@ -4,22 +4,21 @@
 #include <time.h>
 
 typedef  int (*pifi)(int *);
-
-
-h2_insn_t * genMulArray(h2_insn_t * ptr, int  b, int len)
+pifi genMulArray(pifi ptr, int  b, int len)
 {
   #[
   int 32 1 mult (int[] 32 1 a)
   {
-    int 32 1 r, i, l;
+    int 32 1 i, l;
 	l = #(len);
-    for (i = 0; i < l; i = i + 1)
+    for (i = 0; i <  l; i = i + 1)
       { // b values will be included in code generation
         a[i] = a[i] * #(b);
       }
   }
+  return 0;
   ]#
-  return (h2_insn_t *) ptr;
+  return ptr;
 }
 
 void printArray(int * array, int len)
@@ -61,7 +60,7 @@ int main(int argc, char * argv[])
   printf("// Multiply an array with a constant value\n");
   printf("// Array len = %d constant value %d\n", arrayLen, mulValue);
   // Allocate memory for 1024 instructions, generate kernel
-  fPtr = (pifi) genMulArray (h2_malloc (1024), mulValue, arrayLen);
+  fPtr = genMulArray ((pifi) h2_malloc (1024), mulValue, arrayLen);
   startHg = clock();
   fPtr(array1);  // Call generated code
   stopHg = clock();

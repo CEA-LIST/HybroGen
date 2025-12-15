@@ -2,17 +2,18 @@
 
 # BankSet Reg# Width Description
 
-RV32G 	  i $0      32 Z
-RV32G 	  i $1      32 RA
-#RV32G 	  i $2      32 SP
-#RV32G 	  i $3      32 GP
-#RV32G 	  i $4      32 TP
-RV32G 	  i $i5-7   32 T0-3
-#RV32G 	  i $8      32 FP
-RV32G 	  i $i10-11  32 I0-1
-RV32G 	  i $i12-17  32 I2-7
-RV32G 	  i $i10-11  32 O0-1
-RV32G 	  i $i28-31  32 T4-7
+# Integer register bank
+RV32G 	  i $r0      32 Z
+# RV32G   i $r1      32 RA # Reserved Return Address
+# RV32G   i $2      32 SP # Reserved Stack Pointer
+# RV32G   i $3      32 GP # Reserved Global Pointer
+# RV32G   i $4      32 TP # REserved Thread Pointer
+RV32G 	  i $r5-7   32 T0-3
+# RV32G	  i $8      32 FP # Reserved Frame Pointer
+RV32G 	  i $r10-11  32 O0-1 # Return register values
+RV32G 	  i $r10-17  32 I0-7 # Input register values
+RV32G 	  i $r18-31  32 T0-14 # Temporaries
+
 RV32G 	  f $f0-7    32 T0-7
 RV32G 	  f $f10-11  32 I0-1
 RV32G 	  f $f10-11  32 O0-1
@@ -48,20 +49,6 @@ RV32V 	  f $f10-11  32 I0-1
 RV32V 	  f $f10-11  32 O0-1
 RV32V 	  f $f12-17  32 I2-7
 RV32V 	  f $f28-31  32 T8-11
-
-
-GAP9 	i $0      32 Z
-GAP9 	i $1      32 RA
-GAP9 	i $5-7    32 T0-3
-GAP9 	i $10-11  32 I0-1
-GAP9 	i $12-17  32 I2-7
-GAP9 	i $10-11  32 O0-1
-GAP9 	i $28-31  32 T4-7
-GAP9 f $5-7    32 T0-3
-GAP9 f $10-11  32 I0-1
-GAP9 f $12-17  32 I2-7
-GAP9 f $10-11  32 O0-1
-GAP9 f $28-31  32 T4-7
 
 CXRAM i $0      32 Z
 CXRAM i $1      32 RA

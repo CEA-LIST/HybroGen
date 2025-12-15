@@ -1,0 +1,71 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  int (*pifi)(int *, int *, int);
+
+pifi genStencil(pifi ptr, int s1, int s2, int s3, int len)
+{
+  #[
+  int 32 1 stencil (int[] 32 1 in, int[] 32 1 out, int 32 1 i)//, int[] 32 1 b)
+  {
+    out[i] = in[i-1]*#(s1) + in[i]*#(s2) + in[i+1]*#(s3); //stencil
+  }
+  ]#
+  return ptr;
+}
+
+void printArray(char * msg, int * array, int len)
+{
+  printf ("%15s (%3d) : ", msg, len);
+  for (int i = 0; i < len; i++)
+    printf ("%d ", array[i]);
+  printf ("\n");
+}
+
+
+int main(int argc, char * argv[])
+{
+  int arrayLen, i, resultOK;
+  pifi fPtr;
+  int *arrayIn, *arrayOut;
+  int stencil[3];
+  int testval, stenLen = 3;
+
+  if (argc < 5)
+    {
+      printf("Give 4 values (array len & 3 stencil coefficient)\n");
+      exit(-1);
+    }
+  arrayLen = atoi (argv[1]);   // Get the array len
+  stenLen = 3;
+  arrayIn =  calloc (arrayLen, sizeof (int));
+  arrayOut = calloc(arrayLen, sizeof (int));
+  for (i=0; i<stenLen; i++)
+    {
+      stencil[i] = atoi(argv[i+2]);
+    }
+  for (i = 0; i < arrayLen; i++)
+	{
+      arrayIn[i]  = random () % 100;
+	  arrayOut[i] = 0;
+	}
+  printArray ("arrayIn", arrayIn, arrayLen);
+  printArray ("stencil", stencil, stenLen);
+
+  fPtr = (pifi) genStencil (h2_malloc (1024), stencil[0], stencil[1], stencil[2], arrayLen);
+  printf("IN             Compilette C\n");
+  for (i=1; i<arrayLen-1; i++)
+    {
+      fPtr(arrayIn, arrayOut, i);  // Call generated code
+      testval = arrayIn[i-1]*stencil[0] + arrayIn[i]*stencil[1] +  arrayIn[i+1]*stencil[2];
+      printf("%4d, %4d, %4d, %4d, %4d : %s\n",
+             arrayIn[i-1],
+             arrayIn[i],
+             arrayIn[i+1],
+             arrayOut[i], testval, (testval != arrayOut[i])?"NOK":"OK");
+    }
+  printArray ("arrayOut", arrayOut, arrayLen);
+  resultOK = 0;
+  return resultOK;
+}

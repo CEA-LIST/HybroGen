@@ -20,9 +20,7 @@ generateAllIsa:
 
 verifyAllCode: generateAllIsa
 	${MAKE} verifyOneCode ARCH=riscv
-	${MAKE} verifyOneCode ARCH=k1
 	${MAKE} verifyOneCode ARCH=power
-	${MAKE} verifyOneCode ARCH=x86
 
 verifyOneCode:
 	clang -ferror-limit=2 -E include/h2-macro-${ARCH}.h
@@ -33,16 +31,10 @@ doForParam:
 	../H2Isa.py ${H2ISAPARAM} ${ARCH}
 
 riscv: all
-	${MAKE} doForParam H2ISAPARAM=-a ARCH=riscv 
+	${MAKE} doForParam H2ISAPARAM=-a ARCH=riscv
 	${MAKE} doForParam H2ISAPARAM=-c ARCH=riscv
 	${MAKE} doForParam H2ISAPARAM=-i ARCH=riscv
 	${MAKE} verifyOneCode ARCH=riscv
-
-k1: all
-	${MAKE} doForParam H2ISAPARAM=-a ARCH=k1 
-	${MAKE} doForParam H2ISAPARAM=-c ARCH=k1
-	${MAKE} doForParam H2ISAPARAM=-i ARCH=k1
-	${MAKE} verifyOneCode ARCH=k1
 
 x86: all
 	${MAKE} doForParam H2ISAPARAM=-a ARCH=x86
@@ -57,12 +49,12 @@ power: all
 	${MAKE} verifyOneCode ARCH=power
 
 alltargets:
-	${MAKE} riscv k1 x86 power
+	${MAKE} riscv x86 power
 
-debuggui: 
+debuggui:
 	${MAKE} makedebug GRUNOPT=-gui
 
-debuglex: 
+debuglex:
 	${MAKE} makedebug GRUNOPT=-tokens
 
 debugtree: makedebug
@@ -80,4 +72,3 @@ clean:
 	-rm IsaDescriptionParser.* IsaDescription.interp  IsaDescription.tokens
 	-rm *.java *.class
 	-rm -rf __pycache__
-	-rm include/h2-funct-*.h  include/h2-insn-*.h  include/h2-macro-*.h  include/h2-funct-*.gch

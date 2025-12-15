@@ -1,0 +1,5 @@
+archList,triplet,exec,qemu-triplet
+aarch64,aarch64-linux-gnu,qemu-aarch64,aarch64-linux-user
+riscv,riscv32-linux-gnu,qemu-riscv32,riscv32-linux-user
+cxram,riscv32-unknown-linux,qemu-riscv32,riscv32-linux-user
+power,powerpc64le-linux-gnu,qemu-ppc64le,ppc64le-linux-user
