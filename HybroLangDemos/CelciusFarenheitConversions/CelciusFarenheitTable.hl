@@ -19,7 +19,7 @@ int FarenheitToCelcius(int farenheit)
 
 typedef  int (*pifi)(int);
 
-h2_insn_t * genC2F(h2_insn_t * ptr)
+pifi genC2F(pifi ptr)
 {
   #[
   int 32 1 C2F (int 32 1 a)
@@ -29,10 +29,10 @@ h2_insn_t * genC2F(h2_insn_t * ptr)
     return r;
   }
   ]#
-  return (h2_insn_t *) ptr;
+  return ptr;
 }
 
-h2_insn_t * genF2C(h2_insn_t * ptr)
+pifi genF2C(pifi ptr)
 {
   #[
   int 32 1 F2C (int 32 1 a)
@@ -43,7 +43,7 @@ h2_insn_t * genF2C(h2_insn_t * ptr)
     return r;
   }
   ]#
-  return (h2_insn_t *) ptr;
+  return ptr;
 }
 
 typedef int arrayTemp_t[3][13];
@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
   for (i = 0; i < 8; i ++)
       tempArray[0][i] = 5*i;
   startCg1 = h2_getticks();
-  fC2F = (pifi) genC2F(h2_malloc (1024)); // Allocate memory for binary code
+  fC2F = genC2F(h2_malloc (1024)); // Allocate memory for binary code
   stopCg1 = h2_getticks();
   startC = h2_getticks();
   for (i = 0; i < 8; i ++)
@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
   for (i = 0; i < 13; i ++)
     tempArray[0][i] = 35 + 5*i;
   startCg2 = h2_getticks();
-  fF2C = (pifi) genF2C(h2_malloc (1024)); // and generate binary codes
+  fF2C = genF2C(h2_malloc (1024)); // and generate binary codes
   stopCg2 = h2_getticks();
   startC = h2_getticks();
   for (i = 0; i < 13; i ++)

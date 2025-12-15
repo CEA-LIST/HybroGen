@@ -9,6 +9,9 @@ all:
 # Uncomment if you whish to use distant database
 # DBIDS = --dbIds "DistantHost:DataBaseName:UserDbName:DbPassword"
 
+# Uncomment if you whish to use distant database
+# DBIDS = --dbIds "DistantHost:DataBaseName:UserDbName:DbPassword"
+
 DbPopulate:
 	./H2Isa.py -n ${DBIDS} # Create database schema
 	make DbArch ARCH=aarch64
