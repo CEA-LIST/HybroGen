@@ -50,7 +50,7 @@ def compileAndRun(fileName, arch, dataset, keep=False):
         return True
 
 def genAndRunAddress(singleArith, opList, wordLenList, vectorLen, archName, keep=False):
-    dataset = ["1", "2", "3", "4", "5", "6", "7", "9", "10", "11", "12", "13", "14", "15", "16", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33"]
+    dataset = [str(i) for i in range (1,34)]
     resultDb = {}
     for op in opList:
         for wordLen in wordLenList:
@@ -60,6 +60,7 @@ def genAndRunAddress(singleArith, opList, wordLenList, vectorLen, archName, keep
                     theWordLen = "%03d"%int(wordLen)
                     theVectorLen = "%03d"%int(vLen)
                     fileName = "Tests/Test-Address-%s-%s-%s-%s-%s"%(op, singleArith, theWordLen, theVectorLen, archName)
+                    print (fileName)
                     c = CCodeAddress(opList[op], singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
                     c.write(fileName+".hl")
                     msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
@@ -67,7 +68,7 @@ def genAndRunAddress(singleArith, opList, wordLenList, vectorLen, archName, keep
     return resultDb
 
 def genAndRunValue(singleArith, opList, wordLenList, vectorLen, archName, keep):
-    dataset = ["1", "2", "3", "4", "5", "6", "7", "9", "10", "11", "12", "13", "14", "15", "16", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33"]
+    dataset = [str(i) for i in range (1,34)]
     resultDb = {}
     for op in opList:
         for wordLen in wordLenList:
@@ -77,6 +78,7 @@ def genAndRunValue(singleArith, opList, wordLenList, vectorLen, archName, keep):
                     theWordLen = "%03d"%int(wordLen)
                     theVectorLen = "%03d"%int(vLen)
                     fileName = "Tests/Test-Value-%s-%s-%s-%s-%s"%(op, singleArith, theWordLen, theVectorLen, archName)
+                    print (fileName)
                     c = CCodeValue(opList[op], singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
                     c.write(fileName+".hl")
                     msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
@@ -96,6 +98,7 @@ if __name__ == "__main__":
     from CCode import CCodeValue
     from CCode import CCodeAddress
     import csv
+    sys.path.append("..")
     from SwConfig import SwConfig
     config = SwConfig()
 
@@ -147,8 +150,6 @@ if __name__ == "__main__":
     elif a.dotests:
         if "value" in a.param:
             for archName in a.arch:
-    #            print ("-- %20s (per value) -- "%archName)
-    #            printRule(a.vLen)
                 for arith in ("int", "flt"):
                     subList = {i:opArith[i] for i in a.operator}
                     results.update(genAndRunValue(arith, subList, a.wLen, a.vLen, archName, a.keep))
@@ -158,8 +159,6 @@ if __name__ == "__main__":
                 results.update(genAndRunValue("int", subList, a.wLen, a.vLen, archName, a.keep))
         if "address" in a.param:
             for archName in a.arch:
-    #            print ("-- %20s (per address) -- "%archName)
-    #            printRule(a.vLen)
                 for arith in ("int", "flt"):
                     subList = {i:opArith[i] for i in a.operator}
                     results.update(genAndRunAddress(arith, subList, a.wLen, a.vLen, archName, a.keep))
@@ -170,10 +169,10 @@ if __name__ == "__main__":
         out = ""
     #    print (results)
         for k in results:
-            if results[k]: # Keep only valid results
-                for v in k:
-                    out += str(v) +";"
-                out += "\n"
+            for v in k:
+                out += str(v) +";"
+            out += "Success;" if results[k] else "Fail"
+            out += "\n"
         with open (csvFileName, "w") as f:
             f.write (out)
         print ("Results in "+csvFileName)

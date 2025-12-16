@@ -1,4 +1,4 @@
-# Generated from IsaDescription.g4 by ANTLR 4.9.2
+# Generated from IsaDescription.g4 by ANTLR 4.7.2
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .IsaDescriptionParser import IsaDescriptionParser
@@ -179,5 +179,3 @@ class IsaDescriptionListener(ParseTreeListener):
         pass
 
 
-
-del IsaDescriptionParser
