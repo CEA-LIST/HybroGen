@@ -82,7 +82,7 @@ if __name__ == "__main__":
         print ("%23s"%archName, end="")
     print()
     for testFile in testList:
-        print ("%24s"%testFile, end="")
+        print ("%25s"%testFile, end="")
         for archName in archList:
             #commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName] + archExt[archName])
             commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName])

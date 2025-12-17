@@ -37,6 +37,9 @@ Gain 1 instruction & (1 physical register)
     def isMovConst(self, insn):
         return insn.isOperator() and "=" == insn.getOpName() and insn.sonsList[1].isConst()
 
+    def isMovFinal(self, insn):
+        return insn.isOperator() and "=" == insn.getOpName() and "h2_outputVarName" == insn.sonsList[0].variableName
+
     def isOpWithVar(self, insn):
         return insn.isOperator() 	 \
             and 2 == len(insn.sonsList) \
@@ -67,6 +70,7 @@ Gain 1 instruction & (1 physical register)
         while i < listLen:
             previous = self.oldList[i-1]
             insn     = self.oldList[i]
+            # Optimize for mov r, #Const;   OP s, t, r -> OP s, t, #Const
             if self.isMovConst(previous)     \
                and insn.isOperator()         \
                and self.isOpWithVar(insn)    \
@@ -79,6 +83,14 @@ Gain 1 instruction & (1 physical register)
                 # print ("New", i, new)
                 self.newList += [new]
                 i += 2
+            # Avoid mov for final operator
+            elif self.isMovFinal(previous) and previous.sonsList[0].isOperator():
+                new = copy.deepcopy (previous.sonsList[1])
+                new.setVariableName ("h2_outputVarName")
+                new.setRegister(previous.sonsList[1].getRegister())
+                self.newList += [new]
+                self.optimizeCount += 1
+                i += 1
             else:
                 self.newList += [previous]
                 i += 1
