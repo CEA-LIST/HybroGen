@@ -1,0 +1,6 @@
+#!/bin/tcsh
+
+foreach F ($argv)
+	awk -F \; '{if ($7 == "Success") S++;if ($7 == "Fail") F++;}END{printf("Success %5d, Fail %5d : ",S, F);}' $F
+	echo $F
+end
