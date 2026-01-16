@@ -14,7 +14,7 @@ resize:
 	./StencilExperiment.py ${EXPPARAM} --resize
 
 # Do one experiment
-riscv: 
+riscv:
 	make build   ARCH=riscv
 	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
 	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-1x1.pgm
@@ -32,20 +32,20 @@ resizeImages:
 allAarch64Qemu:
 	make build   ARCH=aarch64
 	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	make runAll	 ARCH=aarch64 RUNNER=qemu-aarch64 LOG=aarch-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make runAll	 ARCH=aarch64 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allAarch64Native:
 	make compile ARCH=aarch64 CC=cc
-	make runAll  ARCH=aarch64 RUNNER= LOG=aarch-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make runAll  ARCH=aarch64 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvQemu:
 	make build   ARCH=riscv
 	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-	make runAll	 ARCH=riscv RUNNER=qemu-riscv32 LOG=riscv-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make runAll	 ARCH=riscv RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvNative:
 	make compile ARCH=riscv CC=cc
-	make runAll  ARCH=riscv RUNNER= LOG=riscv-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make runAll  ARCH=riscv RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 
 # Run on various filters
@@ -82,7 +82,7 @@ plot:
 build: Stencil.hl
 	../../HybroLang.py -a ${ARCH} -c -i ./Stencil.hl
 
-compile: Stencil.${ARCH}
+compile: Stencil.c
 	${CC} ${CFLAGS} ./Stencil.c ./ReadPgmImage.c -o ./Stencil.${ARCH} -g
 
 send:

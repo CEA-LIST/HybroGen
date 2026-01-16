@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
 	{
 	  convolution (In, OutStatic, Filter, coeff);
 	}
-  timeStatic = timeStatic - h2_getticks();
+  timeStatic = h2_getticks() - timeStatic;
 #ifdef VERBOSE
   printf ("after static\n");
   printImage(OutStatic);
@@ -251,7 +251,8 @@ int main(int argc, char *argv[])
     case 5 : kernelHL = genKernel5x5 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
     default: printf ("Unknown filter size\n"); exit(-1);
     }
-  timeCodeGen = (timeCodeGen - h2_getticks())/nXperiment;
+  timeCodeGen = h2_getticks() - timeCodeGen;
+
 #ifdef VERBOSE
   printf ("after codegen\n");
 #endif
@@ -261,7 +262,7 @@ int main(int argc, char *argv[])
 	{
 	  convolutionH4(In, OutH4, Filter, coeff, kernelHL);
 	}
-  timeH4 = (timeH4 - h2_getticks())/nXperiment;
+  timeH4 = h2_getticks() - timeH4;
 #ifdef VERBOSE
   printf ("after h2\n");
   printImage(OutH4);

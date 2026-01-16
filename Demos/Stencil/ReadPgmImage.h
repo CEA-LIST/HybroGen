@@ -5,7 +5,7 @@ typedef struct
   int **pixelsArray;
 } imgStruct_t;
 
-void parseError (char * reference, char * inputLine, int defaultLen);
+void          writePgmImage(imgStruct_t * img, char * fileName);
+void          parseError   (char * reference, char * inputLine, int defaultLen);
 imgStruct_t * readPgmImage (char * fileName);
-imgStruct_t * createImage (int height, int width);
-void writePgmImage (imgStruct_t * img, char * fileName);
+imgStruct_t * createImage  (int height, int width);

@@ -52,7 +52,6 @@ if __name__ == "__main__":
     parser.add_argument("--runner",       default="x", help="Émulateur (ex: qemu-aarch64)")
     parser.add_argument("--program",      help="Program a exécuter (ex: stencil.aarch64)")
     parser.add_argument("--filter_file",  help="Chemin vers le fichier de filtre PGM")
-    parser.add_argument("--param",        help="Paramètre supplémentaire à passer à l'exécutable")
     parser.add_argument("--logFile",      help="Log filename")
     args = parser.parse_args()
     print (args)
@@ -100,6 +99,7 @@ if __name__ == "__main__":
             result = myexec(cmd, doPrint = True)
             if None != result:
                 rawResult = result.decode ("utf8").split("\n")[0]
+                print (rawResult)
                 log.append(rawResult)
         with open(args.logFile, "a") as f:
             f.write("\n".join(log))

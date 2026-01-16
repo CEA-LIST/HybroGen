@@ -14,8 +14,7 @@ if __name__ == "__main__":
     fileName = sys.argv[1]
     with open (fileName, 'r') as csvfile:
         reader = csv.reader (csvfile, delimiter =';')
-        # FilterName; FilterSize; ImageSize; TicksStatic; TicksCompilette
-        # ['Filter/FilterNull.pgm', '5x5', '7680x4320', '1769919452', '412888896']
+        # Format : FilterName;ImgSize;StaticTimeExecution;DynamicTimeExecution;CodeGenerationTime;ErrorNumber
         for line in reader:
             if len(line) > 1: # avoid "segfault"
                 filterName = line[0]
@@ -41,7 +40,7 @@ if __name__ == "__main__":
         print (imgList)
         print (imgSizeList)
         print (speedups)
-        plt.plot(imgSizeList, speedups, label=filterName)
+        plt.plot(imgSizeList, speedups, "-D", label=filterName)
     print(imgSizeListMax)
     plt.xticks(imgSizeListMax, imgSizeListMaxName, rotation=45)
     ax.legend()

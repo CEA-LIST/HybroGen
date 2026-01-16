@@ -13,17 +13,30 @@ typedef int32_t h2_regSet_t; // Register set (signed, use -1 when not allocated)
 typedef unsigned long long ticks_t;
 static  ticks_t h2_start_codeGen, h2_end_codeGen;
 
+typedef enum { H2REGISTER,    H2VALUE, } VALORREG;
 typedef struct
 {
-  int ValOrReg; // is register or immediate value ?
+  int ValOrReg; // is H2REGISTER or immediate VALUE ?
   char arith;   // int, flt or other arithmetic
   int vLen;     // vector len
   int wLen;     // word len
   int regNro;   // register number (if register)
   int valueImm; // immediate value (if not register)
+  bool dontFree; // if register, don't free
 } h2_sValue_t;
+#define sValueDef(VALUE, ARITH, VECTORLEN, WORDLEN, REGNO, IMMVAL) ((h2_sValue_t){.ValOrReg = VALUE, .arith = ARITH, .vLen = VECTORLEN, .wLen = WORDLEN, .regNro = REGNO, .valueImm = IMMVAL})
+#define intsValue(V) sValueDef(H2VALUE, 'i', 1, 32, -1, V)
+#define immValueZero intsValue(0)
+// Usefull macro instruction to simplify instruction selector code
+#define isInt64_1(P)  ((P.arith == 'i') && (P.wLen <= 64) && (P.vLen == 1))
+#define isInt32_1(P)  ((P.arith == 'i') && (P.wLen <= 32) && (P.vLen == 1))
+#define isInt0(P)     ((P.arith == 'i') && (P.ValOrReg == H2VALUE) && (0 == P.valueImm))
+#define isInt1(P)     ((P.arith == 'i') && (P.ValOrReg == H2VALUE) && (1 == P.valueImm))
+#define isValue(P)    ((P.arith == 'i') && (P.ValOrReg == H2VALUE))
+#define isReg32(P, X) ((P.arith == 'i') && (P.ValOrReg == H2REGISTER) && (X == P.regNro))
+#define isRRR(P0, P1, P2) (P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+#define isRRV(P0, P1, P2) (P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
 
-typedef enum { REGISTER,    VALUE, } VALORREG;
 
 typedef union {
     float f;
@@ -113,10 +126,12 @@ int h2_getReg () // Get new register
   return -1;
 }
 
+// h2_regSet_t regToBeFreed[32];
+
 void h2_freeReg (h2_regSet_t v) // Free a register
 {
 #if 1 // TODO : To be rethinked
-  // Is the register freeable ?
+      // Is the register freeable ?
   int isOK = (h2_regSetInit.intSet >> v) & 1;
   if (0 == isOK)
     {
@@ -162,6 +177,8 @@ static void h2_iflush(void *addr, void *last)
       perror("iflush: mprotect");
       exit(-1);
     }
+    /* Gcc function to clear data cache after code generation */
+    __clear_cache((char *)addr, (char *)last);
 #endif
 #ifdef H2_DEBUG
 	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
@@ -189,45 +206,35 @@ static h2_insn_t *h2_malloc (size_t size)
 /* Single instruction binary code generator*/
 #define A64_RET__I_64_1() do /* ret */ { 	aarch64_G32(((0xd65f03c0 >> 0) & 0xffffffff)); \
  } while(0);
+#define A64_ST1_RR_I_8_8(r0,r1) do /* w */ { 	aarch64_G32(((0x3001c & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_ST1_RR_I_8_16(r0,r1) do /* w */ { 	aarch64_G32(((0x13001c & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
 #define A64_STRB_RRI_I_8_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x1c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_ST1_RR_I_16_8(r0,r1) do /* w */ { 	aarch64_G32(((0x13001d & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_ST1_RR_I_16_4(r0,r1) do /* w */ { 	aarch64_G32(((0x3001d & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
 #define A64_STRH_RRI_I_16_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x3c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
-#define A64_ST1_RRI_I_32_4(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x130 & 0x3ff) << 22)|((i0 & 0x3f) << 16)|((0x1e & 0x3f) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
-#define A64_STR_RRI_I_32_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x5c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
-#define A64_ST1_RR_I_32_4(r0,r1) do /* w */ { 	aarch64_G32(((0x13001e & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
 #define A64_STR_RRR_I_32_1(r0,r1,r2) do /* w */ { 	aarch64_G32(((0x5c1 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x36 & 0x3f) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_STR_RRI_I_32_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x5c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
 #define A64_STR_RRI_I_32_2(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x7e0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x0 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
-#define A64_STR_RRI_I_64_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x7c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_ST1_RR_I_32_4(r0,r1) do /* w */ { 	aarch64_G32(((0x13001e & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
 #define A64_STR_RRR_I_64_1(r0,r1,r2) do /* w */ { 	aarch64_G32(((0x7c1 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x36 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_8_8(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x71 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_8_16(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x271 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_16_4(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x73 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_16_8(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x273 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_32_4(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_32_1(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0xd8 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x1f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_32_2(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MUL_RRR_I_64_1(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x4d8 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x1f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LDRB_RRI_I_8_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0xe5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LDRH_RRI_I_16_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0x1e5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LDR_RRI_I_32_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0x2e5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LDP_RRI_I_32_2(r0,r1,i0) do /* r */ { 	aarch64_G32(((0xb3 & 0x3ff) << 22)|((i0 & 0x7f) << 15)|((0x0 & 0x1f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LD1_RR_I_32_4(r0,r1) do /* r */ { 	aarch64_G32(((0x13101e & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LDR_RRR_I_64_1(r0,r1,r2) do /* r */ { 	aarch64_G32(((0x7e3 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x36 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LSL_RRI_I_32_1(r0,r1,i0) do /* sl */ { 	aarch64_G32(((0x14c & 0x3ff) << 22)|(((-i0 % 32 & 0x1F) & 0x3f) << 16)|(((31-i0) & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LSL_RRR_I_32_1(r0,r1,r2) do /* sl */ { 	aarch64_G32(((0xd6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x8 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LSL_RRI_I_64_1(r0,r1,i0) do /* sl */ { 	aarch64_G32(((0x34d & 0x3ff) << 22)|(((-i0 % 64 & 0x1F) & 0x3f) << 16)|(((63-i0) & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_LSL_RRR_I_64_1(r0,r1,r2) do /* sl */ { 	aarch64_G32(((0x4d6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x8 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RRR_I_8_8(r0,r1,r2) do /* mv */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x7 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RRR_I_16_8(r0,r1,r2) do /* mv */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x7 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RI_I_32_1(r0,i0) do /* mv */ { 	aarch64_G32(((0x294 & 0x7ff) << 21)|((i0 & 0xffff) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RR_I_32_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x44000 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RR_I_32_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x138207 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOVI_RI_I_32_2(r0,i0) do /* mv */ { 	aarch64_G32(((0x1e0188 & 0x1ffffff) << 7)|((i0 & 0x3) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_DUP_RR_I_32_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x178101 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_DUP_RR_I_32_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x38101 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RR_I_64_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x244000 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_MOV_RI_I_64_1(r0,i0) do /* mv */ { 	aarch64_G32(((0x694 & 0x7ff) << 21)|((i0 & 0xffff) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_DUP_RR_I_64_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x138201 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_DUP_RR_I_64_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x178201 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ST1_RR_I_64_2(r0,r1) do /* w */ { 	aarch64_G32(((0x3001f & 0x3fffff) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_STR_RRI_I_64_1(r0,r1,i0) do /* w */ { 	aarch64_G32(((0x7c0 & 0x7ff) << 21)|((i0 & 0x1ff) << 12)|((0x1 & 0x3) << 10)|((r0 & 0x1f) << 5)|((r1 & 0x1f) >> 0)); } while(0);
+#define A64_FDIV_RRR_I_16_8(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x372 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0xf & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_FDIV_RRR_I_16_4(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x172 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0xf & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_SDIV_RRR_I_32_1(r0,r1,r2) do /* div */ { 	aarch64_G32(((0xd6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_FDIV_RRR_I_32_2(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x171 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_FDIV_RRR_I_32_4(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x371 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_FDIV_RRR_I_64_2(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x373 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_SDIV_RRR_I_64_1(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x4d6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_8_8(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x71 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_8_16(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x271 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_16_4(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x73 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_16_8(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x273 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_32_2(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_32_4(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_64_2(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x277 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRR_I_64_1(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x458 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x0 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_ADD_RRI_I_64_1(r0,r1,i0) do /* add */ { 	aarch64_G32(((0x244 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 #define A64_SUB_RRR_I_8_8(r0,r1,r2) do /* sub */ { 	aarch64_G32(((0x171 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 #define A64_SUB_RRR_I_8_16(r0,r1,r2) do /* sub */ { 	aarch64_G32(((0x371 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 #define A64_SUB_RRR_I_16_8(r0,r1,r2) do /* sub */ { 	aarch64_G32(((0x373 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
@@ -239,50 +246,237 @@ static h2_insn_t *h2_malloc (size_t size)
 #define A64_SUB_RRR_I_64_2(r0,r1,r2) do /* sub */ { 	aarch64_G32(((0x377 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 #define A64_SUB_RRI_I_64_1(r0,r1,i0) do /* sub */ { 	aarch64_G32(((0x344 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 #define A64_SUB_RRR_I_64_1(r0,r1,r2) do /* sub */ { 	aarch64_G32(((0x658 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x0 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_8_8(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x71 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_8_16(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x271 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_16_4(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x73 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_16_8(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x273 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_32_2(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_32_4(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_64_2(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x277 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x21 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRR_I_64_1(r0,r1,r2) do /* add */ { 	aarch64_G32(((0x458 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x0 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_ADD_RRI_I_64_1(r0,r1,i0) do /* add */ { 	aarch64_G32(((0x244 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_FDIV_RRR_I_16_8(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x372 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0xf & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_FDIV_RRR_I_16_4(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x172 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0xf & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_SDIV_RRR_I_32_1(r0,r1,r2) do /* div */ { 	aarch64_G32(((0xd6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_FDIV_RRR_I_32_2(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x171 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_FDIV_RRR_I_32_4(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x371 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_FDIV_RRR_I_64_2(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x373 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-#define A64_SDIV_RRR_I_64_1(r0,r1,r2) do /* div */ { 	aarch64_G32(((0x4d6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x3 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
-
-// Usefull macro instruction to simplify instruction selector code
-#define isInt64_1(P)  ((P.arith == 'i') && (P.wLen <= 64) && (P.vLen == 1))
-#define isInt32_1(P)  ((P.arith == 'i') && (P.wLen <= 32) && (P.vLen == 1))
-#define isInt0(P)     ((P.arith == 'i') && (P.ValOrReg == VALUE) && (0 == P.valueImm))
-#define isInt1(P)     ((P.arith == 'i') && (P.ValOrReg == VALUE) && (1 == P.valueImm))
-#define isValue(P)    ((P.arith == 'i') && (P.ValOrReg == VALUE))
-#define isReg32(P, X) ((P.arith == 'i') && (P.ValOrReg == REGISTER) && (X == P.regNro))
-#define isRRR(P0, P1, P2) (P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-#define isRRV(P0, P1, P2) (P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-#define immValueZero (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(0)}
-h2_sValue_t aarch64_genRET_0();
-h2_sValue_t aarch64_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t aarch64_genMV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t aarch64_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+#define A64_LD1_RR_I_8_16(r0,r1) do /* r */ { 	aarch64_G32(((0x13101c & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LDRB_RRI_I_8_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0xe5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_8_8(r0,r1) do /* r */ { 	aarch64_G32(((0x3101c & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_16_4(r0,r1) do /* r */ { 	aarch64_G32(((0x3101d & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LDRH_RRI_I_16_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0x1e5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_16_8(r0,r1) do /* r */ { 	aarch64_G32(((0x13101d & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LDR_RRI_I_32_1(r0,r1,i0) do /* r */ { 	aarch64_G32(((0x2e5 & 0x3ff) << 22)|((i0 & 0xfff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LDP_RRI_I_32_2(r0,r1,i0) do /* r */ { 	aarch64_G32(((0xb3 & 0x3ff) << 22)|((i0 & 0x7f) << 15)|((0x0 & 0x1f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_32_2(r0,r1) do /* r */ { 	aarch64_G32(((0x3101e & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_32_4(r0,r1) do /* r */ { 	aarch64_G32(((0x13101e & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LDR_RRR_I_64_1(r0,r1,r2) do /* r */ { 	aarch64_G32(((0x7e3 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x36 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LD1_RR_I_64_2(r0,r1) do /* r */ { 	aarch64_G32(((0x13101f & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LSL_RRI_I_32_1(r0,r1,i0) do /* sl */ { 	aarch64_G32(((0x14c & 0x3ff) << 22)|(((-i0 % 32 & 0x1F) & 0x3f) << 16)|(((31-i0) & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LSL_RRR_I_32_1(r0,r1,r2) do /* sl */ { 	aarch64_G32(((0xd6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x8 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LSL_RRI_I_64_1(r0,r1,i0) do /* sl */ { 	aarch64_G32(((0x34d & 0x3ff) << 22)|(((-i0 % 64 & 0x1F) & 0x3f) << 16)|(((63-i0) & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_LSL_RRR_I_64_1(r0,r1,r2) do /* sl */ { 	aarch64_G32(((0x4d6 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x8 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RRR_I_8_8(r0,r1,r2) do /* mv */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x7 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RRR_I_16_8(r0,r1,r2) do /* mv */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x7 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MV_RR_I_32_4(r0,r1) do /* mv */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r1 & 0x1f) << 16)|((0x7 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RR_I_32_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x44000 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOVI_RI_I_32_4(r0,i0) do /* mv */ { 	aarch64_G32(((0x9e0 & 0x1fff) << 19)|(((i0 >> 5) & 0x7) << 16)|((0x1 & 0x3f) << 10)|((i0 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOVI_RI_I_32_2(r0,i0) do /* mv */ { 	aarch64_G32(((0x1e0 & 0x1fff) << 19)|(((i0 >> 5) & 0x7) << 16)|((0x1 & 0x3f) << 10)|((i0 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_DUP_RR_I_32_4(r0,r1) do /* mv */ { 	aarch64_G32(((0x178101 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RI_I_32_1(r0,i0) do /* mv */ { 	aarch64_G32(((0x294 & 0x7ff) << 21)|((i0 & 0xffff) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RR_I_32_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x138207 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_DUP_RR_I_32_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x178101 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_DUP_RR_I_32_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x38101 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_DUP_RR_I_64_2(r0,r1) do /* mv */ { 	aarch64_G32(((0x138201 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RR_I_64_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x244000 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MOV_RI_I_64_1(r0,i0) do /* mv */ { 	aarch64_G32(((0x694 & 0x7ff) << 21)|((i0 & 0xffff) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_DUP_RR_I_64_1(r0,r1) do /* mv */ { 	aarch64_G32(((0x178201 & 0x3fffff) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_8_8(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x71 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_8_16(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x271 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_16_4(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x73 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_16_8(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x273 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_32_4(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x275 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_32_1(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0xd8 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x1f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_32_2(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x75 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x27 & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
+#define A64_MUL_RRR_I_64_1(r0,r1,r2) do /* mul */ { 	aarch64_G32(((0x4d8 & 0x7ff) << 21)|((r2 & 0x1f) << 16)|((0x1f & 0x3f) << 10)|((r1 & 0x1f) << 5)|((r0 & 0x1f) >> 0)); } while(0);
 h2_sValue_t aarch64_genDIV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t aarch64_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t aarch64_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
 h2_sValue_t aarch64_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t aarch64_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
 h2_sValue_t aarch64_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t aarch64_genRET_0()
+h2_sValue_t aarch64_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t aarch64_genMV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t aarch64_genRET_0();
+h2_sValue_t aarch64_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t aarch64_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t aarch64_genDIV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
 {
-// No generic optimisation for RET
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for DIV instruction\n");
 
-// No specific optimisation for RET/aarch64
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 
-A64_RET__I_64_1();
-	
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+
+#endif // H2_DEBUG_INSN
+/* -*- c -*- */
+// if 2 operands are constants do division evaluation
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm / P2.valueImm };
+}
+
+/* -*- c -*- */
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI div (aarch64)\\n");
+    #endif
+	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
+}
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_FDIV_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_FDIV_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SDIV_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_FDIV_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_FDIV_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_FDIV_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SDIV_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, DIV instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+return immValueZero;
+}
+h2_sValue_t aarch64_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for R instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for R
+
+// No specific optimisation for R/aarch64
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_8_16(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_8_8(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_16_4(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_16_8(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_32_2(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_32_4(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_LD1_RR_I_64_2(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_LDRB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_LDRH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_LDR_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_LDP_RRI_I_32_2(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_LDR_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, R instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
 }
 h2_sValue_t aarch64_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
 {
@@ -312,7 +506,7 @@ printf ("Start code gen for W instruction\n");
 
 if (isValue(P1))
   { // Store constant (Should use RRI variant)
-	h2_sValue_t PTMP = {REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
     #ifdef H2_DEBUG_INSN
       printf ("Fallback for no RI W (aarch64)\\n");
     #endif
@@ -321,624 +515,89 @@ if (isValue(P1))
 	// No return continue instruction selection
   }
 
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
 		P1.regNro = h2_getReg();
 
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
+    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_ST1_RR_I_8_8(P0.regNro, P1.regNro);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_ST1_RR_I_8_16(P0.regNro, P1.regNro);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_ST1_RR_I_16_8(P0.regNro, P1.regNro);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_ST1_RR_I_16_4(P0.regNro, P1.regNro);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
     {
 	A64_ST1_RR_I_32_4(P0.regNro, P1.regNro);
 	return P1;
     }
 
-    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
+    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_ST1_RR_I_64_2(P0.regNro, P1.regNro);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
 	A64_STRB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P1;
     }
 
-    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
+    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
 	A64_STRH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P1;
     }
 
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_ST1_RRI_I_32_4(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_STR_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
 	A64_STR_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
 	return P1;
     }
 
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_STR_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
 	A64_STR_RRI_I_32_2(P0.regNro, P1.regNro, P2.valueImm);
 	return P1;
     }
 
-    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_STR_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
+    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
 	A64_STR_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
 	return P1;
     }
-	printf ("Warning, W instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genMV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for MV instruction\n");
 
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for MV
-
-// No specific optimisation for MV/aarch64
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == VALUE)
+    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
-	A64_MOV_RI_I_32_1(P0.regNro, P1.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_MOV_RR_I_32_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_MOV_RR_I_32_2(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == VALUE)
-    {
-	A64_MOVI_RI_I_32_2(P0.regNro, P1.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_DUP_RR_I_32_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_DUP_RR_I_32_2(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_MOV_RR_I_64_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == VALUE)
-    {
-	A64_MOV_RI_I_64_1(P0.regNro, P1.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_DUP_RR_I_64_2(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_DUP_RR_I_64_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MOV_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MOV_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, MV instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for ADD instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-/* -*- c -*- */
-if (isInt0 (P2))
-  { // P0 = P1 + 0
-    #ifdef H2_DEBUG_INSN
-	printf ("Optim add for 0 (generic) return reg %d\n", P1.regNro);
-    #endif
+	A64_STR_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P1;
-  }
-if (isInt0 (P1))
-  { // P0 = 0 + P2
-    #ifdef H2_DEBUG_INSN
-    printf ("Optim add for 0  (generic) return reg %d\n", P2.regNro);
-    #endif
-    return P2;
-  }
-
-// No specific optimisation for ADD/aarch64
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
     }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_ADD_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_ADD_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-	printf ("Warning, ADD instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genDIV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for DIV instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for DIV
-
-/* -*- c -*- */
-if  ((P2.ValOrReg == VALUE) && (P2.arith == 'i'))
-{
-	h2_sValue_t PTMP = {REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
-    #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RRI div (aarch64)\\n");
-    #endif
-	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
-}
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_FDIV_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_FDIV_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SDIV_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_FDIV_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_FDIV_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_FDIV_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SDIV_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, DIV instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for SUB instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for SUB
-
-// No specific optimisation for SUB/aarch64
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_SUB_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_SUB_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_SUB_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, SUB instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for MUL instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-/* -*- c -*- */
-  if (isInt0(P2) || isInt0(P1))
-   {    // X * 0 = 0 Avoid 1 operation mul & 1 mv
-        #ifdef H2_DEBUG_INSN
-        printf ("Optim for *0 P2 (generic)\n");
-        #endif
-        return immValueZero;
-    }
-  if (isInt1(P2))
-    { // X * 1 = X propagate register result
-        #ifdef H2_DEBUG_INSN
-        printf ("Optim for *1 P2 (generic)\n");
-        #endif
-        return P1;
-    }
-  if (isInt1(P1))
-    { // 1 * X = X propagate register result
-        #ifdef H2_DEBUG_INSN
-        printf ("Optim for *1 P1 (generic)\n");
-        #endif
-        return P2;
-    }
-/* -*- c -*- */
-if  ((P1.ValOrReg == VALUE) && (P2.ValOrReg == REGISTER))
-    { // Transform RIR in RRI : P1 & P2 permutation
-       h2_sValue_t PTMP = P2;
-       P2 = P1;
-       P1 = PTMP; 
-    }
-if  ((P2.ValOrReg == VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
-  { // X * NPowerOf2 = X << N (immediate shift left)
-	int shiftValue = h2_log2(P2.valueImm);
-    #ifdef H2_DEBUG_INSN
-      printf ("Optim for * %d (power of 2) -> sl %d (aarch64)\n", P2.valueImm, shiftValue);
-    #endif
-	// Instruction shift left immediat
-	P2.valueImm = shiftValue;
-	return aarch64_genSL_3(P0, P1, P2);
-  }
-if  ((P2.ValOrReg == VALUE) && (P2.arith == 'i'))
-{
-	h2_sValue_t PTMP = {REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
-    #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RRI mul (aarch64)\n");
-    #endif
-	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
-	// No return continue instruction selection
-}
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_MUL_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, MUL instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t aarch64_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for R instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for R
-
-// No specific optimisation for R/aarch64
-
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER)
-    {
-	A64_LD1_RR_I_32_4(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_LDRB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_LDRH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_LDR_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
-    {
-	A64_LDP_RRI_I_32_2(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
-    {
-	A64_LDR_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, R instruction generation failed\n");
+	printf ("Warning, W instruction generation failed\n");
 	h2_codeGenerationOK = false;
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
@@ -963,35 +622,501 @@ printf ("Start code gen for SL instruction\n");
 
 // No specific optimisation for SL/aarch64
 
-	if ((P0.ValOrReg == REGISTER) && (P0.regNro == -1))
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == REGISTER) && (P1.regNro == -1))
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
 		P1.regNro = h2_getReg();
 
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
 	A64_LSL_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
 
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
 	A64_LSL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
 	return P0;
     }
 
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == VALUE)
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
 	A64_LSL_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
 
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == REGISTER && P1.ValOrReg == REGISTER && P2.ValOrReg == REGISTER)
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
 	A64_LSL_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
 	return P0;
     }
 	printf ("Warning, SL instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+return immValueZero;
+}
+h2_sValue_t aarch64_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for SUB instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+
+#endif // H2_DEBUG_INSN
+/* -*- c -*- */
+// if 2 operands are constants do substraction evaluation (Thanks Kilian for the bug report)
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm - P2.valueImm };
+}
+
+// No specific optimisation for SUB/aarch64
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_SUB_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_SUB_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_SUB_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, SUB instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+return immValueZero;
+}
+h2_sValue_t aarch64_genMV_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for MV instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for MV
+
+// No specific optimisation for MV/aarch64
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_MV_RR_I_32_4(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_MOV_RR_I_32_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	A64_MOVI_RI_I_32_4(P0.regNro, P1.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	A64_MOVI_RI_I_32_2(P0.regNro, P1.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_DUP_RR_I_32_4(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	A64_MOV_RI_I_32_1(P0.regNro, P1.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_MOV_RR_I_32_2(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_DUP_RR_I_32_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_DUP_RR_I_32_2(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_DUP_RR_I_64_2(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_MOV_RR_I_64_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	A64_MOV_RI_I_64_1(P0.regNro, P1.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	A64_DUP_RR_I_64_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MOV_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MOV_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, MV instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t aarch64_genRET_0()
+{
+// No generic optimisation for RET
+
+// No specific optimisation for RET/aarch64
+
+A64_RET__I_64_1();
+	
+}
+h2_sValue_t aarch64_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for ADD instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+
+#endif // H2_DEBUG_INSN
+/* -*- c -*- */
+// If 2 operands are constants do addition
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return sValueDef(H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm + P2.valueImm );
+}
+if (isInt0 (P2))
+  { // P0 = P1 + 0
+    #ifdef H2_DEBUG_INSN
+	printf ("Optim add for 0 (generic) return reg %d\n", P1.regNro);
+    #endif
+	P1.dontFree = true;
+	return P1;
+  }
+if (isInt0 (P1))
+  { // P0 = 0 + P2
+    #ifdef H2_DEBUG_INSN
+    printf ("Optim add for 0  (generic) return reg %d\n", P2.regNro);
+    #endif
+	P2.dontFree = true;
+    return P2;
+  }
+
+// No specific optimisation for ADD/aarch64
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_ADD_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	A64_ADD_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+	printf ("Warning, ADD instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+return immValueZero;
+}
+h2_sValue_t aarch64_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for MUL instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+
+#endif // H2_DEBUG_INSN
+/* -*- c -*- */
+  // if 2 operands are constants do multiplication evaluation (Thanks Kilian for the bug report)
+  if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+  {
+    return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm * P2.valueImm };
+  }
+  if (isInt0(P2) || isInt0(P1))
+   {    // X * 0 = 0 Avoid 1 operation mul & 1 mv
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *0 P2 (generic)\n");
+        #endif
+        return immValueZero;
+    }
+  if (isInt1(P2))
+    { // X * 1 = X propagate register result
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *1 P2 (generic)\n");
+        #endif
+		P1.dontFree = true;
+        return P1;
+    }
+  if (isInt1(P1))
+    { // 1 * X = X propagate register result
+        #ifdef H2_DEBUG_INSN
+        printf ("Optim for *1 P1 (generic)\n");
+        #endif
+		P2.dontFree = true;
+        return P2;
+    }
+
+/* -*- c -*- */
+// Transform RIR in RRI : P1 & P2 permutation
+if  ((P1.ValOrReg == H2VALUE) && (P2.ValOrReg == H2REGISTER))
+    { 
+       h2_sValue_t PTMP = P2;
+       P2 = P1;
+       P1 = PTMP;
+    }
+// X * NPowerOf2 = X >> N (immediate shift left)
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
+  { 
+	int shiftValue = h2_log2(P2.valueImm);
+    #ifdef H2_DEBUG_INSN
+      printf ("Optim for * %d (power of 2) -> sl %d (aarch64)\n", P2.valueImm, shiftValue);
+    #endif
+	// Instruction shift left immediat
+	P2.valueImm = shiftValue;
+	return aarch64_genSL_3(P0, P1, P2);
+  }
+// Mv constant value in register, then do division
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI mul (aarch64)\n");
+    #endif
+	P2 = aarch64_genMV_3(PTMP,  P2, immValueZero);
+	// No return continue instruction selection
+}
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_8_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_16_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_32_2(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	A64_MUL_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, MUL instruction generation failed\n");
 	h2_codeGenerationOK = false;
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
@@ -1008,202 +1133,266 @@ return immValueZero;
 #include <assert.h>
 #include "ReadPgmImage.h"
 
-typedef  int (*pifc)(int[],int,int,int,int);
+typedef  int (*pifc)(int[], int, int, int);
 
 
-unsigned char clamp(int value) {
-  if (value < 0) return 0;
-  if (value > 255) return 255;
-  return (unsigned char)value;
+unsigned char clamp(int value)
+{
+  return (unsigned char)(0 > value)?0:(255 < value)?255:value;
 }
 
 
-
-pifc genKernel3x3(pifc ptr,int** Filter,int coeff)
+pifc genKernel1x1(pifc ptr, int** Filter, int coeff)
 {
-  //printf("%i %i %i\n%i %i %i\n%i %i %i\ncoeff is : %i\n",Filter[0][0],Filter[0][1],Filter[0][2],Filter[1][0],Filter[1][1],Filter[1][2],Filter[2][0],Filter[2][1],Filter[2][2],coeff);
+	/* Code Generation of 3 instructions */
+	/* Symbol table :*/
+	/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */
+	h2_sValue_t In = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t line = {H2REGISTER, 'i', 1, 32, 1, 0};
+	h2_sValue_t column = {H2REGISTER, 'i', 1, 32, 2, 0};
+	h2_sValue_t imgWidth = {H2REGISTER, 'i', 1, 32, 3, 0};
+	h2_sValue_t h2_outputVarName = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t sum = {H2REGISTER, 'i', 1, 32, 9, 0};
+	h2_sValue_t tmp0000 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0001 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0002 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0003 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0004 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0005 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0006 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0007 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0008 = {H2REGISTER, 'i', 1, 32, -1, 0};
+
+	/* Label  table :*/
+/* No label table to avoid C warning for empty table ... */
+	h2_asm_pc = (h2_insn_t *) ptr;
+	h2_codeGenerationOK = true;
+	h2_start_codeGen = h2_getticks();
+	h2_initRegisterMasks(0xFFFF030F, 0, 0, 0);
+	h2_resetRegisterMasks();
+	#ifdef H2_DEBUG_REGISTER
+	printf("Tmp registers mask initialization\n");
+	#endif // H2_DEBUG_REGISTER
+							tmp0000 = aarch64_genMUL_3(tmp0000, line, imgWidth);
+						tmp0001 = aarch64_genADD_3(tmp0001, tmp0000, column);
+						if (!tmp0001.dontFree) h2_freeReg(tmp0000.regNro);
+					tmp0002 = aarch64_genMUL_3(tmp0002, tmp0001, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+					if (!tmp0002.dontFree) h2_freeReg(tmp0001.regNro);
+				tmp0003 = aarch64_genADD_3(tmp0003, In, tmp0002);
+				if (!tmp0003.dontFree) h2_freeReg(tmp0002.regNro);
+			tmp0004 = aarch64_genR_3(tmp0004, tmp0003, immValueZero);
+		tmp0005 = aarch64_genMUL_3(tmp0005, tmp0004, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][0]))});
+		if (!tmp0005.dontFree) h2_freeReg(tmp0004.regNro);
+	sum = aarch64_genMV_3(sum, tmp0005, immValueZero);
+	if (!tmp0006.dontFree) h2_freeReg(tmp0005.regNro);
+	#ifdef H2_DEBUG_REGISTER
+	printf("Tmp registers mask reset\n");
+	#endif // H2_DEBUG_REGISTER
+	h2_resetRegisterMasks();
+		tmp0007 = aarch64_genDIV_3(tmp0007, sum, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((coeff))});
+	h2_outputVarName = aarch64_genMV_3(h2_outputVarName, tmp0007, immValueZero);
+	if (!tmp0008.dontFree) h2_freeReg(tmp0007.regNro);
+	#ifdef H2_DEBUG_REGISTER
+	printf("Tmp registers mask reset\n");
+	#endif // H2_DEBUG_REGISTER
+	h2_resetRegisterMasks();
+	aarch64_genRET_0();
+	#ifdef H2_DEBUG_REGISTER
+	printf("Tmp registers mask reset\n");
+	#endif // H2_DEBUG_REGISTER
+	h2_resetRegisterMasks();
+	/* Call back code for loops */
+	h2_save_asm_pc = h2_asm_pc;
+	h2_asm_pc = h2_save_asm_pc;
+	h2_end_codeGen = h2_getticks();
+	h2_iflush(ptr, h2_asm_pc);
+
+  return ptr;
+}
+
+pifc genKernel3x3(pifc ptr, int** Filter, int coeff)
+{
 	/* Code Generation of 17 instructions */
 	/* Symbol table :*/
 	/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */
-	h2_sValue_t In = {REGISTER, 'i', 1, 32, 0, 0};
-	h2_sValue_t line = {REGISTER, 'i', 1, 32, 1, 0};
-	h2_sValue_t column = {REGISTER, 'i', 1, 32, 2, 0};
-	h2_sValue_t Inwidth = {REGISTER, 'i', 1, 32, 3, 0};
-	h2_sValue_t Inheight = {REGISTER, 'i', 1, 32, 4, 0};
-	h2_sValue_t h2_outputVarName = {REGISTER, 'i', 1, 32, 0, 0};
-	h2_sValue_t sum = {REGISTER, 'i', 1, 32, 9, 0};
-	h2_sValue_t ni = {REGISTER, 'i', 1, 32, 10, 0};
-	h2_sValue_t nj1 = {REGISTER, 'i', 1, 32, 11, 0};
-	h2_sValue_t nj0 = {REGISTER, 'i', 1, 32, 12, 0};
-	h2_sValue_t njm1 = {REGISTER, 'i', 1, 32, 13, 0};
-	h2_sValue_t tmp0000 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0001 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0002 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0003 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0004 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0005 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0006 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0007 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0008 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0009 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0010 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0011 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0012 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0013 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0014 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0015 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0016 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0017 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0018 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0019 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0020 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0021 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0022 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0023 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0024 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0025 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0026 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0027 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0028 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0029 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0030 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0031 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0032 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0033 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0034 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0035 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0036 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0037 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0038 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0039 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0040 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0041 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0042 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0043 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0044 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0045 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0046 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0047 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0048 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0049 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0050 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0051 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0052 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0053 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0054 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0055 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0056 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0057 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0058 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0059 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0060 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0061 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0062 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0063 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0064 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0065 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0066 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0067 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0068 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0069 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0070 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0071 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0072 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0073 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0074 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0075 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0076 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0077 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0078 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0079 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0080 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0081 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0082 = {REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t In = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t line = {H2REGISTER, 'i', 1, 32, 1, 0};
+	h2_sValue_t column = {H2REGISTER, 'i', 1, 32, 2, 0};
+	h2_sValue_t imgWidth = {H2REGISTER, 'i', 1, 32, 3, 0};
+	h2_sValue_t h2_outputVarName = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t sum = {H2REGISTER, 'i', 1, 32, 9, 0};
+	h2_sValue_t ni = {H2REGISTER, 'i', 1, 32, 10, 0};
+	h2_sValue_t njp1 = {H2REGISTER, 'i', 1, 32, 11, 0};
+	h2_sValue_t njp0 = {H2REGISTER, 'i', 1, 32, 12, 0};
+	h2_sValue_t njm1 = {H2REGISTER, 'i', 1, 32, 13, 0};
+	h2_sValue_t tmp0000 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0001 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0002 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0003 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0004 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0005 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0006 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0007 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0008 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0009 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0010 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0011 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0012 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0013 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0014 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0015 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0016 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0017 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0018 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0019 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0020 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0021 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0022 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0023 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0024 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0025 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0026 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0027 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0028 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0029 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0030 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0031 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0032 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0033 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0034 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0035 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0036 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0037 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0038 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0039 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0040 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0041 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0042 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0043 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0044 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0045 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0046 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0047 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0048 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0049 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0050 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0051 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0052 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0053 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0054 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0055 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0056 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0057 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0058 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0059 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0060 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0061 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0062 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0063 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0064 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0065 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0066 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0067 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0068 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0069 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0070 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0071 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0072 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0073 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0074 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0075 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0076 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0077 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0078 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0079 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0080 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0081 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0082 = {H2REGISTER, 'i', 1, 32, -1, 0};
 
 	/* Label  table :*/
 /* No label table to avoid C warning for empty table ... */
 	h2_asm_pc = (h2_insn_t *) ptr;
 	h2_codeGenerationOK = true;
 	h2_start_codeGen = h2_getticks();
-	h2_initRegisterMasks(0xFFFF3F1F, 0, 0, 0);
+	h2_initRegisterMasks(0xFFFF3F0F, 0, 0, 0);
 	h2_resetRegisterMasks();
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask initialization\n");
 	#endif // H2_DEBUG_REGISTER
-	tmp0000 = aarch64_genADD_3(tmp0000, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
-	nj1 = aarch64_genMV_3(nj1, tmp0000, immValueZero);
-	h2_freeReg(tmp0000.regNro);
+		tmp0000 = aarch64_genADD_3(tmp0000, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
+	njp1 = aarch64_genMV_3(njp1, tmp0000, immValueZero);
+	if (!tmp0001.dontFree) h2_freeReg(tmp0000.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	nj0 = aarch64_genMV_3(nj0, column, immValueZero);
+	njp0 = aarch64_genMV_3(njp0, column, immValueZero);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0003 = aarch64_genSUB_3(tmp0003, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0003 = aarch64_genSUB_3(tmp0003, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	njm1 = aarch64_genMV_3(njm1, tmp0003, immValueZero);
-	h2_freeReg(tmp0003.regNro);
+	if (!tmp0004.dontFree) h2_freeReg(tmp0003.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0005 = aarch64_genSUB_3(tmp0005, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0005 = aarch64_genSUB_3(tmp0005, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	ni = aarch64_genMV_3(ni, tmp0005, immValueZero);
-	h2_freeReg(tmp0005.regNro);
+	if (!tmp0006.dontFree) h2_freeReg(tmp0005.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0007 = aarch64_genMUL_3(tmp0007, ni, Inwidth);
-	tmp0008 = aarch64_genADD_3(tmp0008, tmp0007, njm1);
-	h2_freeReg(tmp0007.regNro);
-	tmp0009 = aarch64_genMUL_3(tmp0009, tmp0008, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0008.regNro);
-	tmp0010 = aarch64_genADD_3(tmp0010, In, tmp0009);
-	h2_freeReg(tmp0009.regNro);
-	tmp0011 = aarch64_genR_3(tmp0011, tmp0010, immValueZero);
-	tmp0012 = aarch64_genMUL_3(tmp0012, tmp0011, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][0]))});
-	h2_freeReg(tmp0011.regNro);
+							tmp0007 = aarch64_genMUL_3(tmp0007, ni, imgWidth);
+						tmp0008 = aarch64_genADD_3(tmp0008, tmp0007, njm1);
+						if (!tmp0008.dontFree) h2_freeReg(tmp0007.regNro);
+					tmp0009 = aarch64_genMUL_3(tmp0009, tmp0008, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+					if (!tmp0009.dontFree) h2_freeReg(tmp0008.regNro);
+				tmp0010 = aarch64_genADD_3(tmp0010, In, tmp0009);
+				if (!tmp0010.dontFree) h2_freeReg(tmp0009.regNro);
+			tmp0011 = aarch64_genR_3(tmp0011, tmp0010, immValueZero);
+		tmp0012 = aarch64_genMUL_3(tmp0012, tmp0011, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][0]))});
+		if (!tmp0012.dontFree) h2_freeReg(tmp0011.regNro);
 	sum = aarch64_genMV_3(sum, tmp0012, immValueZero);
-	h2_freeReg(tmp0012.regNro);
+	if (!tmp0013.dontFree) h2_freeReg(tmp0012.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0014 = aarch64_genMUL_3(tmp0014, ni, Inwidth);
-	tmp0015 = aarch64_genADD_3(tmp0015, tmp0014, nj0);
-	h2_freeReg(tmp0014.regNro);
-	tmp0016 = aarch64_genMUL_3(tmp0016, tmp0015, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0015.regNro);
-	tmp0017 = aarch64_genADD_3(tmp0017, In, tmp0016);
-	h2_freeReg(tmp0016.regNro);
-	tmp0018 = aarch64_genR_3(tmp0018, tmp0017, immValueZero);
-	tmp0019 = aarch64_genMUL_3(tmp0019, tmp0018, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][1]))});
-	h2_freeReg(tmp0018.regNro);
-	tmp0020 = aarch64_genADD_3(tmp0020, sum, tmp0019);
-	h2_freeReg(tmp0019.regNro);
+								tmp0014 = aarch64_genMUL_3(tmp0014, ni, imgWidth);
+							tmp0015 = aarch64_genADD_3(tmp0015, tmp0014, njp0);
+							if (!tmp0015.dontFree) h2_freeReg(tmp0014.regNro);
+						tmp0016 = aarch64_genMUL_3(tmp0016, tmp0015, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0016.dontFree) h2_freeReg(tmp0015.regNro);
+					tmp0017 = aarch64_genADD_3(tmp0017, In, tmp0016);
+					if (!tmp0017.dontFree) h2_freeReg(tmp0016.regNro);
+				tmp0018 = aarch64_genR_3(tmp0018, tmp0017, immValueZero);
+			tmp0019 = aarch64_genMUL_3(tmp0019, tmp0018, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][1]))});
+			if (!tmp0019.dontFree) h2_freeReg(tmp0018.regNro);
+		tmp0020 = aarch64_genADD_3(tmp0020, sum, tmp0019);
+		if (!tmp0020.dontFree) h2_freeReg(tmp0019.regNro);
 	sum = aarch64_genMV_3(sum, tmp0020, immValueZero);
-	h2_freeReg(tmp0020.regNro);
+	if (!tmp0021.dontFree) h2_freeReg(tmp0020.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0022 = aarch64_genMUL_3(tmp0022, ni, Inwidth);
-	tmp0023 = aarch64_genADD_3(tmp0023, tmp0022, nj1);
-	h2_freeReg(tmp0022.regNro);
-	tmp0024 = aarch64_genMUL_3(tmp0024, tmp0023, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0023.regNro);
-	tmp0025 = aarch64_genADD_3(tmp0025, In, tmp0024);
-	h2_freeReg(tmp0024.regNro);
-	tmp0026 = aarch64_genR_3(tmp0026, tmp0025, immValueZero);
-	tmp0027 = aarch64_genMUL_3(tmp0027, tmp0026, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][2]))});
-	h2_freeReg(tmp0026.regNro);
-	tmp0028 = aarch64_genADD_3(tmp0028, sum, tmp0027);
-	h2_freeReg(tmp0027.regNro);
+								tmp0022 = aarch64_genMUL_3(tmp0022, ni, imgWidth);
+							tmp0023 = aarch64_genADD_3(tmp0023, tmp0022, njp1);
+							if (!tmp0023.dontFree) h2_freeReg(tmp0022.regNro);
+						tmp0024 = aarch64_genMUL_3(tmp0024, tmp0023, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0024.dontFree) h2_freeReg(tmp0023.regNro);
+					tmp0025 = aarch64_genADD_3(tmp0025, In, tmp0024);
+					if (!tmp0025.dontFree) h2_freeReg(tmp0024.regNro);
+				tmp0026 = aarch64_genR_3(tmp0026, tmp0025, immValueZero);
+			tmp0027 = aarch64_genMUL_3(tmp0027, tmp0026, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][2]))});
+			if (!tmp0027.dontFree) h2_freeReg(tmp0026.regNro);
+		tmp0028 = aarch64_genADD_3(tmp0028, sum, tmp0027);
+		if (!tmp0028.dontFree) h2_freeReg(tmp0027.regNro);
 	sum = aarch64_genMV_3(sum, tmp0028, immValueZero);
-	h2_freeReg(tmp0028.regNro);
+	if (!tmp0029.dontFree) h2_freeReg(tmp0028.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
@@ -1213,124 +1402,124 @@ pifc genKernel3x3(pifc ptr,int** Filter,int coeff)
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0031 = aarch64_genMUL_3(tmp0031, ni, Inwidth);
-	tmp0032 = aarch64_genADD_3(tmp0032, tmp0031, njm1);
-	h2_freeReg(tmp0031.regNro);
-	tmp0033 = aarch64_genMUL_3(tmp0033, tmp0032, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0032.regNro);
-	tmp0034 = aarch64_genADD_3(tmp0034, In, tmp0033);
-	h2_freeReg(tmp0033.regNro);
-	tmp0035 = aarch64_genR_3(tmp0035, tmp0034, immValueZero);
-	tmp0036 = aarch64_genMUL_3(tmp0036, tmp0035, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][0]))});
-	h2_freeReg(tmp0035.regNro);
-	tmp0037 = aarch64_genADD_3(tmp0037, sum, tmp0036);
-	h2_freeReg(tmp0036.regNro);
+								tmp0031 = aarch64_genMUL_3(tmp0031, ni, imgWidth);
+							tmp0032 = aarch64_genADD_3(tmp0032, tmp0031, njm1);
+							if (!tmp0032.dontFree) h2_freeReg(tmp0031.regNro);
+						tmp0033 = aarch64_genMUL_3(tmp0033, tmp0032, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0033.dontFree) h2_freeReg(tmp0032.regNro);
+					tmp0034 = aarch64_genADD_3(tmp0034, In, tmp0033);
+					if (!tmp0034.dontFree) h2_freeReg(tmp0033.regNro);
+				tmp0035 = aarch64_genR_3(tmp0035, tmp0034, immValueZero);
+			tmp0036 = aarch64_genMUL_3(tmp0036, tmp0035, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][0]))});
+			if (!tmp0036.dontFree) h2_freeReg(tmp0035.regNro);
+		tmp0037 = aarch64_genADD_3(tmp0037, sum, tmp0036);
+		if (!tmp0037.dontFree) h2_freeReg(tmp0036.regNro);
 	sum = aarch64_genMV_3(sum, tmp0037, immValueZero);
-	h2_freeReg(tmp0037.regNro);
+	if (!tmp0038.dontFree) h2_freeReg(tmp0037.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0039 = aarch64_genMUL_3(tmp0039, ni, Inwidth);
-	tmp0040 = aarch64_genADD_3(tmp0040, tmp0039, nj0);
-	h2_freeReg(tmp0039.regNro);
-	tmp0041 = aarch64_genMUL_3(tmp0041, tmp0040, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0040.regNro);
-	tmp0042 = aarch64_genADD_3(tmp0042, In, tmp0041);
-	h2_freeReg(tmp0041.regNro);
-	tmp0043 = aarch64_genR_3(tmp0043, tmp0042, immValueZero);
-	tmp0044 = aarch64_genMUL_3(tmp0044, tmp0043, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][1]))});
-	h2_freeReg(tmp0043.regNro);
-	tmp0045 = aarch64_genADD_3(tmp0045, sum, tmp0044);
-	h2_freeReg(tmp0044.regNro);
+								tmp0039 = aarch64_genMUL_3(tmp0039, ni, imgWidth);
+							tmp0040 = aarch64_genADD_3(tmp0040, tmp0039, njp0);
+							if (!tmp0040.dontFree) h2_freeReg(tmp0039.regNro);
+						tmp0041 = aarch64_genMUL_3(tmp0041, tmp0040, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0041.dontFree) h2_freeReg(tmp0040.regNro);
+					tmp0042 = aarch64_genADD_3(tmp0042, In, tmp0041);
+					if (!tmp0042.dontFree) h2_freeReg(tmp0041.regNro);
+				tmp0043 = aarch64_genR_3(tmp0043, tmp0042, immValueZero);
+			tmp0044 = aarch64_genMUL_3(tmp0044, tmp0043, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][1]))});
+			if (!tmp0044.dontFree) h2_freeReg(tmp0043.regNro);
+		tmp0045 = aarch64_genADD_3(tmp0045, sum, tmp0044);
+		if (!tmp0045.dontFree) h2_freeReg(tmp0044.regNro);
 	sum = aarch64_genMV_3(sum, tmp0045, immValueZero);
-	h2_freeReg(tmp0045.regNro);
+	if (!tmp0046.dontFree) h2_freeReg(tmp0045.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0047 = aarch64_genMUL_3(tmp0047, ni, Inwidth);
-	tmp0048 = aarch64_genADD_3(tmp0048, tmp0047, nj1);
-	h2_freeReg(tmp0047.regNro);
-	tmp0049 = aarch64_genMUL_3(tmp0049, tmp0048, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0048.regNro);
-	tmp0050 = aarch64_genADD_3(tmp0050, In, tmp0049);
-	h2_freeReg(tmp0049.regNro);
-	tmp0051 = aarch64_genR_3(tmp0051, tmp0050, immValueZero);
-	tmp0052 = aarch64_genMUL_3(tmp0052, tmp0051, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][2]))});
-	h2_freeReg(tmp0051.regNro);
-	tmp0053 = aarch64_genADD_3(tmp0053, sum, tmp0052);
-	h2_freeReg(tmp0052.regNro);
+								tmp0047 = aarch64_genMUL_3(tmp0047, ni, imgWidth);
+							tmp0048 = aarch64_genADD_3(tmp0048, tmp0047, njp1);
+							if (!tmp0048.dontFree) h2_freeReg(tmp0047.regNro);
+						tmp0049 = aarch64_genMUL_3(tmp0049, tmp0048, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0049.dontFree) h2_freeReg(tmp0048.regNro);
+					tmp0050 = aarch64_genADD_3(tmp0050, In, tmp0049);
+					if (!tmp0050.dontFree) h2_freeReg(tmp0049.regNro);
+				tmp0051 = aarch64_genR_3(tmp0051, tmp0050, immValueZero);
+			tmp0052 = aarch64_genMUL_3(tmp0052, tmp0051, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][2]))});
+			if (!tmp0052.dontFree) h2_freeReg(tmp0051.regNro);
+		tmp0053 = aarch64_genADD_3(tmp0053, sum, tmp0052);
+		if (!tmp0053.dontFree) h2_freeReg(tmp0052.regNro);
 	sum = aarch64_genMV_3(sum, tmp0053, immValueZero);
-	h2_freeReg(tmp0053.regNro);
+	if (!tmp0054.dontFree) h2_freeReg(tmp0053.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0055 = aarch64_genADD_3(tmp0055, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0055 = aarch64_genADD_3(tmp0055, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	ni = aarch64_genMV_3(ni, tmp0055, immValueZero);
-	h2_freeReg(tmp0055.regNro);
+	if (!tmp0056.dontFree) h2_freeReg(tmp0055.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0057 = aarch64_genMUL_3(tmp0057, ni, Inwidth);
-	tmp0058 = aarch64_genADD_3(tmp0058, tmp0057, njm1);
-	h2_freeReg(tmp0057.regNro);
-	tmp0059 = aarch64_genMUL_3(tmp0059, tmp0058, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0058.regNro);
-	tmp0060 = aarch64_genADD_3(tmp0060, In, tmp0059);
-	h2_freeReg(tmp0059.regNro);
-	tmp0061 = aarch64_genR_3(tmp0061, tmp0060, immValueZero);
-	tmp0062 = aarch64_genMUL_3(tmp0062, tmp0061, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][0]))});
-	h2_freeReg(tmp0061.regNro);
-	tmp0063 = aarch64_genADD_3(tmp0063, sum, tmp0062);
-	h2_freeReg(tmp0062.regNro);
+								tmp0057 = aarch64_genMUL_3(tmp0057, ni, imgWidth);
+							tmp0058 = aarch64_genADD_3(tmp0058, tmp0057, njm1);
+							if (!tmp0058.dontFree) h2_freeReg(tmp0057.regNro);
+						tmp0059 = aarch64_genMUL_3(tmp0059, tmp0058, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0059.dontFree) h2_freeReg(tmp0058.regNro);
+					tmp0060 = aarch64_genADD_3(tmp0060, In, tmp0059);
+					if (!tmp0060.dontFree) h2_freeReg(tmp0059.regNro);
+				tmp0061 = aarch64_genR_3(tmp0061, tmp0060, immValueZero);
+			tmp0062 = aarch64_genMUL_3(tmp0062, tmp0061, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][0]))});
+			if (!tmp0062.dontFree) h2_freeReg(tmp0061.regNro);
+		tmp0063 = aarch64_genADD_3(tmp0063, sum, tmp0062);
+		if (!tmp0063.dontFree) h2_freeReg(tmp0062.regNro);
 	sum = aarch64_genMV_3(sum, tmp0063, immValueZero);
-	h2_freeReg(tmp0063.regNro);
+	if (!tmp0064.dontFree) h2_freeReg(tmp0063.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0065 = aarch64_genMUL_3(tmp0065, ni, Inwidth);
-	tmp0066 = aarch64_genADD_3(tmp0066, tmp0065, nj0);
-	h2_freeReg(tmp0065.regNro);
-	tmp0067 = aarch64_genMUL_3(tmp0067, tmp0066, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0066.regNro);
-	tmp0068 = aarch64_genADD_3(tmp0068, In, tmp0067);
-	h2_freeReg(tmp0067.regNro);
-	tmp0069 = aarch64_genR_3(tmp0069, tmp0068, immValueZero);
-	tmp0070 = aarch64_genMUL_3(tmp0070, tmp0069, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][1]))});
-	h2_freeReg(tmp0069.regNro);
-	tmp0071 = aarch64_genADD_3(tmp0071, sum, tmp0070);
-	h2_freeReg(tmp0070.regNro);
+								tmp0065 = aarch64_genMUL_3(tmp0065, ni, imgWidth);
+							tmp0066 = aarch64_genADD_3(tmp0066, tmp0065, njp0);
+							if (!tmp0066.dontFree) h2_freeReg(tmp0065.regNro);
+						tmp0067 = aarch64_genMUL_3(tmp0067, tmp0066, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0067.dontFree) h2_freeReg(tmp0066.regNro);
+					tmp0068 = aarch64_genADD_3(tmp0068, In, tmp0067);
+					if (!tmp0068.dontFree) h2_freeReg(tmp0067.regNro);
+				tmp0069 = aarch64_genR_3(tmp0069, tmp0068, immValueZero);
+			tmp0070 = aarch64_genMUL_3(tmp0070, tmp0069, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][1]))});
+			if (!tmp0070.dontFree) h2_freeReg(tmp0069.regNro);
+		tmp0071 = aarch64_genADD_3(tmp0071, sum, tmp0070);
+		if (!tmp0071.dontFree) h2_freeReg(tmp0070.regNro);
 	sum = aarch64_genMV_3(sum, tmp0071, immValueZero);
-	h2_freeReg(tmp0071.regNro);
+	if (!tmp0072.dontFree) h2_freeReg(tmp0071.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0073 = aarch64_genMUL_3(tmp0073, ni, Inwidth);
-	tmp0074 = aarch64_genADD_3(tmp0074, tmp0073, nj1);
-	h2_freeReg(tmp0073.regNro);
-	tmp0075 = aarch64_genMUL_3(tmp0075, tmp0074, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0074.regNro);
-	tmp0076 = aarch64_genADD_3(tmp0076, In, tmp0075);
-	h2_freeReg(tmp0075.regNro);
-	tmp0077 = aarch64_genR_3(tmp0077, tmp0076, immValueZero);
-	tmp0078 = aarch64_genMUL_3(tmp0078, tmp0077, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][2]))});
-	h2_freeReg(tmp0077.regNro);
-	tmp0079 = aarch64_genADD_3(tmp0079, sum, tmp0078);
-	h2_freeReg(tmp0078.regNro);
+								tmp0073 = aarch64_genMUL_3(tmp0073, ni, imgWidth);
+							tmp0074 = aarch64_genADD_3(tmp0074, tmp0073, njp1);
+							if (!tmp0074.dontFree) h2_freeReg(tmp0073.regNro);
+						tmp0075 = aarch64_genMUL_3(tmp0075, tmp0074, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0075.dontFree) h2_freeReg(tmp0074.regNro);
+					tmp0076 = aarch64_genADD_3(tmp0076, In, tmp0075);
+					if (!tmp0076.dontFree) h2_freeReg(tmp0075.regNro);
+				tmp0077 = aarch64_genR_3(tmp0077, tmp0076, immValueZero);
+			tmp0078 = aarch64_genMUL_3(tmp0078, tmp0077, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][2]))});
+			if (!tmp0078.dontFree) h2_freeReg(tmp0077.regNro);
+		tmp0079 = aarch64_genADD_3(tmp0079, sum, tmp0078);
+		if (!tmp0079.dontFree) h2_freeReg(tmp0078.regNro);
 	sum = aarch64_genMV_3(sum, tmp0079, immValueZero);
-	h2_freeReg(tmp0079.regNro);
+	if (!tmp0080.dontFree) h2_freeReg(tmp0079.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0081 = aarch64_genDIV_3(tmp0081, sum, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((coeff))});
+		tmp0081 = aarch64_genDIV_3(tmp0081, sum, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((coeff))});
 	h2_outputVarName = aarch64_genMV_3(h2_outputVarName, tmp0081, immValueZero);
-	h2_freeReg(tmp0081.regNro);
+	if (!tmp0082.dontFree) h2_freeReg(tmp0081.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
@@ -1349,470 +1538,467 @@ pifc genKernel3x3(pifc ptr,int** Filter,int coeff)
   return ptr;
 }
 
-
-pifc genKernel5x5(pifc ptr,int** Filter,int coeff)
+pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
 {
-  //printf("%i %i %i\n%i %i %i\n%i %i %i\ncoeff is : %i\n",Filter[0][0],Filter[0][1],Filter[0][2],Filter[1][0],Filter[1][1],Filter[1][2],Filter[2][0],Filter[2][1],Filter[2][2],coeff);
 	/* Code Generation of 36 instructions */
 	/* Symbol table :*/
 	/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */
-	h2_sValue_t In = {REGISTER, 'i', 1, 32, 0, 0};
-	h2_sValue_t line = {REGISTER, 'i', 1, 32, 1, 0};
-	h2_sValue_t column = {REGISTER, 'i', 1, 32, 2, 0};
-	h2_sValue_t Inwidth = {REGISTER, 'i', 1, 32, 3, 0};
-	h2_sValue_t Inheight = {REGISTER, 'i', 1, 32, 4, 0};
-	h2_sValue_t h2_outputVarName = {REGISTER, 'i', 1, 32, 0, 0};
-	h2_sValue_t sum = {REGISTER, 'i', 1, 32, 9, 0};
-	h2_sValue_t ni = {REGISTER, 'i', 1, 32, 10, 0};
-	h2_sValue_t njm2 = {REGISTER, 'i', 1, 32, 11, 0};
-	h2_sValue_t njm1 = {REGISTER, 'i', 1, 32, 12, 0};
-	h2_sValue_t nj1 = {REGISTER, 'i', 1, 32, 13, 0};
-	h2_sValue_t nj2 = {REGISTER, 'i', 1, 32, 14, 0};
-	h2_sValue_t tmp0000 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0001 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0002 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0003 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0004 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0005 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0006 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0007 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0008 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0009 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0010 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0011 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0012 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0013 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0014 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0015 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0016 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0017 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0018 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0019 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0020 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0021 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0022 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0023 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0024 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0025 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0026 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0027 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0028 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0029 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0030 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0031 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0032 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0033 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0034 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0035 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0036 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0037 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0038 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0039 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0040 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0041 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0042 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0043 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0044 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0045 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0046 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0047 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0048 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0049 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0050 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0051 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0052 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0053 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0054 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0055 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0056 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0057 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0058 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0059 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0060 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0061 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0062 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0063 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0064 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0065 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0066 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0067 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0068 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0069 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0070 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0071 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0072 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0073 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0074 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0075 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0076 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0077 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0078 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0079 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0080 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0081 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0082 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0083 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0084 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0085 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0086 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0087 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0088 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0089 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0090 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0091 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0092 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0093 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0094 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0095 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0096 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0097 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0098 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0099 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0100 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0101 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0102 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0103 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0104 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0105 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0106 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0107 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0108 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0109 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0110 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0111 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0112 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0113 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0114 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0115 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0116 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0117 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0118 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0119 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0120 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0121 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0122 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0123 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0124 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0125 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0126 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0127 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0128 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0129 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0130 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0131 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0132 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0133 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0134 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0135 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0136 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0137 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0138 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0139 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0140 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0141 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0142 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0143 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0144 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0145 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0146 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0147 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0148 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0149 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0150 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0151 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0152 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0153 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0154 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0155 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0156 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0157 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0158 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0159 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0160 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0161 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0162 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0163 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0164 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0165 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0166 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0167 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0168 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0169 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0170 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0171 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0172 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0173 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0174 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0175 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0176 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0177 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0178 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0179 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0180 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0181 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0182 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0183 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0184 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0185 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0186 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0187 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0188 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0189 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0190 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0191 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0192 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0193 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0194 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0195 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0196 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0197 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0198 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0199 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0200 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0201 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0202 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0203 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0204 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0205 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0206 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0207 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0208 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0209 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0210 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0211 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0212 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0213 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0214 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0215 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0216 = {REGISTER, 'i', 1, 32, -1, 0};
-	h2_sValue_t tmp0217 = {REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t In = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t line = {H2REGISTER, 'i', 1, 32, 1, 0};
+	h2_sValue_t column = {H2REGISTER, 'i', 1, 32, 2, 0};
+	h2_sValue_t imgWidth = {H2REGISTER, 'i', 1, 32, 3, 0};
+	h2_sValue_t h2_outputVarName = {H2REGISTER, 'i', 1, 32, 0, 0};
+	h2_sValue_t sum = {H2REGISTER, 'i', 1, 32, 9, 0};
+	h2_sValue_t ni = {H2REGISTER, 'i', 1, 32, 10, 0};
+	h2_sValue_t njm2 = {H2REGISTER, 'i', 1, 32, 11, 0};
+	h2_sValue_t njm1 = {H2REGISTER, 'i', 1, 32, 12, 0};
+	h2_sValue_t njp1 = {H2REGISTER, 'i', 1, 32, 13, 0};
+	h2_sValue_t njp2 = {H2REGISTER, 'i', 1, 32, 14, 0};
+	h2_sValue_t tmp0000 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0001 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0002 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0003 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0004 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0005 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0006 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0007 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0008 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0009 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0010 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0011 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0012 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0013 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0014 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0015 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0016 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0017 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0018 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0019 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0020 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0021 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0022 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0023 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0024 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0025 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0026 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0027 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0028 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0029 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0030 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0031 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0032 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0033 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0034 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0035 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0036 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0037 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0038 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0039 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0040 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0041 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0042 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0043 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0044 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0045 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0046 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0047 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0048 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0049 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0050 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0051 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0052 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0053 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0054 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0055 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0056 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0057 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0058 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0059 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0060 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0061 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0062 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0063 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0064 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0065 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0066 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0067 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0068 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0069 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0070 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0071 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0072 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0073 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0074 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0075 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0076 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0077 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0078 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0079 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0080 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0081 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0082 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0083 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0084 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0085 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0086 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0087 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0088 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0089 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0090 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0091 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0092 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0093 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0094 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0095 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0096 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0097 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0098 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0099 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0100 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0101 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0102 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0103 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0104 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0105 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0106 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0107 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0108 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0109 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0110 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0111 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0112 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0113 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0114 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0115 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0116 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0117 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0118 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0119 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0120 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0121 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0122 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0123 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0124 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0125 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0126 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0127 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0128 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0129 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0130 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0131 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0132 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0133 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0134 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0135 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0136 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0137 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0138 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0139 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0140 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0141 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0142 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0143 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0144 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0145 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0146 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0147 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0148 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0149 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0150 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0151 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0152 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0153 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0154 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0155 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0156 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0157 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0158 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0159 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0160 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0161 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0162 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0163 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0164 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0165 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0166 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0167 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0168 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0169 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0170 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0171 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0172 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0173 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0174 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0175 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0176 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0177 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0178 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0179 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0180 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0181 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0182 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0183 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0184 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0185 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0186 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0187 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0188 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0189 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0190 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0191 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0192 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0193 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0194 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0195 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0196 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0197 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0198 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0199 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0200 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0201 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0202 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0203 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0204 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0205 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0206 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0207 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0208 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0209 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0210 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0211 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0212 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0213 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0214 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0215 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0216 = {H2REGISTER, 'i', 1, 32, -1, 0};
+	h2_sValue_t tmp0217 = {H2REGISTER, 'i', 1, 32, -1, 0};
 
 	/* Label  table :*/
 /* No label table to avoid C warning for empty table ... */
 	h2_asm_pc = (h2_insn_t *) ptr;
 	h2_codeGenerationOK = true;
 	h2_start_codeGen = h2_getticks();
-	h2_initRegisterMasks(0xFFFF7F1F, 0, 0, 0);
+	h2_initRegisterMasks(0xFFFF7F0F, 0, 0, 0);
 	h2_resetRegisterMasks();
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask initialization\n");
 	#endif // H2_DEBUG_REGISTER
-	tmp0000 = aarch64_genSUB_3(tmp0000, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(2)});
+		tmp0000 = aarch64_genSUB_3(tmp0000, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(2)});
 	njm2 = aarch64_genMV_3(njm2, tmp0000, immValueZero);
-	h2_freeReg(tmp0000.regNro);
+	if (!tmp0001.dontFree) h2_freeReg(tmp0000.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0002 = aarch64_genSUB_3(tmp0002, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0002 = aarch64_genSUB_3(tmp0002, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	njm1 = aarch64_genMV_3(njm1, tmp0002, immValueZero);
-	h2_freeReg(tmp0002.regNro);
+	if (!tmp0003.dontFree) h2_freeReg(tmp0002.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0004 = aarch64_genADD_3(tmp0004, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
-	nj1 = aarch64_genMV_3(nj1, tmp0004, immValueZero);
-	h2_freeReg(tmp0004.regNro);
+		tmp0004 = aarch64_genADD_3(tmp0004, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
+	njp1 = aarch64_genMV_3(njp1, tmp0004, immValueZero);
+	if (!tmp0005.dontFree) h2_freeReg(tmp0004.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0006 = aarch64_genADD_3(tmp0006, column, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(2)});
-	nj2 = aarch64_genMV_3(nj2, tmp0006, immValueZero);
-	h2_freeReg(tmp0006.regNro);
+		tmp0006 = aarch64_genADD_3(tmp0006, column, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(2)});
+	njp2 = aarch64_genMV_3(njp2, tmp0006, immValueZero);
+	if (!tmp0007.dontFree) h2_freeReg(tmp0006.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0008 = aarch64_genSUB_3(tmp0008, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(2)});
+		tmp0008 = aarch64_genSUB_3(tmp0008, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(2)});
 	ni = aarch64_genMV_3(ni, tmp0008, immValueZero);
-	h2_freeReg(tmp0008.regNro);
+	if (!tmp0009.dontFree) h2_freeReg(tmp0008.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0010 = aarch64_genMUL_3(tmp0010, ni, Inwidth);
-	tmp0011 = aarch64_genADD_3(tmp0011, tmp0010, njm2);
-	h2_freeReg(tmp0010.regNro);
-	tmp0012 = aarch64_genMUL_3(tmp0012, tmp0011, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0011.regNro);
-	tmp0013 = aarch64_genADD_3(tmp0013, In, tmp0012);
-	h2_freeReg(tmp0012.regNro);
-	tmp0014 = aarch64_genR_3(tmp0014, tmp0013, immValueZero);
-	tmp0015 = aarch64_genMUL_3(tmp0015, tmp0014, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][0]))});
-	h2_freeReg(tmp0014.regNro);
+							tmp0010 = aarch64_genMUL_3(tmp0010, ni, imgWidth);
+						tmp0011 = aarch64_genADD_3(tmp0011, tmp0010, njm2);
+						if (!tmp0011.dontFree) h2_freeReg(tmp0010.regNro);
+					tmp0012 = aarch64_genMUL_3(tmp0012, tmp0011, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+					if (!tmp0012.dontFree) h2_freeReg(tmp0011.regNro);
+				tmp0013 = aarch64_genADD_3(tmp0013, In, tmp0012);
+				if (!tmp0013.dontFree) h2_freeReg(tmp0012.regNro);
+			tmp0014 = aarch64_genR_3(tmp0014, tmp0013, immValueZero);
+		tmp0015 = aarch64_genMUL_3(tmp0015, tmp0014, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][0]))});
+		if (!tmp0015.dontFree) h2_freeReg(tmp0014.regNro);
 	sum = aarch64_genMV_3(sum, tmp0015, immValueZero);
-	h2_freeReg(tmp0015.regNro);
+	if (!tmp0016.dontFree) h2_freeReg(tmp0015.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0017 = aarch64_genMUL_3(tmp0017, ni, Inwidth);
-	tmp0018 = aarch64_genADD_3(tmp0018, tmp0017, njm1);
-	h2_freeReg(tmp0017.regNro);
-	tmp0019 = aarch64_genMUL_3(tmp0019, tmp0018, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0018.regNro);
-	tmp0020 = aarch64_genADD_3(tmp0020, In, tmp0019);
-	h2_freeReg(tmp0019.regNro);
-	tmp0021 = aarch64_genR_3(tmp0021, tmp0020, immValueZero);
-	tmp0022 = aarch64_genMUL_3(tmp0022, tmp0021, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][1]))});
-	h2_freeReg(tmp0021.regNro);
-	tmp0023 = aarch64_genADD_3(tmp0023, sum, tmp0022);
-	h2_freeReg(tmp0022.regNro);
+								tmp0017 = aarch64_genMUL_3(tmp0017, ni, imgWidth);
+							tmp0018 = aarch64_genADD_3(tmp0018, tmp0017, njm1);
+							if (!tmp0018.dontFree) h2_freeReg(tmp0017.regNro);
+						tmp0019 = aarch64_genMUL_3(tmp0019, tmp0018, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0019.dontFree) h2_freeReg(tmp0018.regNro);
+					tmp0020 = aarch64_genADD_3(tmp0020, In, tmp0019);
+					if (!tmp0020.dontFree) h2_freeReg(tmp0019.regNro);
+				tmp0021 = aarch64_genR_3(tmp0021, tmp0020, immValueZero);
+			tmp0022 = aarch64_genMUL_3(tmp0022, tmp0021, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][1]))});
+			if (!tmp0022.dontFree) h2_freeReg(tmp0021.regNro);
+		tmp0023 = aarch64_genADD_3(tmp0023, sum, tmp0022);
+		if (!tmp0023.dontFree) h2_freeReg(tmp0022.regNro);
 	sum = aarch64_genMV_3(sum, tmp0023, immValueZero);
-	h2_freeReg(tmp0023.regNro);
+	if (!tmp0024.dontFree) h2_freeReg(tmp0023.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0025 = aarch64_genMUL_3(tmp0025, ni, Inwidth);
-	tmp0026 = aarch64_genADD_3(tmp0026, tmp0025, column);
-	h2_freeReg(tmp0025.regNro);
-	tmp0027 = aarch64_genMUL_3(tmp0027, tmp0026, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0026.regNro);
-	tmp0028 = aarch64_genADD_3(tmp0028, In, tmp0027);
-	h2_freeReg(tmp0027.regNro);
-	tmp0029 = aarch64_genR_3(tmp0029, tmp0028, immValueZero);
-	tmp0030 = aarch64_genMUL_3(tmp0030, tmp0029, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][2]))});
-	h2_freeReg(tmp0029.regNro);
-	tmp0031 = aarch64_genADD_3(tmp0031, sum, tmp0030);
-	h2_freeReg(tmp0030.regNro);
+								tmp0025 = aarch64_genMUL_3(tmp0025, ni, imgWidth);
+							tmp0026 = aarch64_genADD_3(tmp0026, tmp0025, column);
+							if (!tmp0026.dontFree) h2_freeReg(tmp0025.regNro);
+						tmp0027 = aarch64_genMUL_3(tmp0027, tmp0026, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0027.dontFree) h2_freeReg(tmp0026.regNro);
+					tmp0028 = aarch64_genADD_3(tmp0028, In, tmp0027);
+					if (!tmp0028.dontFree) h2_freeReg(tmp0027.regNro);
+				tmp0029 = aarch64_genR_3(tmp0029, tmp0028, immValueZero);
+			tmp0030 = aarch64_genMUL_3(tmp0030, tmp0029, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][2]))});
+			if (!tmp0030.dontFree) h2_freeReg(tmp0029.regNro);
+		tmp0031 = aarch64_genADD_3(tmp0031, sum, tmp0030);
+		if (!tmp0031.dontFree) h2_freeReg(tmp0030.regNro);
 	sum = aarch64_genMV_3(sum, tmp0031, immValueZero);
-	h2_freeReg(tmp0031.regNro);
+	if (!tmp0032.dontFree) h2_freeReg(tmp0031.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0033 = aarch64_genMUL_3(tmp0033, ni, Inwidth);
-	tmp0034 = aarch64_genADD_3(tmp0034, tmp0033, nj1);
-	h2_freeReg(tmp0033.regNro);
-	tmp0035 = aarch64_genMUL_3(tmp0035, tmp0034, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0034.regNro);
-	tmp0036 = aarch64_genADD_3(tmp0036, In, tmp0035);
-	h2_freeReg(tmp0035.regNro);
-	tmp0037 = aarch64_genR_3(tmp0037, tmp0036, immValueZero);
-	tmp0038 = aarch64_genMUL_3(tmp0038, tmp0037, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][3]))});
-	h2_freeReg(tmp0037.regNro);
-	tmp0039 = aarch64_genADD_3(tmp0039, sum, tmp0038);
-	h2_freeReg(tmp0038.regNro);
+								tmp0033 = aarch64_genMUL_3(tmp0033, ni, imgWidth);
+							tmp0034 = aarch64_genADD_3(tmp0034, tmp0033, njp1);
+							if (!tmp0034.dontFree) h2_freeReg(tmp0033.regNro);
+						tmp0035 = aarch64_genMUL_3(tmp0035, tmp0034, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0035.dontFree) h2_freeReg(tmp0034.regNro);
+					tmp0036 = aarch64_genADD_3(tmp0036, In, tmp0035);
+					if (!tmp0036.dontFree) h2_freeReg(tmp0035.regNro);
+				tmp0037 = aarch64_genR_3(tmp0037, tmp0036, immValueZero);
+			tmp0038 = aarch64_genMUL_3(tmp0038, tmp0037, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][3]))});
+			if (!tmp0038.dontFree) h2_freeReg(tmp0037.regNro);
+		tmp0039 = aarch64_genADD_3(tmp0039, sum, tmp0038);
+		if (!tmp0039.dontFree) h2_freeReg(tmp0038.regNro);
 	sum = aarch64_genMV_3(sum, tmp0039, immValueZero);
-	h2_freeReg(tmp0039.regNro);
+	if (!tmp0040.dontFree) h2_freeReg(tmp0039.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0041 = aarch64_genMUL_3(tmp0041, ni, Inwidth);
-	tmp0042 = aarch64_genADD_3(tmp0042, tmp0041, nj1);
-	h2_freeReg(tmp0041.regNro);
-	tmp0043 = aarch64_genMUL_3(tmp0043, tmp0042, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0042.regNro);
-	tmp0044 = aarch64_genADD_3(tmp0044, In, tmp0043);
-	h2_freeReg(tmp0043.regNro);
-	tmp0045 = aarch64_genR_3(tmp0045, tmp0044, immValueZero);
-	tmp0046 = aarch64_genMUL_3(tmp0046, tmp0045, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[0][4]))});
-	h2_freeReg(tmp0045.regNro);
-	tmp0047 = aarch64_genADD_3(tmp0047, sum, tmp0046);
-	h2_freeReg(tmp0046.regNro);
+								tmp0041 = aarch64_genMUL_3(tmp0041, ni, imgWidth);
+							tmp0042 = aarch64_genADD_3(tmp0042, tmp0041, njp1);
+							if (!tmp0042.dontFree) h2_freeReg(tmp0041.regNro);
+						tmp0043 = aarch64_genMUL_3(tmp0043, tmp0042, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0043.dontFree) h2_freeReg(tmp0042.regNro);
+					tmp0044 = aarch64_genADD_3(tmp0044, In, tmp0043);
+					if (!tmp0044.dontFree) h2_freeReg(tmp0043.regNro);
+				tmp0045 = aarch64_genR_3(tmp0045, tmp0044, immValueZero);
+			tmp0046 = aarch64_genMUL_3(tmp0046, tmp0045, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[0][4]))});
+			if (!tmp0046.dontFree) h2_freeReg(tmp0045.regNro);
+		tmp0047 = aarch64_genADD_3(tmp0047, sum, tmp0046);
+		if (!tmp0047.dontFree) h2_freeReg(tmp0046.regNro);
 	sum = aarch64_genMV_3(sum, tmp0047, immValueZero);
-	h2_freeReg(tmp0047.regNro);
+	if (!tmp0048.dontFree) h2_freeReg(tmp0047.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0049 = aarch64_genSUB_3(tmp0049, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0049 = aarch64_genSUB_3(tmp0049, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	ni = aarch64_genMV_3(ni, tmp0049, immValueZero);
-	h2_freeReg(tmp0049.regNro);
+	if (!tmp0050.dontFree) h2_freeReg(tmp0049.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0051 = aarch64_genMUL_3(tmp0051, ni, Inwidth);
-	tmp0052 = aarch64_genADD_3(tmp0052, tmp0051, njm2);
-	h2_freeReg(tmp0051.regNro);
-	tmp0053 = aarch64_genMUL_3(tmp0053, tmp0052, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0052.regNro);
-	tmp0054 = aarch64_genADD_3(tmp0054, In, tmp0053);
-	h2_freeReg(tmp0053.regNro);
-	tmp0055 = aarch64_genR_3(tmp0055, tmp0054, immValueZero);
-	tmp0056 = aarch64_genMUL_3(tmp0056, tmp0055, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][0]))});
-	h2_freeReg(tmp0055.regNro);
-	tmp0057 = aarch64_genADD_3(tmp0057, sum, tmp0056);
-	h2_freeReg(tmp0056.regNro);
+								tmp0051 = aarch64_genMUL_3(tmp0051, ni, imgWidth);
+							tmp0052 = aarch64_genADD_3(tmp0052, tmp0051, njm2);
+							if (!tmp0052.dontFree) h2_freeReg(tmp0051.regNro);
+						tmp0053 = aarch64_genMUL_3(tmp0053, tmp0052, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0053.dontFree) h2_freeReg(tmp0052.regNro);
+					tmp0054 = aarch64_genADD_3(tmp0054, In, tmp0053);
+					if (!tmp0054.dontFree) h2_freeReg(tmp0053.regNro);
+				tmp0055 = aarch64_genR_3(tmp0055, tmp0054, immValueZero);
+			tmp0056 = aarch64_genMUL_3(tmp0056, tmp0055, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][0]))});
+			if (!tmp0056.dontFree) h2_freeReg(tmp0055.regNro);
+		tmp0057 = aarch64_genADD_3(tmp0057, sum, tmp0056);
+		if (!tmp0057.dontFree) h2_freeReg(tmp0056.regNro);
 	sum = aarch64_genMV_3(sum, tmp0057, immValueZero);
-	h2_freeReg(tmp0057.regNro);
+	if (!tmp0058.dontFree) h2_freeReg(tmp0057.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0059 = aarch64_genMUL_3(tmp0059, ni, Inwidth);
-	tmp0060 = aarch64_genADD_3(tmp0060, tmp0059, njm1);
-	h2_freeReg(tmp0059.regNro);
-	tmp0061 = aarch64_genMUL_3(tmp0061, tmp0060, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0060.regNro);
-	tmp0062 = aarch64_genADD_3(tmp0062, In, tmp0061);
-	h2_freeReg(tmp0061.regNro);
-	tmp0063 = aarch64_genR_3(tmp0063, tmp0062, immValueZero);
-	tmp0064 = aarch64_genMUL_3(tmp0064, tmp0063, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][1]))});
-	h2_freeReg(tmp0063.regNro);
-	tmp0065 = aarch64_genADD_3(tmp0065, sum, tmp0064);
-	h2_freeReg(tmp0064.regNro);
+								tmp0059 = aarch64_genMUL_3(tmp0059, ni, imgWidth);
+							tmp0060 = aarch64_genADD_3(tmp0060, tmp0059, njm1);
+							if (!tmp0060.dontFree) h2_freeReg(tmp0059.regNro);
+						tmp0061 = aarch64_genMUL_3(tmp0061, tmp0060, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0061.dontFree) h2_freeReg(tmp0060.regNro);
+					tmp0062 = aarch64_genADD_3(tmp0062, In, tmp0061);
+					if (!tmp0062.dontFree) h2_freeReg(tmp0061.regNro);
+				tmp0063 = aarch64_genR_3(tmp0063, tmp0062, immValueZero);
+			tmp0064 = aarch64_genMUL_3(tmp0064, tmp0063, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][1]))});
+			if (!tmp0064.dontFree) h2_freeReg(tmp0063.regNro);
+		tmp0065 = aarch64_genADD_3(tmp0065, sum, tmp0064);
+		if (!tmp0065.dontFree) h2_freeReg(tmp0064.regNro);
 	sum = aarch64_genMV_3(sum, tmp0065, immValueZero);
-	h2_freeReg(tmp0065.regNro);
+	if (!tmp0066.dontFree) h2_freeReg(tmp0065.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0067 = aarch64_genMUL_3(tmp0067, ni, Inwidth);
-	tmp0068 = aarch64_genADD_3(tmp0068, tmp0067, column);
-	h2_freeReg(tmp0067.regNro);
-	tmp0069 = aarch64_genMUL_3(tmp0069, tmp0068, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0068.regNro);
-	tmp0070 = aarch64_genADD_3(tmp0070, In, tmp0069);
-	h2_freeReg(tmp0069.regNro);
-	tmp0071 = aarch64_genR_3(tmp0071, tmp0070, immValueZero);
-	tmp0072 = aarch64_genMUL_3(tmp0072, tmp0071, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][2]))});
-	h2_freeReg(tmp0071.regNro);
-	tmp0073 = aarch64_genADD_3(tmp0073, sum, tmp0072);
-	h2_freeReg(tmp0072.regNro);
+								tmp0067 = aarch64_genMUL_3(tmp0067, ni, imgWidth);
+							tmp0068 = aarch64_genADD_3(tmp0068, tmp0067, column);
+							if (!tmp0068.dontFree) h2_freeReg(tmp0067.regNro);
+						tmp0069 = aarch64_genMUL_3(tmp0069, tmp0068, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0069.dontFree) h2_freeReg(tmp0068.regNro);
+					tmp0070 = aarch64_genADD_3(tmp0070, In, tmp0069);
+					if (!tmp0070.dontFree) h2_freeReg(tmp0069.regNro);
+				tmp0071 = aarch64_genR_3(tmp0071, tmp0070, immValueZero);
+			tmp0072 = aarch64_genMUL_3(tmp0072, tmp0071, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][2]))});
+			if (!tmp0072.dontFree) h2_freeReg(tmp0071.regNro);
+		tmp0073 = aarch64_genADD_3(tmp0073, sum, tmp0072);
+		if (!tmp0073.dontFree) h2_freeReg(tmp0072.regNro);
 	sum = aarch64_genMV_3(sum, tmp0073, immValueZero);
-	h2_freeReg(tmp0073.regNro);
+	if (!tmp0074.dontFree) h2_freeReg(tmp0073.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0075 = aarch64_genMUL_3(tmp0075, ni, Inwidth);
-	tmp0076 = aarch64_genADD_3(tmp0076, tmp0075, nj1);
-	h2_freeReg(tmp0075.regNro);
-	tmp0077 = aarch64_genMUL_3(tmp0077, tmp0076, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0076.regNro);
-	tmp0078 = aarch64_genADD_3(tmp0078, In, tmp0077);
-	h2_freeReg(tmp0077.regNro);
-	tmp0079 = aarch64_genR_3(tmp0079, tmp0078, immValueZero);
-	tmp0080 = aarch64_genMUL_3(tmp0080, tmp0079, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][3]))});
-	h2_freeReg(tmp0079.regNro);
-	tmp0081 = aarch64_genADD_3(tmp0081, sum, tmp0080);
-	h2_freeReg(tmp0080.regNro);
+								tmp0075 = aarch64_genMUL_3(tmp0075, ni, imgWidth);
+							tmp0076 = aarch64_genADD_3(tmp0076, tmp0075, njp1);
+							if (!tmp0076.dontFree) h2_freeReg(tmp0075.regNro);
+						tmp0077 = aarch64_genMUL_3(tmp0077, tmp0076, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0077.dontFree) h2_freeReg(tmp0076.regNro);
+					tmp0078 = aarch64_genADD_3(tmp0078, In, tmp0077);
+					if (!tmp0078.dontFree) h2_freeReg(tmp0077.regNro);
+				tmp0079 = aarch64_genR_3(tmp0079, tmp0078, immValueZero);
+			tmp0080 = aarch64_genMUL_3(tmp0080, tmp0079, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][3]))});
+			if (!tmp0080.dontFree) h2_freeReg(tmp0079.regNro);
+		tmp0081 = aarch64_genADD_3(tmp0081, sum, tmp0080);
+		if (!tmp0081.dontFree) h2_freeReg(tmp0080.regNro);
 	sum = aarch64_genMV_3(sum, tmp0081, immValueZero);
-	h2_freeReg(tmp0081.regNro);
+	if (!tmp0082.dontFree) h2_freeReg(tmp0081.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0083 = aarch64_genMUL_3(tmp0083, ni, Inwidth);
-	tmp0084 = aarch64_genADD_3(tmp0084, tmp0083, nj2);
-	h2_freeReg(tmp0083.regNro);
-	tmp0085 = aarch64_genMUL_3(tmp0085, tmp0084, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0084.regNro);
-	tmp0086 = aarch64_genADD_3(tmp0086, In, tmp0085);
-	h2_freeReg(tmp0085.regNro);
-	tmp0087 = aarch64_genR_3(tmp0087, tmp0086, immValueZero);
-	tmp0088 = aarch64_genMUL_3(tmp0088, tmp0087, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[1][4]))});
-	h2_freeReg(tmp0087.regNro);
-	tmp0089 = aarch64_genADD_3(tmp0089, sum, tmp0088);
-	h2_freeReg(tmp0088.regNro);
+								tmp0083 = aarch64_genMUL_3(tmp0083, ni, imgWidth);
+							tmp0084 = aarch64_genADD_3(tmp0084, tmp0083, njp2);
+							if (!tmp0084.dontFree) h2_freeReg(tmp0083.regNro);
+						tmp0085 = aarch64_genMUL_3(tmp0085, tmp0084, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0085.dontFree) h2_freeReg(tmp0084.regNro);
+					tmp0086 = aarch64_genADD_3(tmp0086, In, tmp0085);
+					if (!tmp0086.dontFree) h2_freeReg(tmp0085.regNro);
+				tmp0087 = aarch64_genR_3(tmp0087, tmp0086, immValueZero);
+			tmp0088 = aarch64_genMUL_3(tmp0088, tmp0087, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[1][4]))});
+			if (!tmp0088.dontFree) h2_freeReg(tmp0087.regNro);
+		tmp0089 = aarch64_genADD_3(tmp0089, sum, tmp0088);
+		if (!tmp0089.dontFree) h2_freeReg(tmp0088.regNro);
 	sum = aarch64_genMV_3(sum, tmp0089, immValueZero);
-	h2_freeReg(tmp0089.regNro);
+	if (!tmp0090.dontFree) h2_freeReg(tmp0089.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
@@ -1822,293 +2008,293 @@ pifc genKernel5x5(pifc ptr,int** Filter,int coeff)
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0092 = aarch64_genMUL_3(tmp0092, ni, Inwidth);
-	tmp0093 = aarch64_genADD_3(tmp0093, tmp0092, njm2);
-	h2_freeReg(tmp0092.regNro);
-	tmp0094 = aarch64_genMUL_3(tmp0094, tmp0093, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0093.regNro);
-	tmp0095 = aarch64_genADD_3(tmp0095, In, tmp0094);
-	h2_freeReg(tmp0094.regNro);
-	tmp0096 = aarch64_genR_3(tmp0096, tmp0095, immValueZero);
-	tmp0097 = aarch64_genMUL_3(tmp0097, tmp0096, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][0]))});
-	h2_freeReg(tmp0096.regNro);
-	tmp0098 = aarch64_genADD_3(tmp0098, sum, tmp0097);
-	h2_freeReg(tmp0097.regNro);
+								tmp0092 = aarch64_genMUL_3(tmp0092, ni, imgWidth);
+							tmp0093 = aarch64_genADD_3(tmp0093, tmp0092, njm2);
+							if (!tmp0093.dontFree) h2_freeReg(tmp0092.regNro);
+						tmp0094 = aarch64_genMUL_3(tmp0094, tmp0093, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0094.dontFree) h2_freeReg(tmp0093.regNro);
+					tmp0095 = aarch64_genADD_3(tmp0095, In, tmp0094);
+					if (!tmp0095.dontFree) h2_freeReg(tmp0094.regNro);
+				tmp0096 = aarch64_genR_3(tmp0096, tmp0095, immValueZero);
+			tmp0097 = aarch64_genMUL_3(tmp0097, tmp0096, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][0]))});
+			if (!tmp0097.dontFree) h2_freeReg(tmp0096.regNro);
+		tmp0098 = aarch64_genADD_3(tmp0098, sum, tmp0097);
+		if (!tmp0098.dontFree) h2_freeReg(tmp0097.regNro);
 	sum = aarch64_genMV_3(sum, tmp0098, immValueZero);
-	h2_freeReg(tmp0098.regNro);
+	if (!tmp0099.dontFree) h2_freeReg(tmp0098.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0100 = aarch64_genMUL_3(tmp0100, ni, Inwidth);
-	tmp0101 = aarch64_genADD_3(tmp0101, tmp0100, njm1);
-	h2_freeReg(tmp0100.regNro);
-	tmp0102 = aarch64_genMUL_3(tmp0102, tmp0101, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0101.regNro);
-	tmp0103 = aarch64_genADD_3(tmp0103, In, tmp0102);
-	h2_freeReg(tmp0102.regNro);
-	tmp0104 = aarch64_genR_3(tmp0104, tmp0103, immValueZero);
-	tmp0105 = aarch64_genMUL_3(tmp0105, tmp0104, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][1]))});
-	h2_freeReg(tmp0104.regNro);
-	tmp0106 = aarch64_genADD_3(tmp0106, sum, tmp0105);
-	h2_freeReg(tmp0105.regNro);
+								tmp0100 = aarch64_genMUL_3(tmp0100, ni, imgWidth);
+							tmp0101 = aarch64_genADD_3(tmp0101, tmp0100, njm1);
+							if (!tmp0101.dontFree) h2_freeReg(tmp0100.regNro);
+						tmp0102 = aarch64_genMUL_3(tmp0102, tmp0101, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0102.dontFree) h2_freeReg(tmp0101.regNro);
+					tmp0103 = aarch64_genADD_3(tmp0103, In, tmp0102);
+					if (!tmp0103.dontFree) h2_freeReg(tmp0102.regNro);
+				tmp0104 = aarch64_genR_3(tmp0104, tmp0103, immValueZero);
+			tmp0105 = aarch64_genMUL_3(tmp0105, tmp0104, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][1]))});
+			if (!tmp0105.dontFree) h2_freeReg(tmp0104.regNro);
+		tmp0106 = aarch64_genADD_3(tmp0106, sum, tmp0105);
+		if (!tmp0106.dontFree) h2_freeReg(tmp0105.regNro);
 	sum = aarch64_genMV_3(sum, tmp0106, immValueZero);
-	h2_freeReg(tmp0106.regNro);
+	if (!tmp0107.dontFree) h2_freeReg(tmp0106.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0108 = aarch64_genMUL_3(tmp0108, ni, Inwidth);
-	tmp0109 = aarch64_genADD_3(tmp0109, tmp0108, column);
-	h2_freeReg(tmp0108.regNro);
-	tmp0110 = aarch64_genMUL_3(tmp0110, tmp0109, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0109.regNro);
-	tmp0111 = aarch64_genADD_3(tmp0111, In, tmp0110);
-	h2_freeReg(tmp0110.regNro);
-	tmp0112 = aarch64_genR_3(tmp0112, tmp0111, immValueZero);
-	tmp0113 = aarch64_genMUL_3(tmp0113, tmp0112, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][2]))});
-	h2_freeReg(tmp0112.regNro);
-	tmp0114 = aarch64_genADD_3(tmp0114, sum, tmp0113);
-	h2_freeReg(tmp0113.regNro);
+								tmp0108 = aarch64_genMUL_3(tmp0108, ni, imgWidth);
+							tmp0109 = aarch64_genADD_3(tmp0109, tmp0108, column);
+							if (!tmp0109.dontFree) h2_freeReg(tmp0108.regNro);
+						tmp0110 = aarch64_genMUL_3(tmp0110, tmp0109, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0110.dontFree) h2_freeReg(tmp0109.regNro);
+					tmp0111 = aarch64_genADD_3(tmp0111, In, tmp0110);
+					if (!tmp0111.dontFree) h2_freeReg(tmp0110.regNro);
+				tmp0112 = aarch64_genR_3(tmp0112, tmp0111, immValueZero);
+			tmp0113 = aarch64_genMUL_3(tmp0113, tmp0112, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][2]))});
+			if (!tmp0113.dontFree) h2_freeReg(tmp0112.regNro);
+		tmp0114 = aarch64_genADD_3(tmp0114, sum, tmp0113);
+		if (!tmp0114.dontFree) h2_freeReg(tmp0113.regNro);
 	sum = aarch64_genMV_3(sum, tmp0114, immValueZero);
-	h2_freeReg(tmp0114.regNro);
+	if (!tmp0115.dontFree) h2_freeReg(tmp0114.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0116 = aarch64_genMUL_3(tmp0116, ni, Inwidth);
-	tmp0117 = aarch64_genADD_3(tmp0117, tmp0116, nj1);
-	h2_freeReg(tmp0116.regNro);
-	tmp0118 = aarch64_genMUL_3(tmp0118, tmp0117, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0117.regNro);
-	tmp0119 = aarch64_genADD_3(tmp0119, In, tmp0118);
-	h2_freeReg(tmp0118.regNro);
-	tmp0120 = aarch64_genR_3(tmp0120, tmp0119, immValueZero);
-	tmp0121 = aarch64_genMUL_3(tmp0121, tmp0120, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][3]))});
-	h2_freeReg(tmp0120.regNro);
-	tmp0122 = aarch64_genADD_3(tmp0122, sum, tmp0121);
-	h2_freeReg(tmp0121.regNro);
+								tmp0116 = aarch64_genMUL_3(tmp0116, ni, imgWidth);
+							tmp0117 = aarch64_genADD_3(tmp0117, tmp0116, njp1);
+							if (!tmp0117.dontFree) h2_freeReg(tmp0116.regNro);
+						tmp0118 = aarch64_genMUL_3(tmp0118, tmp0117, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0118.dontFree) h2_freeReg(tmp0117.regNro);
+					tmp0119 = aarch64_genADD_3(tmp0119, In, tmp0118);
+					if (!tmp0119.dontFree) h2_freeReg(tmp0118.regNro);
+				tmp0120 = aarch64_genR_3(tmp0120, tmp0119, immValueZero);
+			tmp0121 = aarch64_genMUL_3(tmp0121, tmp0120, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][3]))});
+			if (!tmp0121.dontFree) h2_freeReg(tmp0120.regNro);
+		tmp0122 = aarch64_genADD_3(tmp0122, sum, tmp0121);
+		if (!tmp0122.dontFree) h2_freeReg(tmp0121.regNro);
 	sum = aarch64_genMV_3(sum, tmp0122, immValueZero);
-	h2_freeReg(tmp0122.regNro);
+	if (!tmp0123.dontFree) h2_freeReg(tmp0122.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0124 = aarch64_genMUL_3(tmp0124, ni, Inwidth);
-	tmp0125 = aarch64_genADD_3(tmp0125, tmp0124, nj2);
-	h2_freeReg(tmp0124.regNro);
-	tmp0126 = aarch64_genMUL_3(tmp0126, tmp0125, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0125.regNro);
-	tmp0127 = aarch64_genADD_3(tmp0127, In, tmp0126);
-	h2_freeReg(tmp0126.regNro);
-	tmp0128 = aarch64_genR_3(tmp0128, tmp0127, immValueZero);
-	tmp0129 = aarch64_genMUL_3(tmp0129, tmp0128, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[2][4]))});
-	h2_freeReg(tmp0128.regNro);
-	tmp0130 = aarch64_genADD_3(tmp0130, sum, tmp0129);
-	h2_freeReg(tmp0129.regNro);
+								tmp0124 = aarch64_genMUL_3(tmp0124, ni, imgWidth);
+							tmp0125 = aarch64_genADD_3(tmp0125, tmp0124, njp2);
+							if (!tmp0125.dontFree) h2_freeReg(tmp0124.regNro);
+						tmp0126 = aarch64_genMUL_3(tmp0126, tmp0125, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0126.dontFree) h2_freeReg(tmp0125.regNro);
+					tmp0127 = aarch64_genADD_3(tmp0127, In, tmp0126);
+					if (!tmp0127.dontFree) h2_freeReg(tmp0126.regNro);
+				tmp0128 = aarch64_genR_3(tmp0128, tmp0127, immValueZero);
+			tmp0129 = aarch64_genMUL_3(tmp0129, tmp0128, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[2][4]))});
+			if (!tmp0129.dontFree) h2_freeReg(tmp0128.regNro);
+		tmp0130 = aarch64_genADD_3(tmp0130, sum, tmp0129);
+		if (!tmp0130.dontFree) h2_freeReg(tmp0129.regNro);
 	sum = aarch64_genMV_3(sum, tmp0130, immValueZero);
-	h2_freeReg(tmp0130.regNro);
+	if (!tmp0131.dontFree) h2_freeReg(tmp0130.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0132 = aarch64_genADD_3(tmp0132, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(1)});
+		tmp0132 = aarch64_genADD_3(tmp0132, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(1)});
 	ni = aarch64_genMV_3(ni, tmp0132, immValueZero);
-	h2_freeReg(tmp0132.regNro);
+	if (!tmp0133.dontFree) h2_freeReg(tmp0132.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0134 = aarch64_genMUL_3(tmp0134, ni, Inwidth);
-	tmp0135 = aarch64_genADD_3(tmp0135, tmp0134, njm2);
-	h2_freeReg(tmp0134.regNro);
-	tmp0136 = aarch64_genMUL_3(tmp0136, tmp0135, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0135.regNro);
-	tmp0137 = aarch64_genADD_3(tmp0137, In, tmp0136);
-	h2_freeReg(tmp0136.regNro);
-	tmp0138 = aarch64_genR_3(tmp0138, tmp0137, immValueZero);
-	tmp0139 = aarch64_genMUL_3(tmp0139, tmp0138, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[3][0]))});
-	h2_freeReg(tmp0138.regNro);
-	tmp0140 = aarch64_genADD_3(tmp0140, sum, tmp0139);
-	h2_freeReg(tmp0139.regNro);
+								tmp0134 = aarch64_genMUL_3(tmp0134, ni, imgWidth);
+							tmp0135 = aarch64_genADD_3(tmp0135, tmp0134, njm2);
+							if (!tmp0135.dontFree) h2_freeReg(tmp0134.regNro);
+						tmp0136 = aarch64_genMUL_3(tmp0136, tmp0135, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0136.dontFree) h2_freeReg(tmp0135.regNro);
+					tmp0137 = aarch64_genADD_3(tmp0137, In, tmp0136);
+					if (!tmp0137.dontFree) h2_freeReg(tmp0136.regNro);
+				tmp0138 = aarch64_genR_3(tmp0138, tmp0137, immValueZero);
+			tmp0139 = aarch64_genMUL_3(tmp0139, tmp0138, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[3][0]))});
+			if (!tmp0139.dontFree) h2_freeReg(tmp0138.regNro);
+		tmp0140 = aarch64_genADD_3(tmp0140, sum, tmp0139);
+		if (!tmp0140.dontFree) h2_freeReg(tmp0139.regNro);
 	sum = aarch64_genMV_3(sum, tmp0140, immValueZero);
-	h2_freeReg(tmp0140.regNro);
+	if (!tmp0141.dontFree) h2_freeReg(tmp0140.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0142 = aarch64_genMUL_3(tmp0142, ni, Inwidth);
-	tmp0143 = aarch64_genADD_3(tmp0143, tmp0142, njm1);
-	h2_freeReg(tmp0142.regNro);
-	tmp0144 = aarch64_genMUL_3(tmp0144, tmp0143, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0143.regNro);
-	tmp0145 = aarch64_genADD_3(tmp0145, In, tmp0144);
-	h2_freeReg(tmp0144.regNro);
-	tmp0146 = aarch64_genR_3(tmp0146, tmp0145, immValueZero);
-	tmp0147 = aarch64_genMUL_3(tmp0147, tmp0146, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[3][1]))});
-	h2_freeReg(tmp0146.regNro);
-	tmp0148 = aarch64_genADD_3(tmp0148, sum, tmp0147);
-	h2_freeReg(tmp0147.regNro);
+								tmp0142 = aarch64_genMUL_3(tmp0142, ni, imgWidth);
+							tmp0143 = aarch64_genADD_3(tmp0143, tmp0142, njm1);
+							if (!tmp0143.dontFree) h2_freeReg(tmp0142.regNro);
+						tmp0144 = aarch64_genMUL_3(tmp0144, tmp0143, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0144.dontFree) h2_freeReg(tmp0143.regNro);
+					tmp0145 = aarch64_genADD_3(tmp0145, In, tmp0144);
+					if (!tmp0145.dontFree) h2_freeReg(tmp0144.regNro);
+				tmp0146 = aarch64_genR_3(tmp0146, tmp0145, immValueZero);
+			tmp0147 = aarch64_genMUL_3(tmp0147, tmp0146, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[3][1]))});
+			if (!tmp0147.dontFree) h2_freeReg(tmp0146.regNro);
+		tmp0148 = aarch64_genADD_3(tmp0148, sum, tmp0147);
+		if (!tmp0148.dontFree) h2_freeReg(tmp0147.regNro);
 	sum = aarch64_genMV_3(sum, tmp0148, immValueZero);
-	h2_freeReg(tmp0148.regNro);
+	if (!tmp0149.dontFree) h2_freeReg(tmp0148.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0150 = aarch64_genMUL_3(tmp0150, ni, Inwidth);
-	tmp0151 = aarch64_genADD_3(tmp0151, tmp0150, column);
-	h2_freeReg(tmp0150.regNro);
-	tmp0152 = aarch64_genMUL_3(tmp0152, tmp0151, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0151.regNro);
-	tmp0153 = aarch64_genADD_3(tmp0153, In, tmp0152);
-	h2_freeReg(tmp0152.regNro);
-	tmp0154 = aarch64_genR_3(tmp0154, tmp0153, immValueZero);
-	tmp0155 = aarch64_genMUL_3(tmp0155, tmp0154, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[3][2]))});
-	h2_freeReg(tmp0154.regNro);
-	tmp0156 = aarch64_genADD_3(tmp0156, sum, tmp0155);
-	h2_freeReg(tmp0155.regNro);
+								tmp0150 = aarch64_genMUL_3(tmp0150, ni, imgWidth);
+							tmp0151 = aarch64_genADD_3(tmp0151, tmp0150, column);
+							if (!tmp0151.dontFree) h2_freeReg(tmp0150.regNro);
+						tmp0152 = aarch64_genMUL_3(tmp0152, tmp0151, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0152.dontFree) h2_freeReg(tmp0151.regNro);
+					tmp0153 = aarch64_genADD_3(tmp0153, In, tmp0152);
+					if (!tmp0153.dontFree) h2_freeReg(tmp0152.regNro);
+				tmp0154 = aarch64_genR_3(tmp0154, tmp0153, immValueZero);
+			tmp0155 = aarch64_genMUL_3(tmp0155, tmp0154, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[3][2]))});
+			if (!tmp0155.dontFree) h2_freeReg(tmp0154.regNro);
+		tmp0156 = aarch64_genADD_3(tmp0156, sum, tmp0155);
+		if (!tmp0156.dontFree) h2_freeReg(tmp0155.regNro);
 	sum = aarch64_genMV_3(sum, tmp0156, immValueZero);
-	h2_freeReg(tmp0156.regNro);
+	if (!tmp0157.dontFree) h2_freeReg(tmp0156.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0158 = aarch64_genMUL_3(tmp0158, ni, Inwidth);
-	tmp0159 = aarch64_genADD_3(tmp0159, tmp0158, nj1);
-	h2_freeReg(tmp0158.regNro);
-	tmp0160 = aarch64_genMUL_3(tmp0160, tmp0159, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0159.regNro);
-	tmp0161 = aarch64_genADD_3(tmp0161, In, tmp0160);
-	h2_freeReg(tmp0160.regNro);
-	tmp0162 = aarch64_genR_3(tmp0162, tmp0161, immValueZero);
-	tmp0163 = aarch64_genMUL_3(tmp0163, tmp0162, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[3][3]))});
-	h2_freeReg(tmp0162.regNro);
-	tmp0164 = aarch64_genADD_3(tmp0164, sum, tmp0163);
-	h2_freeReg(tmp0163.regNro);
+								tmp0158 = aarch64_genMUL_3(tmp0158, ni, imgWidth);
+							tmp0159 = aarch64_genADD_3(tmp0159, tmp0158, njp1);
+							if (!tmp0159.dontFree) h2_freeReg(tmp0158.regNro);
+						tmp0160 = aarch64_genMUL_3(tmp0160, tmp0159, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0160.dontFree) h2_freeReg(tmp0159.regNro);
+					tmp0161 = aarch64_genADD_3(tmp0161, In, tmp0160);
+					if (!tmp0161.dontFree) h2_freeReg(tmp0160.regNro);
+				tmp0162 = aarch64_genR_3(tmp0162, tmp0161, immValueZero);
+			tmp0163 = aarch64_genMUL_3(tmp0163, tmp0162, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[3][3]))});
+			if (!tmp0163.dontFree) h2_freeReg(tmp0162.regNro);
+		tmp0164 = aarch64_genADD_3(tmp0164, sum, tmp0163);
+		if (!tmp0164.dontFree) h2_freeReg(tmp0163.regNro);
 	sum = aarch64_genMV_3(sum, tmp0164, immValueZero);
-	h2_freeReg(tmp0164.regNro);
+	if (!tmp0165.dontFree) h2_freeReg(tmp0164.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0166 = aarch64_genMUL_3(tmp0166, ni, Inwidth);
-	tmp0167 = aarch64_genADD_3(tmp0167, tmp0166, nj2);
-	h2_freeReg(tmp0166.regNro);
-	tmp0168 = aarch64_genMUL_3(tmp0168, tmp0167, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0167.regNro);
-	tmp0169 = aarch64_genADD_3(tmp0169, In, tmp0168);
-	h2_freeReg(tmp0168.regNro);
-	tmp0170 = aarch64_genR_3(tmp0170, tmp0169, immValueZero);
-	tmp0171 = aarch64_genMUL_3(tmp0171, tmp0170, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[3][4]))});
-	h2_freeReg(tmp0170.regNro);
-	tmp0172 = aarch64_genADD_3(tmp0172, sum, tmp0171);
-	h2_freeReg(tmp0171.regNro);
+								tmp0166 = aarch64_genMUL_3(tmp0166, ni, imgWidth);
+							tmp0167 = aarch64_genADD_3(tmp0167, tmp0166, njp2);
+							if (!tmp0167.dontFree) h2_freeReg(tmp0166.regNro);
+						tmp0168 = aarch64_genMUL_3(tmp0168, tmp0167, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0168.dontFree) h2_freeReg(tmp0167.regNro);
+					tmp0169 = aarch64_genADD_3(tmp0169, In, tmp0168);
+					if (!tmp0169.dontFree) h2_freeReg(tmp0168.regNro);
+				tmp0170 = aarch64_genR_3(tmp0170, tmp0169, immValueZero);
+			tmp0171 = aarch64_genMUL_3(tmp0171, tmp0170, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[3][4]))});
+			if (!tmp0171.dontFree) h2_freeReg(tmp0170.regNro);
+		tmp0172 = aarch64_genADD_3(tmp0172, sum, tmp0171);
+		if (!tmp0172.dontFree) h2_freeReg(tmp0171.regNro);
 	sum = aarch64_genMV_3(sum, tmp0172, immValueZero);
-	h2_freeReg(tmp0172.regNro);
+	if (!tmp0173.dontFree) h2_freeReg(tmp0172.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0174 = aarch64_genADD_3(tmp0174, line, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)(2)});
+		tmp0174 = aarch64_genADD_3(tmp0174, line, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(2)});
 	ni = aarch64_genMV_3(ni, tmp0174, immValueZero);
-	h2_freeReg(tmp0174.regNro);
+	if (!tmp0175.dontFree) h2_freeReg(tmp0174.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0176 = aarch64_genMUL_3(tmp0176, ni, Inwidth);
-	tmp0177 = aarch64_genADD_3(tmp0177, tmp0176, njm2);
-	h2_freeReg(tmp0176.regNro);
-	tmp0178 = aarch64_genMUL_3(tmp0178, tmp0177, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0177.regNro);
-	tmp0179 = aarch64_genADD_3(tmp0179, In, tmp0178);
-	h2_freeReg(tmp0178.regNro);
-	tmp0180 = aarch64_genR_3(tmp0180, tmp0179, immValueZero);
-	tmp0181 = aarch64_genMUL_3(tmp0181, tmp0180, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[4][0]))});
-	h2_freeReg(tmp0180.regNro);
-	tmp0182 = aarch64_genADD_3(tmp0182, sum, tmp0181);
-	h2_freeReg(tmp0181.regNro);
+								tmp0176 = aarch64_genMUL_3(tmp0176, ni, imgWidth);
+							tmp0177 = aarch64_genADD_3(tmp0177, tmp0176, njm2);
+							if (!tmp0177.dontFree) h2_freeReg(tmp0176.regNro);
+						tmp0178 = aarch64_genMUL_3(tmp0178, tmp0177, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0178.dontFree) h2_freeReg(tmp0177.regNro);
+					tmp0179 = aarch64_genADD_3(tmp0179, In, tmp0178);
+					if (!tmp0179.dontFree) h2_freeReg(tmp0178.regNro);
+				tmp0180 = aarch64_genR_3(tmp0180, tmp0179, immValueZero);
+			tmp0181 = aarch64_genMUL_3(tmp0181, tmp0180, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[4][0]))});
+			if (!tmp0181.dontFree) h2_freeReg(tmp0180.regNro);
+		tmp0182 = aarch64_genADD_3(tmp0182, sum, tmp0181);
+		if (!tmp0182.dontFree) h2_freeReg(tmp0181.regNro);
 	sum = aarch64_genMV_3(sum, tmp0182, immValueZero);
-	h2_freeReg(tmp0182.regNro);
+	if (!tmp0183.dontFree) h2_freeReg(tmp0182.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0184 = aarch64_genMUL_3(tmp0184, ni, Inwidth);
-	tmp0185 = aarch64_genADD_3(tmp0185, tmp0184, njm1);
-	h2_freeReg(tmp0184.regNro);
-	tmp0186 = aarch64_genMUL_3(tmp0186, tmp0185, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0185.regNro);
-	tmp0187 = aarch64_genADD_3(tmp0187, In, tmp0186);
-	h2_freeReg(tmp0186.regNro);
-	tmp0188 = aarch64_genR_3(tmp0188, tmp0187, immValueZero);
-	tmp0189 = aarch64_genMUL_3(tmp0189, tmp0188, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[4][1]))});
-	h2_freeReg(tmp0188.regNro);
-	tmp0190 = aarch64_genADD_3(tmp0190, sum, tmp0189);
-	h2_freeReg(tmp0189.regNro);
+								tmp0184 = aarch64_genMUL_3(tmp0184, ni, imgWidth);
+							tmp0185 = aarch64_genADD_3(tmp0185, tmp0184, njm1);
+							if (!tmp0185.dontFree) h2_freeReg(tmp0184.regNro);
+						tmp0186 = aarch64_genMUL_3(tmp0186, tmp0185, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0186.dontFree) h2_freeReg(tmp0185.regNro);
+					tmp0187 = aarch64_genADD_3(tmp0187, In, tmp0186);
+					if (!tmp0187.dontFree) h2_freeReg(tmp0186.regNro);
+				tmp0188 = aarch64_genR_3(tmp0188, tmp0187, immValueZero);
+			tmp0189 = aarch64_genMUL_3(tmp0189, tmp0188, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[4][1]))});
+			if (!tmp0189.dontFree) h2_freeReg(tmp0188.regNro);
+		tmp0190 = aarch64_genADD_3(tmp0190, sum, tmp0189);
+		if (!tmp0190.dontFree) h2_freeReg(tmp0189.regNro);
 	sum = aarch64_genMV_3(sum, tmp0190, immValueZero);
-	h2_freeReg(tmp0190.regNro);
+	if (!tmp0191.dontFree) h2_freeReg(tmp0190.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0192 = aarch64_genMUL_3(tmp0192, ni, Inwidth);
-	tmp0193 = aarch64_genADD_3(tmp0193, tmp0192, column);
-	h2_freeReg(tmp0192.regNro);
-	tmp0194 = aarch64_genMUL_3(tmp0194, tmp0193, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0193.regNro);
-	tmp0195 = aarch64_genADD_3(tmp0195, In, tmp0194);
-	h2_freeReg(tmp0194.regNro);
-	tmp0196 = aarch64_genR_3(tmp0196, tmp0195, immValueZero);
-	tmp0197 = aarch64_genMUL_3(tmp0197, tmp0196, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[4][2]))});
-	h2_freeReg(tmp0196.regNro);
-	tmp0198 = aarch64_genADD_3(tmp0198, sum, tmp0197);
-	h2_freeReg(tmp0197.regNro);
+								tmp0192 = aarch64_genMUL_3(tmp0192, ni, imgWidth);
+							tmp0193 = aarch64_genADD_3(tmp0193, tmp0192, column);
+							if (!tmp0193.dontFree) h2_freeReg(tmp0192.regNro);
+						tmp0194 = aarch64_genMUL_3(tmp0194, tmp0193, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0194.dontFree) h2_freeReg(tmp0193.regNro);
+					tmp0195 = aarch64_genADD_3(tmp0195, In, tmp0194);
+					if (!tmp0195.dontFree) h2_freeReg(tmp0194.regNro);
+				tmp0196 = aarch64_genR_3(tmp0196, tmp0195, immValueZero);
+			tmp0197 = aarch64_genMUL_3(tmp0197, tmp0196, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[4][2]))});
+			if (!tmp0197.dontFree) h2_freeReg(tmp0196.regNro);
+		tmp0198 = aarch64_genADD_3(tmp0198, sum, tmp0197);
+		if (!tmp0198.dontFree) h2_freeReg(tmp0197.regNro);
 	sum = aarch64_genMV_3(sum, tmp0198, immValueZero);
-	h2_freeReg(tmp0198.regNro);
+	if (!tmp0199.dontFree) h2_freeReg(tmp0198.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0200 = aarch64_genMUL_3(tmp0200, ni, Inwidth);
-	tmp0201 = aarch64_genADD_3(tmp0201, tmp0200, nj1);
-	h2_freeReg(tmp0200.regNro);
-	tmp0202 = aarch64_genMUL_3(tmp0202, tmp0201, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0201.regNro);
-	tmp0203 = aarch64_genADD_3(tmp0203, In, tmp0202);
-	h2_freeReg(tmp0202.regNro);
-	tmp0204 = aarch64_genR_3(tmp0204, tmp0203, immValueZero);
-	tmp0205 = aarch64_genMUL_3(tmp0205, tmp0204, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[4][3]))});
-	h2_freeReg(tmp0204.regNro);
-	tmp0206 = aarch64_genADD_3(tmp0206, sum, tmp0205);
-	h2_freeReg(tmp0205.regNro);
+								tmp0200 = aarch64_genMUL_3(tmp0200, ni, imgWidth);
+							tmp0201 = aarch64_genADD_3(tmp0201, tmp0200, njp1);
+							if (!tmp0201.dontFree) h2_freeReg(tmp0200.regNro);
+						tmp0202 = aarch64_genMUL_3(tmp0202, tmp0201, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0202.dontFree) h2_freeReg(tmp0201.regNro);
+					tmp0203 = aarch64_genADD_3(tmp0203, In, tmp0202);
+					if (!tmp0203.dontFree) h2_freeReg(tmp0202.regNro);
+				tmp0204 = aarch64_genR_3(tmp0204, tmp0203, immValueZero);
+			tmp0205 = aarch64_genMUL_3(tmp0205, tmp0204, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[4][3]))});
+			if (!tmp0205.dontFree) h2_freeReg(tmp0204.regNro);
+		tmp0206 = aarch64_genADD_3(tmp0206, sum, tmp0205);
+		if (!tmp0206.dontFree) h2_freeReg(tmp0205.regNro);
 	sum = aarch64_genMV_3(sum, tmp0206, immValueZero);
-	h2_freeReg(tmp0206.regNro);
+	if (!tmp0207.dontFree) h2_freeReg(tmp0206.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0208 = aarch64_genMUL_3(tmp0208, ni, Inwidth);
-	tmp0209 = aarch64_genADD_3(tmp0209, tmp0208, nj2);
-	h2_freeReg(tmp0208.regNro);
-	tmp0210 = aarch64_genMUL_3(tmp0210, tmp0209, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
-	h2_freeReg(tmp0209.regNro);
-	tmp0211 = aarch64_genADD_3(tmp0211, In, tmp0210);
-	h2_freeReg(tmp0210.regNro);
-	tmp0212 = aarch64_genR_3(tmp0212, tmp0211, immValueZero);
-	tmp0213 = aarch64_genMUL_3(tmp0213, tmp0212, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((Filter[4][4]))});
-	h2_freeReg(tmp0212.regNro);
-	tmp0214 = aarch64_genADD_3(tmp0214, sum, tmp0213);
-	h2_freeReg(tmp0213.regNro);
+								tmp0208 = aarch64_genMUL_3(tmp0208, ni, imgWidth);
+							tmp0209 = aarch64_genADD_3(tmp0209, tmp0208, njp2);
+							if (!tmp0209.dontFree) h2_freeReg(tmp0208.regNro);
+						tmp0210 = aarch64_genMUL_3(tmp0210, tmp0209, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((1 * 32) / 8)});
+						if (!tmp0210.dontFree) h2_freeReg(tmp0209.regNro);
+					tmp0211 = aarch64_genADD_3(tmp0211, In, tmp0210);
+					if (!tmp0211.dontFree) h2_freeReg(tmp0210.regNro);
+				tmp0212 = aarch64_genR_3(tmp0212, tmp0211, immValueZero);
+			tmp0213 = aarch64_genMUL_3(tmp0213, tmp0212, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((Filter[4][4]))});
+			if (!tmp0213.dontFree) h2_freeReg(tmp0212.regNro);
+		tmp0214 = aarch64_genADD_3(tmp0214, sum, tmp0213);
+		if (!tmp0214.dontFree) h2_freeReg(tmp0213.regNro);
 	sum = aarch64_genMV_3(sum, tmp0214, immValueZero);
-	h2_freeReg(tmp0214.regNro);
+	if (!tmp0215.dontFree) h2_freeReg(tmp0214.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	tmp0216 = aarch64_genDIV_3(tmp0216, sum, (h2_sValue_t) {VALUE, 'i', 1, 32, 0, (int)((coeff))});
+		tmp0216 = aarch64_genDIV_3(tmp0216, sum, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((coeff))});
 	h2_outputVarName = aarch64_genMV_3(h2_outputVarName, tmp0216, immValueZero);
-	h2_freeReg(tmp0216.regNro);
+	if (!tmp0217.dontFree) h2_freeReg(tmp0216.regNro);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
@@ -2126,148 +2312,173 @@ pifc genKernel5x5(pifc ptr,int** Filter,int coeff)
 
   return ptr;
 }
-
-int kernel(imgStruct_t *In, imgStruct_t *Filter,int coeff,int line,int column,int offset)
+// Compute a stencil for 1 point
+int kernelStatic(imgStruct_t *In, int l, int c, imgStruct_t *Filter, int coeff)
 {
   int sum = 0;
-  //printf("FilterHeight : %i\nFilterWidth : %i\n",Filter->width,Filter->height);
-  // kernel sum operation
-  for (int ki = 0; ki < Filter->height; ki++) {
-    for (int kj = 0; kj < Filter->width; kj++) {
-        int ni = (line + ki) - offset;
-        int nj = (column + kj) - offset;
-        sum += In->pixelsArray[ni][nj] * Filter->pixelsArray[ki][kj];
-        //printf("In->pixelsArray[%i][%i] : %i\nFilter->pixelsArray[%i][%i] : %i\nsum : %i\n",ni,nj,In->pixelsArray[ni][nj],ki,kj,Filter->pixelsArray[ki][kj],sum);
-    }
-  }
-  //printf("kernel result is : %d\n",sum/coeff);
-
-  return clamp(sum / coeff); // good value for pgm + divide by coefficient of the stencil
+  int offset = (Filter->width)/2;
+  for (int line = 0; line < Filter->height; line++)
+	{
+	  for (int column = 0; column < Filter->width; column++)
+		{
+		  int ni = (l   + line)   - offset;
+		  int nj = (c   + column) - offset;
+		  sum += In->pixelsArray[ni][nj] * Filter->pixelsArray[line][column];
+		}
+	}
+  return sum;
 }
 
 
-void convolution(imgStruct_t *In, imgStruct_t *Out, imgStruct_t *Filter,int coeff)
+void convolution(imgStruct_t *In, imgStruct_t *Out, imgStruct_t *Filter, int coeff)
 {
-  assert (Filter->width == Filter->height); // only square filter
   int offset = Filter->width/2;
-  for (int line = offset; line < In->height-offset; line++){
-    for (int column = offset; column < In->width-offset; column++){
-
-        Out->pixelsArray[line][column] =  kernel(In,Filter,coeff,line,column,offset); // write result of kernel operation for this pixel
-      }
-    }
-}
-
-void convolutionH4(imgStruct_t* In, imgStruct_t *Out, imgStruct_t *Filter, int coeff)
-{
   int result;
-  assert (Filter->width == Filter->height);
-  int offset = Filter->width/2;
-  pifc kernelGenerated = NULL;
-  ticks_t startConv = h2_getticks();
-  if(Filter->width == 5){
-    kernelGenerated = (pifc)h2_malloc(8192);
-    kernelGenerated = genKernel5x5 (kernelGenerated, (int**)Filter->pixelsArray, coeff);
-  }
-  else{
-    kernelGenerated = (pifc)h2_malloc(1025);
-    kernelGenerated = genKernel3x3 (kernelGenerated, (int**)Filter->pixelsArray, coeff);
+  for (int line = offset; line < In->height-offset; line++)
+	{
+	  for (int column = offset; column < In->width-offset; column++)
+		{
+		  result = kernelStatic(In, line, column, Filter, coeff);
+		  Out->pixelsArray[line][column] =  clamp (result);
+		}
+    }
+}
 
-  }
-  ticks_t endConv = h2_getticks();
-  endConv = endConv - startConv;
-  //  printf("generation Time compilette : %lu ticks\n",endConv);
+void convolutionH4(imgStruct_t* In, imgStruct_t *Out, imgStruct_t *Filter, int coeff, pifc kernelHL)
+{
+  int offset = Filter->width/2;
+  int result;
 
   for (int line = offset; line < (In->height)-offset; line++)
     {
       for (int column = offset; column < (In->width)-offset; column++)
         {
-           result = kernelGenerated((int *) In->pixelsArray, line, column, In->width, In->height);
-          //printf("kernelH4 result is : %d\n",result);
+          result = kernelHL((int *) *In->pixelsArray, line, column, In->width);
           Out->pixelsArray[line][column] = clamp(result);
-          // printf ("%d %d\n\n", GET(Out, line, column), tmpValue);
         }
     }
-  //free(kernelGenerated);
 }
 
-void compareImages(imgStruct_t *img1, imgStruct_t *img2)
+int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 {
-  for(int line = 0 ; line < img1->height ; line++)
+  int errors = 0;
+  for(int line = 0 ; line < staticImg->height ; line++)
 	{
-	  for(int column = 0 ; column < img1->width ; column++)
+	  for(int column = 0 ; column < staticImg->width ; column++)
 		{
-		  //printf("%i\n",Out->pixelsArray[i][j]);
-		  if(img1->pixelsArray[line][column] != img2->pixelsArray[line][column])
+		  if((staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]) > 5)
 			{
-			  printf("Alert initial difference at %i %i : abort\n",line, column);
-			  exit(-1);
+              printf ("Difference %5dx%5d static-dynamic: %d \n", line, column, staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]);
+			  if (0 == errors)
+                {
+                  printf("Alert : first difference at line %i column %i\n", line, column);
+                }
+			  errors++;
 			}
 		}
 	}
+  return errors;
 }
 
-void printImage(imgStruct_t *img, int lineMax, int colMax)
+void printImage(imgStruct_t *img)
 {
-  int line, column;
-  for(int line = 0 ; line < lineMax ; line++)
+  for(int line = 0 ; line < img->height ; line++)
 	{
-	  for(int column = 0 ; column < colMax ; column++)
+	  for(int column = 0 ; column < img->width ; column++)
 		{
-		  printf("%02d ", img->pixelsArray[line][column]);
+		  printf("%03d ", img->pixelsArray[line][column]);
 		}
 	  printf("\n");
 	}
   printf("\n");
 }
 
+int imgSum (imgStruct_t *img)
+{
+  int line, column, sum;
+  sum = 0;
+  for(int line = 0 ; line < img->height ; line++)
+	{
+	  for(int column = 0 ; column < img->width ; column++)
+		{
+		  sum += img->pixelsArray[line][column];
+		}
+	}
+  return (0 == sum)?1:sum;
+}
+
 int main(int argc, char *argv[])
 {
-  imgStruct_t *In, *InR, *OutH4, *OutStatic, *Filter;
+  int error, coeff, nXperiment = 40;
+  imgStruct_t *In, *OutH4, *OutStatic, *Filter;
   char *filterImageName, *inputImageName;
-  if (argc < 6)
+  if (argc < 5)
     {
-      printf ("./Stencil <InputImageName> <outputImageName> <outputH4ImageName> <Filter Img> <Coeff Filter>\n");
+      printf ("./Stencil <InputImageName> <outputImageName> <outputH4ImageName> <Filter Img>\n");
       exit(-1);
     }
 
-  filterImageName  = argv[4];
-  inputImageName = argv[1];
+  filterImageName = argv[4];
+  inputImageName  =   argv[1];
   In     = readPgmImage(inputImageName);
   Filter = readPgmImage(filterImageName);
-
-  int coeff = atoi(argv[5]);
+  coeff = imgSum (Filter);
+  printf ("ticks sizeoff %d\n", sizeof (ticks_t));
+#ifdef VERBOSE
+  printf ("%s: coeff %d\n", filterImageName, coeff);
+#endif
+  assert (Filter->width == Filter->height); // Only square filters
   OutStatic = createImage (In->height, In->width);
   OutH4     = createImage (In->height, In->width);
-  InR       = createImage (In->height, In->width);
-  //  printImage(In, 5, 5);
-
-  ticks_t startConv = h2_getticks();   // Static convolution
-  convolution (In, OutStatic, Filter, coeff);
-  ticks_t endConv = h2_getticks();
-  endConv = endConv - startConv;
-  //  printImage(OutStatic, 5, 5);
-
-  int * tmp = malloc(sizeof(int) * In->width * In->height);
-  for(int i = 0 ; i < In->height; i++)
-	{
-	  for(int j = 0 ; j < In->width ; j++)
-		{
-		  tmp[i * In->width + j] = In->pixelsArray[i][j];
-		}
-	}
-  InR->pixelsArray = (int **) tmp;
-  ticks_t startConvH4 = h2_getticks(); // Compilette convolution
-  convolutionH4(InR, OutH4, Filter, coeff);
-  ticks_t endConvH4 = h2_getticks();
-  endConvH4 = endConvH4 - startConvH4;
-  //  printImage(OutH4, 5, 5);
-
-  compareImages(OutH4, OutStatic);
-  printf("%s;%ix%i;%ix%i;%lld;%lld\n", filterImageName, Filter->width, Filter->height, In->width, In->height, endConv, endConvH4);
-#if 0
-  writePgmImage(OutStatic, argv[2]);
-  writePgmImage(OutH4,argv[3]);
+#ifdef VERBOSE
+  printf ("after init\n");
+  printImage(In);
 #endif
+
+  ticks_t timeStatic = h2_getticks();   // Static convolution
+  for (int i = 0; i < nXperiment; i++)
+	{
+	  convolution (In, OutStatic, Filter, coeff);
+	}
+  timeStatic = h2_getticks() - timeStatic;
+#ifdef VERBOSE
+  printf ("after static\n");
+  printImage(OutStatic);
+#endif
+
+  pifc kernelHL = (pifc)h2_malloc(8192);
+  ticks_t timeCodeGen = h2_getticks();
+  switch (Filter->width)
+    {
+    case 1 : kernelHL = genKernel1x1 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
+    case 3 : kernelHL = genKernel3x3 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
+    case 5 : kernelHL = genKernel5x5 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
+    default: printf ("Unknown filter size\n"); exit(-1);
+    }
+  timeCodeGen = h2_getticks() - timeCodeGen;
+
+#ifdef VERBOSE
+  printf ("after codegen\n");
+#endif
+
+  ticks_t timeH4 = h2_getticks(); // Compilette convolution
+  for (int i = 0; i < nXperiment; i++)
+	{
+	  convolutionH4(In, OutH4, Filter, coeff, kernelHL);
+	}
+  timeH4 = h2_getticks() - timeH4;
+#ifdef VERBOSE
+  printf ("after h2\n");
+  printImage(OutH4);
+#endif
+  error = compareImages(OutH4, OutStatic);
+  printf("%s;%ix%i;%ix%i;%lld;%lld;%lld;%d\n", filterImageName, Filter->width, Filter->height, In->width, In->height, timeStatic, timeH4, timeCodeGen, error);
+
+#if VERBOSE
+  writePgmImage(OutStatic, argv[2]);
+  writePgmImage(OutH4,     argv[3]);
+#endif
+
+  //  return (0 == error)?0:-1;
   return 0;
 }

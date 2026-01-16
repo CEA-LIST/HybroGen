@@ -1,0 +1,140 @@
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;320x240;8808375;4651125;233250;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;640x480;36191687;18592812;233313;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;800x600;54590500;28952563;235437;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;1024x768;90353750;48162625;287375;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;1280x960;142660625;75519562;234625;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;1600x1200;222518500;117808437;232563;0
+ticks sizeoff 8
+Filter/Null-3x3.pgm;3x3;2048x1536;362486437;193424062;234813;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;320x240;8899188;4734000;240688;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;640x480;35275562;18868750;245000;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;800x600;56301063;30046875;241813;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;1024x768;94718375;47581937;234688;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;1280x960;140292500;76273125;233562;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;1600x1200;224196063;119102688;234812;0
+ticks sizeoff 8
+Filter/Id-3x3.pgm;3x3;2048x1536;362563500;190664438;245750;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;320x240;8899563;4950625;233375;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;640x480;34710250;22995375;232625;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;800x600;58393312;37888812;236562;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;1024x768;106015250;54192500;252687;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;1280x960;145838000;86738562;233375;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;1600x1200;220094625;130946000;235875;0
+ticks sizeoff 8
+Filter/Blur-3x3.pgm;3x3;2048x1536;401698063;344763188;252687;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;320x240;12317562;6545687;306063;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;640x480;38105125;28867250;258187;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;800x600;84596187;55104312;369063;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;1024x768;113371250;62054687;272063;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;1280x960;167239250;91800938;262125;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;1600x1200;234471688;172821625;247688;0
+ticks sizeoff 8
+Filter/GaussianFilter-3x3.pgm;3x3;2048x1536;437509500;267842562;271500;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;320x240;10676938;6434188;277562;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;640x480;39609000;24558563;306000;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;800x600;61459375;38027437;272625;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;1024x768;98445375;65265875;267750;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;1280x960;187316938;112371312;303625;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;1600x1200;280335000;179707187;395438;0
+ticks sizeoff 8
+Filter/Synthetic-3x3.pgm;3x3;2048x1536;542179000;332288625;321500;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;320x240;24102188;11109625;696750;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;640x480;107057188;48240750;778188;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;800x600;160311938;66736312;698000;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;1024x768;264646375;116396563;686062;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;1280x960;418257000;176530687;699875;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;1600x1200;681335625;296131750;731125;0
+ticks sizeoff 8
+Filter/Null-5x5.pgm;5x5;2048x1536;1129037688;430971938;784875;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;320x240;23733375;9788188;668187;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;640x480;99039750;40921937;658625;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;800x600;154510625;64525938;694687;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;1024x768;253326063;114505875;774313;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;1280x960;431320625;164534937;718250;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;1600x1200;653055438;268125437;718750;0
+ticks sizeoff 8
+Filter/Id-5x5.pgm;5x5;2048x1536;1042178750;437476062;671063;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;320x240;25859937;11958000;707500;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;640x480;103186250;60958500;700375;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;800x600;186533812;82307687;798375;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;1024x768;300780187;133890938;1234125;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;1280x960;351183687;169061625;600750;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;1600x1200;569117562;262323688;593437;0
+ticks sizeoff 8
+Filter/Blur-5x5.pgm;5x5;2048x1536;908945437;430641813;659812;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;320x240;21167750;10863687;627938;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;640x480;79025500;42587812;595563;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;800x600;132350688;58310625;566813;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;1024x768;199051687;123417063;616062;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;1280x960;443130938;160816187;617625;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;1600x1200;634553125;350142062;733000;0
+ticks sizeoff 8
+Filter/GaussianFilter-5x5.pgm;5x5;2048x1536;1050891000;572335875;690250;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;320x240;20612937;11459500;697875;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;640x480;80813438;47290188;597812;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;800x600;140969562;80933188;623625;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;1024x768;275346563;214656750;998437;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;1280x960;503105188;217313312;636688;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;1600x1200;614304000;281798875;596250;0
+ticks sizeoff 8
+Filter/Synthetic-5x5.pgm;5x5;2048x1536;898604437;554340438;657375;0
