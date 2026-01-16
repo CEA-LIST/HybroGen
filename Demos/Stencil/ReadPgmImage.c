@@ -18,6 +18,7 @@ void parseError (char * reference, char * inputLine, int defaultLen)
 /* Write pgm image */
 void writePgmImage (imgStruct_t * img, char * fileName)
 {
+  printf ("Image written in %s\n", fileName);
 
   FILE *out = fopen(fileName, "w");
   fprintf(out, "P2\n%d %d\n255\n", img->width, img->height);
@@ -39,18 +40,21 @@ void writePgmImage (imgStruct_t * img, char * fileName)
 imgStruct_t * createImage (int height, int width)
 {
   imgStruct_t *theImage;
+  int *block;
   int line;
   theImage = malloc (sizeof (imgStruct_t));
   theImage->height = height;
   theImage->width = width;
   theImage->pixelsArray = calloc (height, sizeof (int*));
-  for (line = 0; line < height; line++){
-     theImage->pixelsArray[line] = calloc (width, sizeof (int));
-     memset(theImage->pixelsArray[line],0,sizeof(int) * width);
-  }
-
+  block = calloc (height*width, sizeof (int));
+  for (line = 0; line < height; line++)
+	{
+      // theImage->pixelsArray[line] = calloc (width, sizeof (int));
+      theImage->pixelsArray[line] = &block[line*width];
+	}
   return theImage;
 }
+
 
 // Lit le prochain entier dans le fichier en sautant les commentaires
 // Retourne valeur lue en cas de succès, -1 si erreur ou fin de fichier
@@ -95,7 +99,7 @@ imgStruct_t * readPgmImage (char * fileName)
   theFile = fopen (fileName, "r");
   if (NULL == theFile)
 	{
-	  printf("Error for the file %s\n", fileName);
+	  printf("Unable to open file %s\n", fileName);
 	  exit(-1);
 	}
   fgets (inputLine, sizeof (line), theFile); // P2 format
@@ -114,7 +118,7 @@ imgStruct_t * readPgmImage (char * fileName)
       for (columnNo = 0; columnNo < width; columnNo++)
         {
           fscanf(theFile,"%i",&theImage->pixelsArray[lineNo][columnNo]);
-          
+
 		  //          fscanf (theFile, "%hd ", &theImage->pixelsArray[lineNo][columnNo] );
 #ifdef DEBUG
 		  //printf ("%3dx%3d=%3d\n", lineNo, columnNo, theImage->pixelsArray[lineNo][columnNo]);
