@@ -1,9 +1,12 @@
-# Generated from HybroLang.g4 by ANTLR 4.7.2
+# Generated from HybroLang.g4 by ANTLR 4.9.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
-from typing.io import TextIO
 import sys
+if sys.version_info[1] > 5:
+	from typing import TextIO
+else:
+	from typing.io import TextIO
 
 def serializedATN():
     with StringIO() as buf:
@@ -199,13 +202,14 @@ class HybroLangParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.7.2")
+        self.checkVersion("4.9.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
 
 
     class CompilationunitContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -258,6 +262,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class FunctionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -302,6 +307,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class FndclContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -351,6 +357,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class FnprototypeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -393,6 +400,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class FnbodyContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -465,6 +473,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ParamdcllistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -531,6 +540,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class LocalvardefContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -571,6 +581,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class VardcllistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -628,6 +639,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class VardclContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -671,6 +683,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ActionlistContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -721,6 +734,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class CondexprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -770,6 +784,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ActionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -882,6 +897,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ReturnexprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -924,6 +940,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class AffectexprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -995,6 +1012,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class UnaryexprContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1137,6 +1155,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class VarorvalueContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1250,6 +1269,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class DatatypeContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1301,6 +1321,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class IntconstvalueContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1355,6 +1376,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ConstvalueContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1417,6 +1439,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class ConstinlineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1454,6 +1477,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class TypebaseContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1503,6 +1527,7 @@ class HybroLangParser ( Parser ):
         return localctx
 
     class CondOperatorContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)

@@ -1,22 +1,22 @@
 CC = echo "Please define CC compiler"
 FILE=CelciusFarenheitTable
-CFLAGSDEBUG=-O3 -Wall -g -DH2_DEBUG 
+CFLAGSDEBUG=-O3 -Wall -g -DH2_DEBUG
 CFLAGSOPT=-O3 -Wall
 
 all:
 	echo "Options are :"
-	echo "make build-and-run-aarch64"
-	echo "make build-and-run-power"
-	echo "make build-and-run-riscv"
+	echo "make aarch64"
+	echo "make power"
+	echo "make riscv"
 
-build-and-run-aarch64:
+aarch64:
 	${MAKE} build-and-run ARCH=aarch64 PREFIX=aarch64-linux-gnu QEMU-SUFFIX=aarch64 CFLAGS="${CFLAGSOPT}"
 
-build-and-run-power:
+power:
 	${MAKE} build-and-run ARCH=power  PREFIX=powerpc64le-linux-gnu QEMU-SUFFIX=ppc64le CFLAGS=${CFLAGSOPT}
 
-build-and-run-riscv:
-	${MAKE} build-and-run ARCH=riscv PREFIX=riscv32-unknown-elf QEMU-SUFFIX=riscv32 CFLAGS=${CFLAGSOPT}
+riscv:
+	${MAKE} build-and-run ARCH=riscv PREFIX=riscv32-linux-gnu QEMU-SUFFIX=riscv32 CFLAGS=${CFLAGSOPT}
 
 build-and-run:
 	../../HybroLang.py --toC --arch ${ARCH} --inputfile ${FILE}.hl -g

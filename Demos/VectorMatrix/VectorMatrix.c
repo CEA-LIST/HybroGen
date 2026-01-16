@@ -143,8 +143,8 @@ void h2_freeReg (h2_regSet_t v) // Free a register
 #endif
 }
 #endif /*H2_COMMON*/
-#ifndef H2_POWER
-#define H2_POWER
+#ifndef H2_RISCV_RV32G
+#define H2_RISCV_RV32G
 
 #define H2SYS 					/* Has  operating system */
 
@@ -153,25 +153,30 @@ void h2_freeReg (h2_regSet_t v) // Free a register
 #include <sys/mman.h>
 #endif
 
-/* aarch64 / power examples :
-   https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h */
+typedef uint32_t    h2_insn_t;
+static  h2_insn_t   *h2_asm_pc;
+static  h2_insn_t    *h2_save_asm_pc;
+static int h2_riscvVectorLen = 1;
+static int h2_riscvVectorWidth = 1;
+/*
+https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
+*/
 
-typedef uint32_t      h2_insn_t;
-static  h2_insn_t     *h2_asm_pc;
-static  h2_insn_t     *h2_save_asm_pc;
-
-static ticks_t h2_getticks(void)
+ticks_t h2_getticks(void)
 {
-     unsigned int tbl, tbu0, tbu1;
-
-     do {
-	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu0));
-	  __asm__ __volatile__ ("mftb %0" : "=r"(tbl));
-	  __asm__ __volatile__ ("mftbu %0" : "=r"(tbu1));
-     } while (tbu0 != tbu1);
-
-     return (((unsigned long long)tbu0) << 32) | tbl;
+    unsigned long dst;
+    // output into any register, likely a0
+    // regular instruction:
+    asm volatile ("csrrs %0, 0xc00, x0" : "=r" (dst) );
+    // regular instruction with symbolic csr and register names
+    // asm volatile ("csrrs %0, cycle, zero" : "=r" (dst) );
+    // pseudo-instruction:
+    // asm volatile ("csrr %0, cycle" : "=r" (dst) );
+    // pseudo-instruction:
+    //asm volatile ("rdcycle %0" : "=r" (dst) );
+    return dst;
 }
+
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -183,12 +188,13 @@ static void h2_iflush(void *addr, void *last)
         perror("iflush: mprotect");
         exit(-1);
     }
+    __clear_cache((char *)addr, (char *)last);
 #endif
 #ifdef H2_DEBUG
 	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
 	uint64_t insnGenerated = (last-addr)/sizeof (h2_insn_t);
     printf ("Flush data cache from %p to %p\n", addr, last);
-	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
+	printf ("%lld insn generated in %lld ticks. %lld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {
@@ -202,294 +208,112 @@ static h2_insn_t *h2_malloc (size_t size)
   return malloc (size);
 }
 
-#endif /*H2_POWER*/
+
+#endif /*H2_RISCV_RV32G*/
 /* In memory instruction generator */
-#define power_G32(INSN){ *(h2_asm_pc++) = (INSN);}
+#define riscv_G32(INSN){ *(h2_asm_pc++) = (INSN);}
 
 /* Single instruction binary code generator*/
-void P1_BLR__I_32_1(){ /* ret */
-	power_G32(((0x4e800020 >> 0) & 0xffffffff)); \
+void RV32I_RET__I_32_1(){ /* RET */
+	riscv_G32(((0x8067 >> 0) & 0xffffffff)); \
 
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_BLR__I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_RET__I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_SUBI_RRI_I_32_1(int r0,int r1,int i0){ /* sub */
-	power_G32(((0xe & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|(((-i0) & 0xffff) >> 0));
+void RV32I_SUB_RRR_I_32_1(int r3,int r1,int r2){ /* SUB */
+	riscv_G32(((0x20 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_SUBI_RRI_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_SUB_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
-void PPC_SUB_RRR_I_32_1(int r0,int r2,int r1){ /* sub */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x50 & 0x7ff) >> 0));
+void RV32I_MV_RR_I_32_1(int r0,int r1){ /* MV */
+	riscv_G32(((0x0 & 0xfff) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r0 & 0x1f) << 7)|((0x13 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : PPC_SUB_RRR_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_MV_RR_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_LI_RI_I_32_1(int r0,int i0){ /* mv */
-	power_G32(((0xe & 0x3f) << 26)|((r0 & 0x1f) << 21)|((0x0 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
+void RV32I_MV_RI_I_32_1(int r3,int i1){ /* MV */
+	riscv_G32(((i1 & 0xfff) << 20)|((0x6 & 0xff) << 12)|((r3 & 0x1f) << 7)|((0x13 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_LI_RI_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_MV_RI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_MV_RR_I_32_1(int r0,int r1){ /* mv */
-	power_G32(((0xe & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((0x0 & 0xffff) >> 0));
+void RV32I_SB_RRI_I_8_1(int r1,int r2,int i1){ /* W */
+	riscv_G32((((i1 >> 5) & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((i1 & 0x1f) << 7)|((0x23 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_MV_RR_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_SB_RRI_I_8_1\n", h2_asm_pc);
 #endif
 }
-void P1_LI_RI_I_64_1(int r0,int i0){ /* mv */
-	power_G32(((0xe & 0x3f) << 26)|((r0 & 0x1f) << 21)|((0x0 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
+void RV32I_SH_RRI_I_16_1(int r1,int r2,int i1){ /* W */
+	riscv_G32((((i1 >> 5) & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((i1 & 0x1f) << 7)|((0x23 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_LI_RI_I_64_1\n", h2_asm_pc);
+printf("%p : RV32I_SH_RRI_I_16_1\n", h2_asm_pc);
 #endif
 }
-void P1_STB_RRI_I_8_1(int r1,int r0,int i0){ /* w */
-	power_G32(((0x26 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
+void RV32I_SW_RRI_I_32_1(int r1,int r2,int i1){ /* W */
+	riscv_G32((((i1 >> 5) & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x2 & 0x7) << 12)|((i1 & 0x1f) << 7)|((0x23 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_STB_RRI_I_8_1\n", h2_asm_pc);
+printf("%p : RV32I_SW_RRI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_STBX_RRR_I_8_1(int r1,int r0,int r2){ /* w */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x1ae & 0x7ff) >> 0));
+void RV32I_LB_RRI_I_8_1(int r3,int r1,int i1){ /* R */
+	riscv_G32(((i1 & 0xfff) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x3 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_STBX_RRR_I_8_1\n", h2_asm_pc);
+printf("%p : RV32I_LB_RRI_I_8_1\n", h2_asm_pc);
 #endif
 }
-void P1_STH_RRI_I_16_1(int r1,int r0,int i0){ /* w */
-	power_G32(((0x2c & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
+void RV32I_LH_RRI_I_16_1(int r3,int r1,int i1){ /* R */
+	riscv_G32(((i1 & 0xfff) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x3 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_STH_RRI_I_16_1\n", h2_asm_pc);
+printf("%p : RV32I_LH_RRI_I_16_1\n", h2_asm_pc);
 #endif
 }
-void P1_STW_RRI_I_32_1(int r1,int r0,int i0){ /* w */
-	power_G32(((0x24 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
+void RV32I_LW_RRI_I_32_1(int r3,int r1,int i1){ /* R */
+	riscv_G32(((i1 & 0xfff) << 20)|((r1 & 0x1f) << 15)|((0x2 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x3 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_STW_RRI_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_LW_RRI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_STWX_RRR_I_32_1(int r0,int r1,int r2){ /* w */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x12e & 0x7ff) >> 0));
+void RV32M_MUL_RRR_I_32_1(int r3,int r1,int r2){ /* MUL */
+	riscv_G32(((0x1 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_STWX_RRR_I_32_1\n", h2_asm_pc);
+printf("%p : RV32M_MUL_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
-void PPC_STD_RRI_I_64_1(int r1,int r0,int i0){ /* w */
-	power_G32(((0x3e & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0x3fff) << 2)|((0x0 & 0x3) >> 0));
+void RV32I_ADDI_RRI_I_32_1(int r1,int r0,int i0){ /* ADD */
+	riscv_G32(((i0 & 0xfff) << 20)|((r0 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r1 & 0x1f) << 7)|((0x13 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : PPC_STD_RRI_I_64_1\n", h2_asm_pc);
+printf("%p : RV32I_ADDI_RRI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void V2_03_VSLB_RRR_I_8_16(int r0,int r1,int r2){ /* sl */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x104 & 0x7ff) >> 0));
+void RV32I_ADD_RRR_I_32_1(int r3,int r1,int r2){ /* ADD */
+	riscv_G32(((0x0 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VSLB_RRR_I_8_16\n", h2_asm_pc);
+printf("%p : RV32I_ADD_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
-void V2_03_VSLH_RRR_I_16_8(int r0,int r1,int r2){ /* sl */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x144 & 0x7ff) >> 0));
+void RV32I_SLLI_RRI_I_32_1(int r3,int r1,int i0){ /* SL */
+	riscv_G32(((0x0 & 0x7f) << 25)|((i0 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x13 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VSLH_RRR_I_16_8\n", h2_asm_pc);
+printf("%p : RV32I_SLLI_RRI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_SLW_RRR_I_32_1(int r1,int r0,int r2){ /* sl */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x30 & 0x7ff) >> 0));
+void RV32I_SLL_RRR_I_32_1(int r3,int r1,int r2){ /* SL */
+	riscv_G32(((0x0 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
-printf("%p : P1_SLW_RRR_I_32_1\n", h2_asm_pc);
+printf("%p : RV32I_SLL_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
-void P1_SLW__RRR_I_32_1(int r1,int r0,int r2){ /* sl */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x31 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_SLW__RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-void V2_03_VSLW_RRR_I_32_4(int r0,int r1,int r2){ /* sl */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x184 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VSLW_RRR_I_32_4\n", h2_asm_pc);
-#endif
-}
-void PPC_SLD_RRR_I_64_1(int r1,int r0,int r2){ /* sl */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x36 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : PPC_SLD_RRR_I_64_1\n", h2_asm_pc);
-#endif
-}
-void PPC_SLD__RRR_I_64_1(int r1,int r0,int r2){ /* sl */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x37 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : PPC_SLD__RRR_I_64_1\n", h2_asm_pc);
-#endif
-}
-void V2_07_VSLD_RRR_I_64_2(int r0,int r1,int r2){ /* sl */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x5c4 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_07_VSLD_RRR_I_64_2\n", h2_asm_pc);
-#endif
-}
-void V2_03_VSL_RRR_I_128_1(int r0,int r1,int r2){ /* sl */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x1c4 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VSL_RRR_I_128_1\n", h2_asm_pc);
-#endif
-}
-void P1_MULLW_RRR_I_32_1(int r0,int r1,int r2){ /* mul */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x1d6 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_MULLW_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-void P1_MULLI_RRI_I_64_1(int r0,int r1,int i0){ /* mul */
-	power_G32(((0x7 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_MULLI_RRI_I_64_1\n", h2_asm_pc);
-#endif
-}
-void P1_LBZ_RRI_I_8_1(int r0,int r1,int i0){ /* r */
-	power_G32(((0x22 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LBZ_RRI_I_8_1\n", h2_asm_pc);
-#endif
-}
-void P1_LBZX_RRR_I_8_1(int r0,int r1,int r2){ /* r */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0xae & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LBZX_RRR_I_8_1\n", h2_asm_pc);
-#endif
-}
-void P1_LHZ_RRI_I_16_1(int r0,int r1,int i0){ /* r */
-	power_G32(((0x28 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LHZ_RRI_I_16_1\n", h2_asm_pc);
-#endif
-}
-void P1_LWZ_RRI_I_32_1(int r0,int r1,int i0){ /* r */
-	power_G32(((0x20 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LWZ_RRI_I_32_1\n", h2_asm_pc);
-#endif
-}
-void P1_LWZU_RRI_I_32_1(int r0,int r1,int i0){ /* r */
-	power_G32(((0x21 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LWZU_RRI_I_32_1\n", h2_asm_pc);
-#endif
-}
-void P1_LWZUX_RRR_I_32_1(int r0,int r1,int r2){ /* r */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x6e & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LWZUX_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-void P1_LWZX_RRR_I_32_1(int r0,int r1,int r2){ /* r */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x2e & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_LWZX_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDSBS_RRR_I_8_16(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x300 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDSBS_RRR_I_8_16\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDUBS_RRR_I_8_16(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x200 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDUBS_RRR_I_8_16\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDUHS_RRR_I_16_8(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x240 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDUHS_RRR_I_16_8\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDSHS_RRR_I_16_8(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x340 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDSHS_RRR_I_16_8\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDUWS_RRR_I_32_4(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x280 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDUWS_RRR_I_32_4\n", h2_asm_pc);
-#endif
-}
-void P1_ADDI_RRI_I_32_1(int r0,int r1,int i0){ /* add */
-	power_G32(((0xe & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((i0 & 0xffff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_ADDI_RRI_I_32_1\n", h2_asm_pc);
-#endif
-}
-void V2_03_VADDSWS_RRR_I_32_4(int r0,int r1,int r2){ /* add */
-	power_G32(((0x4 & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x380 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : V2_03_VADDSWS_RRR_I_32_4\n", h2_asm_pc);
-#endif
-}
-void P1_ADD_RRR_I_32_1(int r0,int r1,int r2){ /* add */
-	power_G32(((0x1f & 0x3f) << 26)|((r0 & 0x1f) << 21)|((r1 & 0x1f) << 16)|((r2 & 0x1f) << 11)|((0x214 & 0x7ff) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : P1_ADD_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-h2_sValue_t power_genMV_2(h2_sValue_t P0,h2_sValue_t P1);
-h2_sValue_t power_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genRET_0();
-h2_sValue_t power_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t power_genMV_2(h2_sValue_t P0,h2_sValue_t P1)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for MV instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for MV
-
-// No specific optimisation for MV/power
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
-    {
-	P1_LI_RI_I_32_1(P0.regNro, P1.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
-    {
-	P1_MV_RR_I_32_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
-    {
-	P1_LI_RI_I_64_1(P0.regNro, P1.valueImm);
-	return P0;
-    }
-	printf ("Warning, MV instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-return immValueZero;
-}
-h2_sValue_t power_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+h2_sValue_t riscv_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1);
+h2_sValue_t riscv_genRET_0();
+h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genMUL_4(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2,h2_sValue_t P3);
+h2_sValue_t riscv_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
 {
 #ifdef H2_DEBUG_INSN
 printf ("Start code gen for SUB instruction\n");
@@ -510,22 +334,24 @@ if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&&
   return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm - P2.valueImm };
 }
 
-// No specific optimisation for SUB/power
+/* -*- c -*- */
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI sub (riscv)\\n");
+    #endif
+	P2 = riscv_genMV_2(PTMP,  P2);
+}
 
 	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
 	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
 		P1.regNro = h2_getReg();
 
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_SUBI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
     if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
-	PPC_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	RV32I_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
 	return P0;
     }
 	printf ("Warning, SUB instruction generation failed\n");
@@ -536,10 +362,58 @@ if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&&
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
 }
-h2_sValue_t power_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1)
 {
 #ifdef H2_DEBUG_INSN
-printf ("Start code gen for R instruction\n");
+printf ("Start code gen for MV instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for MV
+
+// No specific optimisation for MV/riscv
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	RV32I_MV_RR_I_32_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	RV32I_MV_RI_I_32_1(P0.regNro, P1.valueImm);
+	return P0;
+    }
+	printf ("Warning, MV instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genRET_0()
+{
+// No generic optimisation for RET
+
+// No specific optimisation for RET/riscv
+
+RV32I_RET__I_32_1();
+	
+}
+h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for SL instruction\n");
 
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 
@@ -550,9 +424,49 @@ printf ("Start code gen for R instruction\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 
 #endif // H2_DEBUG_INSN
+// No generic optimisation for SL
+
+// No specific optimisation for SL/riscv
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SLLI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	RV32I_SLL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, SL instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for R instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
 // No generic optimisation for R
 
-// No specific optimisation for R/power
+// No specific optimisation for R/riscv
 
 	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
@@ -561,43 +475,19 @@ printf ("Start code gen for R instruction\n");
 
     if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
-	P1_LBZ_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_LBZX_RRR_I_8_1(P0.regNro, P1.regNro, P2.regNro);
+	RV32I_LB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
 
     if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
-	P1_LHZ_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
+	RV32I_LH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
 
     if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
-	P1_LWZ_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_LWZU_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_LWZUX_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_LWZX_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	RV32I_LW_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
 	printf ("Warning, R instruction generation failed\n");
@@ -605,19 +495,127 @@ printf ("Start code gen for R instruction\n");
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for W instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for W
+
+/* -*- c -*- */
+if (isValue(P1))
+  { // Store constant (Should use RRI variant)
+	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RI W (riscv)\\n");
+    #endif
+	// MV const in tmp register
+	P1 = riscv_genMV_2(PTMP,  P1);
+	// No return continue instruction selection
+  }
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SW_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+	printf ("Warning, W instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for ADD instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
+
+#endif // H2_DEBUG_INSN
+/* -*- c -*- */
+// If 2 operands are constants do addition
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
+{
+  return sValueDef(H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm + P2.valueImm );
+}
+if (isInt0 (P2))
+  { // P0 = P1 + 0
+    #ifdef H2_DEBUG_INSN
+	printf ("Optim add for 0 (generic) return reg %d\n", P1.regNro);
+    #endif
+	P1.dontFree = true;
+	return P1;
+  }
+if (isInt0 (P1))
+  { // P0 = 0 + P2
+    #ifdef H2_DEBUG_INSN
+    printf ("Optim add for 0  (generic) return reg %d\n", P2.regNro);
+    #endif
+	P2.dontFree = true;
+    return P2;
+  }
+
+// No specific optimisation for ADD/riscv
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_ADDI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	RV32I_ADD_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, ADD instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
 }
-h2_sValue_t power_genRET_0()
-{
-// No generic optimisation for RET
-
-// No specific optimisation for RET/power
-
-P1_BLR__I_32_1();
-	
-}
-h2_sValue_t power_genMUL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+h2_sValue_t riscv_genMUL_4(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2,h2_sValue_t P3)
 {
 #ifdef H2_DEBUG_INSN
 printf ("Start code gen for MUL instruction\n");
@@ -661,7 +659,16 @@ printf ("Start code gen for MUL instruction\n");
         return P2;
     }
 
-// No specific optimisation for MUL/power
+/* -*- c -*- */
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RRI mul (aarch64)\n");
+    #endif
+	P2 = riscv_genMV_2(PTMP,  P2);
+	// No return continue instruction selection
+}
 
 	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
@@ -670,275 +677,10 @@ printf ("Start code gen for MUL instruction\n");
 
     if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
-	P1_MULLW_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_MULLI_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
+	RV32M_MUL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
 	return P0;
     }
 	printf ("Warning, MUL instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t power_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for SL instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for SL
-
-// No specific optimisation for SL/power
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VSLB_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VSLH_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_SLW_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_SLW__RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VSLW_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	PPC_SLD_RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	PPC_SLD__RRR_I_64_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 64) && (P0.vLen == 2) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_07_VSLD_RRR_I_64_2(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 128) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VSL_RRR_I_128_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, SL instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t power_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for W instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for W
-
-/* -*- c -*- */
-if (isValue(P1))
-  { // Store constant (Should use RRI variant)
-	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
-    #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RI W (power)\\n");
-    #endif
-	// MV const in tmp register
-	P1 = power_genMV_2(PTMP,  P1);
-	// No return continue instruction selection
-  }
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_STB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_STBX_RRR_I_8_1(P0.regNro, P1.regNro, P2.regNro);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_STH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_STW_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_STWX_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 64) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	PPC_STD_RRI_I_64_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-	printf ("Warning, W instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-return immValueZero;
-}
-h2_sValue_t power_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for ADD instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-/* -*- c -*- */
-// If 2 operands are constants do addition
-if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
-{
-  return sValueDef(H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm + P2.valueImm );
-}
-if (isInt0 (P2))
-  { // P0 = P1 + 0
-    #ifdef H2_DEBUG_INSN
-	printf ("Optim add for 0 (generic) return reg %d\n", P1.regNro);
-    #endif
-	P1.dontFree = true;
-	return P1;
-  }
-if (isInt0 (P1))
-  { // P0 = 0 + P2
-    #ifdef H2_DEBUG_INSN
-    printf ("Optim add for 0  (generic) return reg %d\n", P2.regNro);
-    #endif
-	P2.dontFree = true;
-    return P2;
-  }
-
-// No specific optimisation for ADD/power
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDSBS_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 8) && (P0.vLen == 16) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDUBS_RRR_I_8_16(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDUHS_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 16) && (P0.vLen == 8) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDSHS_RRR_I_16_8(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDUWS_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	P1_ADDI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 4) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	V2_03_VADDSWS_RRR_I_32_4(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	P1_ADD_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, ADD instruction generation failed\n");
 	h2_codeGenerationOK = false;
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
@@ -965,13 +707,13 @@ pifvv genVectorMatrixProduct(pifvv ptr, matrix_t m)
 	/* Code Generation of 5 instructions */
 	/* Symbol table :*/
 	/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */
-	h2_sValue_t o = {H2REGISTER, 'i', 1, 32, 3, 0};
-	h2_sValue_t i = {H2REGISTER, 'i', 1, 32, 4, 0};
-	h2_sValue_t h2_outputVarName = {H2REGISTER, 'i', 1, 32, 3, 0};
-	h2_sValue_t READ_i_0 = {H2REGISTER, 'i', 1, 32, 5, 0};
-	h2_sValue_t READ_i_4 = {H2REGISTER, 'i', 1, 32, 6, 0};
-	h2_sValue_t READ_i_8 = {H2REGISTER, 'i', 1, 32, 7, 0};
-	h2_sValue_t READ_i_12 = {H2REGISTER, 'i', 1, 32, 8, 0};
+	h2_sValue_t o = {H2REGISTER, 'i', 1, 32, 10, 0};
+	h2_sValue_t i = {H2REGISTER, 'i', 1, 32, 11, 0};
+	h2_sValue_t h2_outputVarName = {H2REGISTER, 'i', 1, 32, 10, 0};
+	h2_sValue_t READ_i_0 = {H2REGISTER, 'i', 1, 32, 12, 0};
+	h2_sValue_t READ_i_4 = {H2REGISTER, 'i', 1, 32, 13, 0};
+	h2_sValue_t READ_i_8 = {H2REGISTER, 'i', 1, 32, 14, 0};
+	h2_sValue_t READ_i_12 = {H2REGISTER, 'i', 1, 32, 15, 0};
 	h2_sValue_t tmp0000 = {H2REGISTER, 'i', 1, 32, -1, 0};
 	h2_sValue_t tmp0001 = {H2REGISTER, 'i', 1, 32, -1, 0};
 	h2_sValue_t tmp0002 = {H2REGISTER, 'i', 1, 32, -1, 0};
@@ -1014,96 +756,96 @@ pifvv genVectorMatrixProduct(pifvv ptr, matrix_t m)
 	h2_asm_pc = (h2_insn_t *) ptr;
 	h2_codeGenerationOK = true;
 	h2_start_codeGen = h2_getticks();
-	h2_initRegisterMasks(0x39FF, 0, 0, 0);
+	h2_initRegisterMasks(0xFF1F, 0, 0, 0);
 	h2_resetRegisterMasks();
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask initialization\n");
 	#endif // H2_DEBUG_REGISTER
-		tmp0000 = power_genADD_3(tmp0000, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(0)});
-							tmp0001 = power_genADD_3(tmp0001, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(0)});
-						READ_i_0 = power_genR_3(READ_i_0, tmp0001, immValueZero);
-					tmp0002 = power_genMUL_3(tmp0002, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][0]))});
-							tmp0003 = power_genADD_3(tmp0003, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(4)});
-						READ_i_4 = power_genR_3(READ_i_4, tmp0003, immValueZero);
-					tmp0004 = power_genMUL_3(tmp0004, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][0]))});
-				tmp0005 = power_genADD_3(tmp0005, tmp0002, tmp0004);
+		tmp0000 = riscv_genADD_3(tmp0000, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(0)});
+							tmp0001 = riscv_genADD_3(tmp0001, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(0)});
+						READ_i_0 = riscv_genR_3(READ_i_0, tmp0001, immValueZero);
+					tmp0002 = riscv_genMUL_4(tmp0002, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][0]))}, immValueZero);
+							tmp0003 = riscv_genADD_3(tmp0003, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(4)});
+						READ_i_4 = riscv_genR_3(READ_i_4, tmp0003, immValueZero);
+					tmp0004 = riscv_genMUL_4(tmp0004, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][0]))}, immValueZero);
+				tmp0005 = riscv_genADD_3(tmp0005, tmp0002, tmp0004);
 				if (!tmp0005.dontFree) h2_freeReg(tmp0002.regNro);
 				if (!tmp0005.dontFree) h2_freeReg(tmp0004.regNro);
-						tmp0006 = power_genADD_3(tmp0006, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(8)});
-					READ_i_8 = power_genR_3(READ_i_8, tmp0006, immValueZero);
-				tmp0007 = power_genMUL_3(tmp0007, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][0]))});
-			tmp0008 = power_genADD_3(tmp0008, tmp0005, tmp0007);
+						tmp0006 = riscv_genADD_3(tmp0006, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(8)});
+					READ_i_8 = riscv_genR_3(READ_i_8, tmp0006, immValueZero);
+				tmp0007 = riscv_genMUL_4(tmp0007, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][0]))}, immValueZero);
+			tmp0008 = riscv_genADD_3(tmp0008, tmp0005, tmp0007);
 			if (!tmp0008.dontFree) h2_freeReg(tmp0005.regNro);
 			if (!tmp0008.dontFree) h2_freeReg(tmp0007.regNro);
-					tmp0009 = power_genADD_3(tmp0009, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(12)});
-				READ_i_12 = power_genR_3(READ_i_12, tmp0009, immValueZero);
-			tmp0010 = power_genMUL_3(tmp0010, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][0]))});
-		tmp0011 = power_genADD_3(tmp0011, tmp0008, tmp0010);
+					tmp0009 = riscv_genADD_3(tmp0009, i, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(12)});
+				READ_i_12 = riscv_genR_3(READ_i_12, tmp0009, immValueZero);
+			tmp0010 = riscv_genMUL_4(tmp0010, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][0]))}, immValueZero);
+		tmp0011 = riscv_genADD_3(tmp0011, tmp0008, tmp0010);
 		if (!tmp0011.dontFree) h2_freeReg(tmp0008.regNro);
 		if (!tmp0011.dontFree) h2_freeReg(tmp0010.regNro);
-	power_genW_3(tmp0000, tmp0011, immValueZero);
+	riscv_genW_3(tmp0000, tmp0011, immValueZero);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-		tmp0012 = power_genADD_3(tmp0012, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(4)});
-					tmp0013 = power_genMUL_3(tmp0013, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][1]))});
-					tmp0014 = power_genMUL_3(tmp0014, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][1]))});
-				tmp0015 = power_genADD_3(tmp0015, tmp0013, tmp0014);
+		tmp0012 = riscv_genADD_3(tmp0012, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(4)});
+					tmp0013 = riscv_genMUL_4(tmp0013, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][1]))}, immValueZero);
+					tmp0014 = riscv_genMUL_4(tmp0014, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][1]))}, immValueZero);
+				tmp0015 = riscv_genADD_3(tmp0015, tmp0013, tmp0014);
 				if (!tmp0015.dontFree) h2_freeReg(tmp0013.regNro);
 				if (!tmp0015.dontFree) h2_freeReg(tmp0014.regNro);
-				tmp0016 = power_genMUL_3(tmp0016, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][1]))});
-			tmp0017 = power_genADD_3(tmp0017, tmp0015, tmp0016);
+				tmp0016 = riscv_genMUL_4(tmp0016, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][1]))}, immValueZero);
+			tmp0017 = riscv_genADD_3(tmp0017, tmp0015, tmp0016);
 			if (!tmp0017.dontFree) h2_freeReg(tmp0015.regNro);
 			if (!tmp0017.dontFree) h2_freeReg(tmp0016.regNro);
-			tmp0018 = power_genMUL_3(tmp0018, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][1]))});
-		tmp0019 = power_genADD_3(tmp0019, tmp0017, tmp0018);
+			tmp0018 = riscv_genMUL_4(tmp0018, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][1]))}, immValueZero);
+		tmp0019 = riscv_genADD_3(tmp0019, tmp0017, tmp0018);
 		if (!tmp0019.dontFree) h2_freeReg(tmp0017.regNro);
 		if (!tmp0019.dontFree) h2_freeReg(tmp0018.regNro);
-	power_genW_3(tmp0012, tmp0019, immValueZero);
+	riscv_genW_3(tmp0012, tmp0019, immValueZero);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-		tmp0020 = power_genADD_3(tmp0020, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(8)});
-					tmp0021 = power_genMUL_3(tmp0021, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][2]))});
-					tmp0022 = power_genMUL_3(tmp0022, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][2]))});
-				tmp0023 = power_genADD_3(tmp0023, tmp0021, tmp0022);
+		tmp0020 = riscv_genADD_3(tmp0020, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(8)});
+					tmp0021 = riscv_genMUL_4(tmp0021, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][2]))}, immValueZero);
+					tmp0022 = riscv_genMUL_4(tmp0022, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][2]))}, immValueZero);
+				tmp0023 = riscv_genADD_3(tmp0023, tmp0021, tmp0022);
 				if (!tmp0023.dontFree) h2_freeReg(tmp0021.regNro);
 				if (!tmp0023.dontFree) h2_freeReg(tmp0022.regNro);
-				tmp0024 = power_genMUL_3(tmp0024, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][2]))});
-			tmp0025 = power_genADD_3(tmp0025, tmp0023, tmp0024);
+				tmp0024 = riscv_genMUL_4(tmp0024, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][2]))}, immValueZero);
+			tmp0025 = riscv_genADD_3(tmp0025, tmp0023, tmp0024);
 			if (!tmp0025.dontFree) h2_freeReg(tmp0023.regNro);
 			if (!tmp0025.dontFree) h2_freeReg(tmp0024.regNro);
-			tmp0026 = power_genMUL_3(tmp0026, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][2]))});
-		tmp0027 = power_genADD_3(tmp0027, tmp0025, tmp0026);
+			tmp0026 = riscv_genMUL_4(tmp0026, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][2]))}, immValueZero);
+		tmp0027 = riscv_genADD_3(tmp0027, tmp0025, tmp0026);
 		if (!tmp0027.dontFree) h2_freeReg(tmp0025.regNro);
 		if (!tmp0027.dontFree) h2_freeReg(tmp0026.regNro);
-	power_genW_3(tmp0020, tmp0027, immValueZero);
+	riscv_genW_3(tmp0020, tmp0027, immValueZero);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-		tmp0028 = power_genADD_3(tmp0028, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(12)});
-					tmp0029 = power_genMUL_3(tmp0029, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][3]))});
-					tmp0030 = power_genMUL_3(tmp0030, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][3]))});
-				tmp0031 = power_genADD_3(tmp0031, tmp0029, tmp0030);
+		tmp0028 = riscv_genADD_3(tmp0028, o, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)(12)});
+					tmp0029 = riscv_genMUL_4(tmp0029, READ_i_0, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[0][3]))}, immValueZero);
+					tmp0030 = riscv_genMUL_4(tmp0030, READ_i_4, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[1][3]))}, immValueZero);
+				tmp0031 = riscv_genADD_3(tmp0031, tmp0029, tmp0030);
 				if (!tmp0031.dontFree) h2_freeReg(tmp0029.regNro);
 				if (!tmp0031.dontFree) h2_freeReg(tmp0030.regNro);
-				tmp0032 = power_genMUL_3(tmp0032, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][3]))});
-			tmp0033 = power_genADD_3(tmp0033, tmp0031, tmp0032);
+				tmp0032 = riscv_genMUL_4(tmp0032, READ_i_8, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[2][3]))}, immValueZero);
+			tmp0033 = riscv_genADD_3(tmp0033, tmp0031, tmp0032);
 			if (!tmp0033.dontFree) h2_freeReg(tmp0031.regNro);
 			if (!tmp0033.dontFree) h2_freeReg(tmp0032.regNro);
-			tmp0034 = power_genMUL_3(tmp0034, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][3]))});
-		tmp0035 = power_genADD_3(tmp0035, tmp0033, tmp0034);
+			tmp0034 = riscv_genMUL_4(tmp0034, READ_i_12, (h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, (int)((m[3][3]))}, immValueZero);
+		tmp0035 = riscv_genADD_3(tmp0035, tmp0033, tmp0034);
 		if (!tmp0035.dontFree) h2_freeReg(tmp0033.regNro);
 		if (!tmp0035.dontFree) h2_freeReg(tmp0034.regNro);
-	power_genW_3(tmp0028, tmp0035, immValueZero);
+	riscv_genW_3(tmp0028, tmp0035, immValueZero);
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER
 	h2_resetRegisterMasks();
-	power_genRET_0();
+	riscv_genRET_0();
 	#ifdef H2_DEBUG_REGISTER
 	printf("Tmp registers mask reset\n");
 	#endif // H2_DEBUG_REGISTER

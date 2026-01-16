@@ -233,18 +233,6 @@ void RV32I_MV_RI_I_32_1(int r3,int i1){ /* MV */
 printf("%p : RV32I_MV_RI_I_32_1\n", h2_asm_pc);
 #endif
 }
-void RV32I_SUB_RRR_I_32_1(int r3,int r1,int r2){ /* SUB */
-	riscv_G32(((0x20 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : RV32I_SUB_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
-void RV32M_MUL_RRR_I_32_1(int r3,int r1,int r2){ /* MUL */
-	riscv_G32(((0x1 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
-#ifdef H2_DEBUG_INSN
-printf("%p : RV32M_MUL_RRR_I_32_1\n", h2_asm_pc);
-#endif
-}
 void RV32I_SLLI_RRI_I_32_1(int r3,int r1,int i0){ /* SL */
 	riscv_G32(((0x0 & 0x7f) << 25)|((i0 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x13 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
@@ -255,6 +243,12 @@ void RV32I_SLL_RRR_I_32_1(int r3,int r1,int r2){ /* SL */
 	riscv_G32(((0x0 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x1 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
 printf("%p : RV32I_SLL_RRR_I_32_1\n", h2_asm_pc);
+#endif
+}
+void RV32M_MUL_RRR_I_32_1(int r3,int r1,int r2){ /* MUL */
+	riscv_G32(((0x1 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
+#ifdef H2_DEBUG_INSN
+printf("%p : RV32M_MUL_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
 void RV32I_SB_RRI_I_8_1(int r1,int r2,int i1){ /* W */
@@ -273,6 +267,12 @@ void RV32I_SW_RRI_I_32_1(int r1,int r2,int i1){ /* W */
 	riscv_G32((((i1 >> 5) & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x2 & 0x7) << 12)|((i1 & 0x1f) << 7)|((0x23 & 0x7f) >> 0));
 #ifdef H2_DEBUG_INSN
 printf("%p : RV32I_SW_RRI_I_32_1\n", h2_asm_pc);
+#endif
+}
+void RV32I_SUB_RRR_I_32_1(int r3,int r1,int r2){ /* SUB */
+	riscv_G32(((0x20 & 0x7f) << 25)|((r2 & 0x1f) << 20)|((r1 & 0x1f) << 15)|((0x0 & 0x7) << 12)|((r3 & 0x1f) << 7)|((0x33 & 0x7f) >> 0));
+#ifdef H2_DEBUG_INSN
+printf("%p : RV32I_SUB_RRR_I_32_1\n", h2_asm_pc);
 #endif
 }
 void RV32I_ADDI_RRI_I_32_1(int r1,int r0,int i0){ /* ADD */
@@ -305,115 +305,61 @@ void RV32I_LW_RRI_I_32_1(int r3,int r1,int i1){ /* R */
 printf("%p : RV32I_LW_RRI_I_32_1\n", h2_asm_pc);
 #endif
 }
-h2_sValue_t riscv_genRET_0();
-h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1);
-h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t riscv_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t riscv_genMUL_4(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2,h2_sValue_t P3);
 h2_sValue_t riscv_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genMUL_4(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2,h2_sValue_t P3);
+h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1);
+h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
+h2_sValue_t riscv_genRET_0();
 h2_sValue_t riscv_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2);
-h2_sValue_t riscv_genRET_0()
-{
-// No generic optimisation for RET
-
-// No specific optimisation for RET/riscv
-
-RV32I_RET__I_32_1();
-	
-}
-h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1)
+h2_sValue_t riscv_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
 {
 #ifdef H2_DEBUG_INSN
-printf ("Start code gen for MV instruction\n");
+printf ("Start code gen for SUB instruction\n");
 
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
 
 	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 
 #endif // H2_DEBUG_INSN
-// No generic optimisation for MV
-
-// No specific optimisation for MV/riscv
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
-    {
-	RV32I_MV_RR_I_32_1(P0.regNro, P1.regNro);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
-    {
-	RV32I_MV_RI_I_32_1(P0.regNro, P1.valueImm);
-	return P0;
-    }
-	printf ("Warning, MV instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-return immValueZero;
-}
-h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+/* -*- c -*- */
+// if 2 operands are constants do substraction evaluation (Thanks Kilian for the bug report)
+if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
 {
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for W instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for W
+  return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm - P2.valueImm };
+}
 
 /* -*- c -*- */
-if (isValue(P1))
-  { // Store constant (Should use RRI variant)
-	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+{
+	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
     #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RI W (riscv)\\n");
+      printf ("Fallback for no RRI sub (riscv)\\n");
     #endif
-	// MV const in tmp register
-	P1 = riscv_genMV_2(PTMP,  P1);
-	// No return continue instruction selection
-  }
+	P2 = riscv_genMV_2(PTMP,  P2);
+}
 
 	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
 	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
 		P1.regNro = h2_getReg();
 
-    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
     {
-	RV32I_SB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
+	RV32I_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
     }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	RV32I_SH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-
-    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	RV32I_SW_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P1;
-    }
-	printf ("Warning, W instruction generation failed\n");
+	printf ("Warning, SUB instruction generation failed\n");
 	h2_codeGenerationOK = false;
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
 }
 h2_sValue_t riscv_genR_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
@@ -459,48 +405,6 @@ printf ("Start code gen for R instruction\n");
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-return immValueZero;
-}
-h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
-{
-#ifdef H2_DEBUG_INSN
-printf ("Start code gen for SL instruction\n");
-
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
-
-#endif // H2_DEBUG_INSN
-// No generic optimisation for SL
-
-// No specific optimisation for SL/riscv
-
-	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
-		P0.regNro = h2_getReg();
-	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
-		P1.regNro = h2_getReg();
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
-    {
-	RV32I_SLLI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
-	return P0;
-    }
-
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
-    {
-	RV32I_SLL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
-	return P0;
-    }
-	printf ("Warning, SL instruction generation failed\n");
-	h2_codeGenerationOK = false;
-	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
-	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
-	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
 }
 h2_sValue_t riscv_genMUL_4(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2,h2_sValue_t P3)
@@ -576,10 +480,49 @@ if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
 }
-h2_sValue_t riscv_genSUB_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+h2_sValue_t riscv_genMV_2(h2_sValue_t P0,h2_sValue_t P1)
 {
 #ifdef H2_DEBUG_INSN
-printf ("Start code gen for SUB instruction\n");
+printf ("Start code gen for MV instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for MV
+
+// No specific optimisation for MV/riscv
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER)
+    {
+	RV32I_MV_RR_I_32_1(P0.regNro, P1.regNro);
+	return P0;
+    }
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2VALUE)
+    {
+	RV32I_MV_RI_I_32_1(P0.regNro, P1.valueImm);
+	return P0;
+    }
+	printf ("Warning, MV instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genSL_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for SL instruction\n");
 
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 
@@ -590,40 +533,97 @@ printf ("Start code gen for SUB instruction\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 
 #endif // H2_DEBUG_INSN
-/* -*- c -*- */
-// if 2 operands are constants do substraction evaluation (Thanks Kilian for the bug report)
-if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&& (P2.arith == 'i'))
-{
-  return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm - P2.valueImm };
-}
+// No generic optimisation for SL
 
-/* -*- c -*- */
-if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
-{
-	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
-    #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RRI sub (riscv)\\n");
-    #endif
-	P2 = riscv_genMV_2(PTMP,  P2);
-}
+// No specific optimisation for SL/riscv
 
 	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
 		P0.regNro = h2_getReg();
 	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
 		P1.regNro = h2_getReg();
 
-    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
     {
-	RV32I_SUB_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	RV32I_SLLI_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
 	return P0;
     }
-	printf ("Warning, SUB instruction generation failed\n");
+
+    if ((P0.arith == 'i') && (P0.wLen <= 32) && (P0.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2REGISTER)
+    {
+	RV32I_SLL_RRR_I_32_1(P0.regNro, P1.regNro, P2.regNro);
+	return P0;
+    }
+	printf ("Warning, SL instruction generation failed\n");
 	h2_codeGenerationOK = false;
 	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
 	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
 	printf ("P%d: %s/%c/%d/%d/%d\n", 2, (0==P2.ValOrReg)?"REG":"VAL", P2.arith, P2.wLen, P2.vLen, P2.valueImm);
 return immValueZero;
+}
+h2_sValue_t riscv_genW_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
+{
+#ifdef H2_DEBUG_INSN
+printf ("Start code gen for W instruction\n");
+
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+
+#endif // H2_DEBUG_INSN
+// No generic optimisation for W
+
+/* -*- c -*- */
+if (isValue(P1))
+  { // Store constant (Should use RRI variant)
+	h2_sValue_t PTMP = {H2REGISTER, P1.arith, P1.vLen, P1.wLen, h2_getReg()};
+    #ifdef H2_DEBUG_INSN
+      printf ("Fallback for no RI W (riscv)\\n");
+    #endif
+	// MV const in tmp register
+	P1 = riscv_genMV_2(PTMP,  P1);
+	// No return continue instruction selection
+  }
+
+	if ((P0.ValOrReg == H2REGISTER) && (P0.regNro == -1))
+		P0.regNro = h2_getReg();
+	if ((P1.ValOrReg == H2REGISTER) && (P1.regNro == -1))
+		P1.regNro = h2_getReg();
+
+    if ((P1.arith == 'i') && (P1.wLen <= 8) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SB_RRI_I_8_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 16) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SH_RRI_I_16_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+
+    if ((P1.arith == 'i') && (P1.wLen <= 32) && (P1.vLen == 1) && P0.ValOrReg == H2REGISTER && P1.ValOrReg == H2REGISTER && P2.ValOrReg == H2VALUE)
+    {
+	RV32I_SW_RRI_I_32_1(P0.regNro, P1.regNro, P2.valueImm);
+	return P1;
+    }
+	printf ("Warning, W instruction generation failed\n");
+	h2_codeGenerationOK = false;
+	printf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\n");
+	printf ("P%d: %s/%c/%d/%d/%d\n", 0, (0==P0.ValOrReg)?"REG":"VAL", P0.arith, P0.wLen, P0.vLen, P0.valueImm);
+	printf ("P%d: %s/%c/%d/%d/%d\n", 1, (0==P1.ValOrReg)?"REG":"VAL", P1.arith, P1.wLen, P1.vLen, P1.valueImm);
+return immValueZero;
+}
+h2_sValue_t riscv_genRET_0()
+{
+// No generic optimisation for RET
+
+// No specific optimisation for RET/riscv
+
+RV32I_RET__I_32_1();
+	
 }
 h2_sValue_t riscv_genADD_3(h2_sValue_t P0,h2_sValue_t P1,h2_sValue_t P2)
 {

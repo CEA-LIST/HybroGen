@@ -1,5 +1,7 @@
-* Henri-Pierre CHARLES principal creator / contributor
+* Henri-Pierre CHARLES principal creator / contributor / experimentation
 * Julie DUMAS for backend support
 * Kevin MAMBU for initial CxRAM support
 * Thaddée BRICOUT for CxRAM demo examples and IA TensorFlow support
 * Benjamin LACOUR for ARM (aarch64), RISCV support / expérimentation MM
+* Quentin MELOTTE for experimentation sparse stencil
+    
