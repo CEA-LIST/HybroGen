@@ -1,7 +1,9 @@
-FILELIST=Makefile Stencil.c StencilExperiment.py Image/Sun*.pgm	\
-	ReadPgmImage.c ReadPgmImage.h Filter/*
-CFLAGS=-g -DH2_DEBUG -DH2_DEBUG_INSN
-CFLAGS=-O1 -Wall -Wno-unused-variable # -DH2_DEBUG -DH2_DEBUG_INSN -DVERBOSE
+FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
+	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
+	Filter/*
+CFLAGS=-O0 -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
+# HLFLAGS=-g
+# CFLAGS=-O1 -Wall -Wno-unused-variable
 
 all:
 	echo "make allAarch64Qemu or make allAarch64Native"
@@ -17,8 +19,8 @@ resize:
 riscv:
 	make build   ARCH=riscv
 	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-1x1.pgm
-
+#	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-1x1.pgm
+	qemu-riscv32 Stencil.riscv Image/Sun_1024x768.pgm S.pgm H4.pgm Filter/GaussianFilter-3x3.pgm
 aarch64:
 	make build   ARCH=aarch64
 	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
@@ -80,13 +82,13 @@ plot:
 	./generatePlot.py --archi ${ARCH} --output ${ARCH}
 
 build: Stencil.hl
-	../../HybroLang.py -a ${ARCH} -c -i ./Stencil.hl
-
-compile: Stencil.c
-	${CC} ${CFLAGS} ./Stencil.c ./ReadPgmImage.c -o ./Stencil.${ARCH} -g
+	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./Stencil.hl
+	mv Stencil.c Stencil.${ARCH}.c
+compile: Stencil.${ARCH}.c
+	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH} -g
 
 send:
-	tar cvf /tmp/a.tgz ${FILELIST}
+	-tar cvf /tmp/a.tgz ${FILELIST}
 	scp /tmp/a.tgz ${DEST}:/tmp
 
 clean:
