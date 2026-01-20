@@ -45,7 +45,7 @@ class H2CodeGeneration:
  "/* Label  table :*/\n%s"%(lTable.getCDecl()),
  "h2_asm_pc = (h2_insn_t *) ptr;",
  "h2_codeGenerationOK = true;",
- "h2_start_codeGen = h2_getticks();", # Start count ticks for code gen
+ "h2_codeGenTime = h2_getticks();", # Start count ticks for code gen
  "h2_initRegisterMasks(0x%X, 0, 0, 0);"%(self.regMask),
  "h2_resetRegisterMasks();",
  "#ifdef H2_DEBUG_REGISTER",
@@ -56,7 +56,7 @@ class H2CodeGeneration:
  "/* Call back code for loops */",
  "h2_save_asm_pc = h2_asm_pc;",] + self.callbackCode + [ 	  # Callback code for branch resolution
  "h2_asm_pc = h2_save_asm_pc;",
- "h2_end_codeGen = h2_getticks();", # Ends count ticks for code gen
+ "h2_codeGenTime = h2_getticks() - h2_codeGenTime;", # Ends count ticks for code gen
  "h2_iflush(ptr, h2_asm_pc);",      # Possible d-cache flush
         ]
 
