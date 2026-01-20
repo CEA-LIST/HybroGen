@@ -9,8 +9,9 @@
 
 bool h2_codeGenerationOK;	 // Does code generation fail ?
 typedef int32_t h2_regSet_t; // Register set (signed, use -1 when not allocated)
+static  int32_t h2_insnGenerated;
 typedef unsigned long long ticks_t;
-static  ticks_t h2_start_codeGen, h2_end_codeGen;
+static  ticks_t h2_codeGenTime;
 
 typedef enum { H2REGISTER,    H2VALUE, } VALORREG;
 typedef struct

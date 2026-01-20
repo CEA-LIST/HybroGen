@@ -35,6 +35,7 @@ ticks_t h2_getticks(void)
 
 static void h2_iflush(void *addr, void *last)
 {
+	h2_insnGenerated = (last-addr)/sizeof (h2_insn_t);
 #ifdef H2SYS
     long pageSize= getpagesize();
     void *ptmp= (char *)((long)addr & ~(pageSize - 1));
@@ -46,10 +47,8 @@ static void h2_iflush(void *addr, void *last)
     __clear_cache((char *)addr, (char *)last);
 #endif
 #ifdef H2_DEBUG
-	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
-	uint64_t insnGenerated = (last-addr)/sizeof (h2_insn_t);
     printf ("Flush data cache from %p to %p\n", addr, last);
-	printf ("%lld insn generated in %lld ticks. %lld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
+	printf ("%lld insn generated in %lld ticks. %lld ticks / insn\n", insnGenerated, h2_codeGenTime, h2_codeGenTime/insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {
