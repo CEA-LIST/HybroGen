@@ -1,8 +1,8 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-CFLAGS=-O0 -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
-# HLFLAGS=-g
+CFLAGS=-O3 # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
+HLFLAGS=-g
 # CFLAGS=-O1 -Wall -Wno-unused-variable
 
 all:

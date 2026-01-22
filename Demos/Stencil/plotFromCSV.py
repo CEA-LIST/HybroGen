@@ -14,12 +14,14 @@ if __name__ == "__main__":
     fileName = sys.argv[1]
     with open (fileName, 'r') as csvfile:
         reader = csv.reader (csvfile, delimiter =';')
-        # Format : FilterName;ImgSize;StaticTimeExecution;DynamicTimeExecution;CodeGenerationTime;ErrorNumber
+        # Format : FilterName ; ImgSize ; StaticTimeExecution ; DynamicTimeExecution ; CodeGenerationTime ; InsnNumer ; ErrorNumber
+        #          Filter/Null-3x3.pgm ; 3x3 ; 320x240 ; 12388250 ; 7516938 ; 293938 ; 68 ; 0
+        #           0          1       2                  3                       4                5             6
         for line in reader:
             if len(line) > 1: # avoid "segfault"
                 filterName = line[0]
                 if filterName in results:
-                    results[filterName] += [line[2:]]
+                    results[filterName] += [line[2:]] #
                 else:
                     results[filterName] = []
     pprint.pprint(results)
