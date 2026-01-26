@@ -135,6 +135,8 @@ class H2IR2():
             visit(insn)
         if "int" in prefixTuple and "MUL" in prefixTuple['int']:
             prefixTuple.setdefault("int", set()).add("SL")
+        if "int" in prefixTuple and "DIV" in prefixTuple['int']:
+            prefixTuple.setdefault("int", set()).add("SR")
         return prefixTuple
 
     def getPrefixCode(self):
