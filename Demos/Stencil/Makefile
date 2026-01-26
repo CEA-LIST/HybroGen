@@ -1,9 +1,9 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-CFLAGS=-O3 # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
-HLFLAGS=-g
-# CFLAGS=-O1 -Wall -Wno-unused-variable
+CFLAGS=-O3 # -DVERBOSE # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
+# HLFLAGS=-g
+# CFLAGS=-g -DVERBOSE -Wall -Wno-unused-variable
 
 all:
 	echo "make allAarch64Qemu or make allAarch64Native"
@@ -24,7 +24,7 @@ riscv:
 aarch64:
 	make build   ARCH=aarch64
 	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	qemu-aarch64 Stencil.aarch64 Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	qemu-aarch64 Stencil.aarch64 Image/Sun_1280x960.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
 
 resizeImages:
 	make resize  ARCH=aarch64 RUNNER=qemu-aarch64
@@ -53,6 +53,7 @@ allRiscvNative:
 # Run on various filters
 runAll:
 	-rm -f ${LOG}
+	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAFS = ${HLFLAGS}" > ${LOG}
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Null-3x3.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Id-3x3.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Blur-3x3.pgm
@@ -67,16 +68,16 @@ runAll:
 
 # Then on various image sizes
 run:
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=320x240
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=640x480
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=800x600
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1024x768
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1280x960
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1600x1200
-	make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=2048x1536
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=320x240
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=640x480
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=800x600
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1024x768
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1280x960
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1600x1200
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=2048x1536
 
 xperiment:
-	${RUNNER} Stencil.${ARCH} Image/Sun_${SIZE}.pgm S.pgm H4.pgm ${FILTER} >> ${LOG}
+	-${RUNNER} Stencil.${ARCH} Image/Sun_${SIZE}.pgm S.pgm H4.pgm ${FILTER} >> ${LOG}
 
 plot:
 	./generatePlot.py --archi ${ARCH} --output ${ARCH}
@@ -84,6 +85,7 @@ plot:
 build: Stencil.hl
 	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./Stencil.hl
 	mv Stencil.c Stencil.${ARCH}.c
+
 compile: Stencil.${ARCH}.c
 	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH} -g
 
@@ -92,4 +94,6 @@ send:
 	scp /tmp/a.tgz ${DEST}:/tmp
 
 clean:
-	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.c a.out Image/Sun.pgm_*
+	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.c Stencil.*.c a.out 
+
+

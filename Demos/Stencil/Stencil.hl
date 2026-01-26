@@ -123,7 +123,7 @@ int kernelStatic(imgStruct_t *In, int l, int c, imgStruct_t *Filter, int coeff)
 		  sum += In->pixelsArray[ni][nj] * Filter->pixelsArray[line][column];
 		}
 	}
-  return sum;
+  return sum/coeff;
 }
 
 
@@ -165,7 +165,7 @@ int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 		{
 		  if((staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]) > 0)
 			{
-              printf ("Difference %5dx%5d static-dynamic: %d \n", line, column, staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]);
+              //  printf ("Difference %5dx%5d static-dynamic: %d \n", line, column, staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]);
 			  if (0 == errors)
                 {
                   printf("Alert : first difference at line %i column %i\n", line, column);
@@ -211,12 +211,12 @@ int main(int argc, char *argv[])
   char *filterImageName, *inputImageName;
   if (argc < 5)
     {
-      printf ("./Stencil <InputImageName> <outputImageName> <outputH4ImageName> <Filter Img>\n");
+      printf ("./Stencil <InputImageName> <outputStaticImageName> <outputH4ImageName> <Filter Img>\n");
       exit(-1);
     }
 
+  inputImageName  = argv[1];
   filterImageName = argv[4];
-  inputImageName  =   argv[1];
   In     = readPgmImage(inputImageName);
   Filter = readPgmImage(filterImageName);
   coeff = imgSum (Filter);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
   OutH4     = createImage (In->height, In->width);
 #ifdef VERBOSE
   printf ("after init\n");
-  printImage(In);
+  //  printImage(In);
 #endif
   ticks_t timeStatic = h2_getticks();   // Static convolution
   for (int i = 0; i < nXperiment; i++)
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
   timeStatic = h2_getticks() - timeStatic;
 #ifdef VERBOSE
   printf ("after static\n");
-  printImage(OutStatic);
+  //  printImage(OutStatic);
 #endif
 
   pifc kernelHL = (pifc)h2_malloc(8192);
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
   timeH4 = h2_getticks() - timeH4;
 #ifdef VERBOSE
   printf ("after h2\n");
-  printImage(OutH4);
+  //  printImage(OutH4);
 #endif
   error = compareImages(OutH4, OutStatic);
   printf("%s;%ix%i;%ix%i;%llu;%llu;%llu;%d;%d\n", filterImageName, Filter->width, Filter->height, In->width, In->height,
