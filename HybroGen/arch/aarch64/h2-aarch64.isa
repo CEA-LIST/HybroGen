@@ -11,12 +11,12 @@ ARCH arm 32
 #1 1 0 11010110 00000 001000 r1[4:0] r0[4:0]         | A64 i 1 64 abs abs r0 r1
 
 #ADD 32
-# 0 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 32 add add r0 r1 i0
+0 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 32 add add r0 r1 i0
 #ADD 64
 1 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 64 add add r0 r1 i0
 1 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 f 1 64 add fadd r0 r1 i0
 #ADD 32 p21
-#0 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 32 add add r0 r1 r2
+0 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 32 add add r0 r1 r2
 #ADD 64 p21
 1 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]      | A64 i 1 64 add add r0 r1 r2
 #ADD (shifted register) 32
@@ -299,19 +299,20 @@ ARCH arm 32
 0 1 1 01110 10 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 4 32 sub sub r0 r1 r2
 0 1 1 01110 11 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 2 64 sub sub r0 r1 r2
 
-# LSL (immediate)
-0 10 100110 0 {-i0 % 32 & 0x1F}[5:0] {31-i0}[5:0] r1[4:0] r0[4:0] | A64 i 1 32 sl lsl r0 r1 i0
-1 10 100110 1 {-i0 % 64 & 0x1F}[5:0] {63-i0}[5:0] r1[4:0] r0[4:0] | A64 i 1 64 sl lsl r0 r1 i0
+# LSL (immediate) C6.2.213 p1678 see UBFM generic instruction p 2014 (alias multiplication with power of 2)
+#              immr                  imms
+0 10 100110 0 {(-i0 % 32) & 0x3F}[5:0] {31 - i0}[5:0] r1[4:0] r0[4:0] | A64 i 1 32 sl lsl r0 r1 i0
+1 10 100110 1 {(-i0 % 64) & 0x3F}[5:0] {63 - i0}[5:0] r1[4:0] r0[4:0] | A64 i 1 64 sl lsl r0 r1 i0
 
-#LSL (register)
-0 0 0 11010110 r2[4:0] 0010 00 r1[4:0] r0[4:0]       | A64 i 1 32 sl lsl r0 r1 r2
-1 0 0 11010110 r2[4:0] 0010 00 r1[4:0] r0[4:0]       | A64 i 1 64 sl lsl r0 r1 r2
+# LSL (register)
+0 00 11010110 r2[4:0] 0010 00 r1[4:0] r0[4:0]       | A64 i 1 32 sl lsl r0 r1 r2
+1 00 11010110 r2[4:0] 0010 00 r1[4:0] r0[4:0]       | A64 i 1 64 sl lsl r0 r1 r2
 
-#LSR (immediate)
+# LSR (immediate) C6.2.17 p1201
 0 10 100110 0 i0[5:0] 011111 r1[4:0] r0[4:0]         | A64 i 1 32 sr lsr r0 r1 i0
-1 10 100110 0 i0[5:0] 011111 r1[4:0] r0[4:0]         | A64 i 1 64 sr lsr r0 r1 i0
+1 10 100110 0 i0[5:0] 111111 r1[4:0] r0[4:0]         | A64 i 1 64 sr lsr r0 r1 i0
 
-#LSR (register)
+# LSR (register)
 0 0 0 11010110 r2[4:0] 0010 01 r1[4:0] r0[4:0]       | A64 i 1 32 sr lsr r0 r1 r2
 1 0 0 11010110 r2[4:0] 0010 01 r1[4:0] r0[4:0]       | A64 i 1 64 sr lsr r0 r1 r2
 
