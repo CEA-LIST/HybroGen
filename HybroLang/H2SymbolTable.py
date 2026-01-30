@@ -10,6 +10,7 @@ class H2SymbolTable:
         self.tempsNo = 0
 
     def add(self, variableName, datatype, registerNumber=None):
+        # print (f"New variable : {variableName}, {datatype}, {registerNumber})")
         # breakpoint()
         if variableName in self.symbolTable:
             raise Exception ("Symbol table error (add)", "Already existing var: "+variableName)

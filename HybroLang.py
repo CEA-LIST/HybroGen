@@ -203,13 +203,14 @@ class HybrogenTreeCompiler(HybroLangVisitor):
             # Array affectation  e.g. tmp[i] = a + 4;
             arrayName = ctx.Name().getText()
             nodeArrayIndex = self.visit(ctx.unaryexpr(0))
-            nodeValue = self.visit(ctx.unaryexpr(1))
+            nodeValue      = self.visit(ctx.unaryexpr(1))
             # @ store = @nodeVar + nodeArrayIndex * wordLen / 8
             opType    = self.sTable.get(arrayName)
-            wordLen   =   opType['wordLen']
+            # opType    = H2Type("int", 64, 1)
+            wordLen   = opType['wordLen']
             vectorLen = opType['vectorLen']
             nodeVar   = H2Node(H2NodeType.VARIABLE, variableName = arrayName, opType = opType)
-            nodeConst = H2Node(H2NodeType.CONST, constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType = H2Type("i", 32, 1))
+            nodeConst = H2Node(H2NodeType.CONST,    constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType = H2Type("int", 64, 1))
             nodeMul   = H2Node(H2NodeType.OPERATOR, opName = "*", sonsList = [nodeArrayIndex, nodeConst])
             nodeAdd   = H2Node(H2NodeType.OPERATOR, opName = "+", sonsList = [nodeVar, nodeMul])
             zeroNode  = H2Node(H2NodeType.CONST, constValue = 0)
@@ -278,7 +279,7 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         R_opType = H2Type(array_opType["arith"].replace("[]",""), array_opType["wordLen"], array_opType["vectorLen"])
         # NOTE : this only stands true for 32-bit architectures, the width of the data type should be given as
         # a parameter
-        addrOpType = H2Type("i", 32, 1)
+        addrOpType = H2Type("i", 64, 1)
         nodeVar   = H2Node(H2NodeType.VARIABLE, variableName=arrayName, opType=addrOpType)
         wordLen = array_opType['wordLen']
         vectorLen = array_opType['vectorLen']

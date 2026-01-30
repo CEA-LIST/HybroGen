@@ -5,7 +5,7 @@ class H2Type():
         'int' : 'i',
         'flt' : 'f',
         'uint': 'u',
-        'cpl': 'c',
+        'cpl' : 'c',
         'pix' : 'p',
         'ipv4': '4',
         'ipv6': '6',

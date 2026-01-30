@@ -133,10 +133,12 @@ class H2IR2():
                 prefixTuple.setdefault("int", set()).add(opName)
         for insn in self.IList:
             visit(insn)
-        if "int" in prefixTuple and "MUL" in prefixTuple['int']:
-            prefixTuple.setdefault("int", set()).add("SL")
-        if "int" in prefixTuple and "DIV" in prefixTuple['int']:
-            prefixTuple.setdefault("int", set()).add("SR")
+        # if "int" in prefixTuple and "MUL" in prefixTuple['int']:
+        #     prefixTuple.setdefault("int", set()).add("SL")
+        # if "int" in prefixTuple and "DIV" in prefixTuple['int']:
+        #     prefixTuple.setdefault("int", set()).add("SR")
+        prefixTuple.setdefault("int", set()).add("SL") # Add shift left & right for div and mul low level optimization
+        prefixTuple.setdefault("int", set()).add("SR")
         return prefixTuple
 
     def getPrefixCode(self):

@@ -41,15 +41,13 @@ class H2RegAllocTmp():
         return theType
 
     def broadcastType(self, typeL, typeR):
-        # Propagate leaf data type to the top
-        if type(typeL['wordLen']) is str: # Prefer "dynamic" type aka defined by instructions
-            localType = typeL
-        elif type(typeR['wordLen']) is str:
-            localType = typeR
-        elif typeL['wordLen'] == typeR['wordLen']:
-            localType = typeL
-        else:
-            print ("Warning incompatibles type size")
+        # Propagate leaf data type to the top, if not dynamic,
+        dataWordLen = ["8", 8, "16", 16, "32", 32, "64", 64]
+        # if    typeL['wordLen'] not in dataWordLen: localType = typeL
+        # elif  typeR['wordLen'] not in dataWordLen: localType = typeR
+        # elif  typeL['wordLen'] == typeR['wordLen']: localType = typeL
+        # else: localType = typeR
+        localType = typeR
         return localType
 
     def genTemps(self, Insn):
