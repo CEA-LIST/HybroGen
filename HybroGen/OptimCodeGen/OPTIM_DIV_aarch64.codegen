@@ -1,18 +1,17 @@
 /* -*- c -*- */
-
 // Transform RIR in RRI : P1 & P2 permutation
 if  ((P1.ValOrReg == H2VALUE) && (P2.ValOrReg == H2REGISTER))
-    { 
+    {
        h2_sValue_t PTMP = P2;
        P2 = P1;
        P1 = PTMP;
     }
 // X * NPowerOf2 = X >> N (immediate shift left)
 if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i') && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
-  { 
+  {
 	int shiftValue = h2_log2(P2.valueImm);
     #ifdef H2_DEBUG_INSN
-      printf ("Optim for * %d (power of 2) -> sr %d (aarch64)\n", P2.valueImm, shiftValue);
+      printf ("Optim for DIV %d (power of 2) -> sr %d (aarch64)\n", P2.valueImm, shiftValue);
     #endif
 	P2.valueImm = shiftValue; 	// Instruction shift left immediat
 	return aarch64_genSR_3(P0, P1, P2);
