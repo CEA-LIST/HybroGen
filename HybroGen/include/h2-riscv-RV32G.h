@@ -8,8 +8,8 @@
 #include <sys/mman.h>
 #endif
 
-typedef uint32_t    h2_insn_t;
-static  h2_insn_t   *h2_asm_pc;
+typedef uint32_t    h2_insn_t;  /* Instruction size */
+static  h2_insn_t   *h2_asm_pc; /* PC for code generation */
 static  h2_insn_t    *h2_save_asm_pc;
 static int h2_riscvVectorLen = 1;
 static int h2_riscvVectorWidth = 1;
@@ -48,7 +48,7 @@ static void h2_iflush(void *addr, void *last)
 #endif
 #ifdef H2_DEBUG
     printf ("Flush data cache from %p to %p\n", addr, last);
-	printf ("%lld insn generated in %lld ticks. %lld ticks / insn\n", insnGenerated, h2_codeGenTime, h2_codeGenTime/insnGenerated);
+	printf ("%u insns generated in %lld ticks. %lld ticks / insn\n", (unsigned int)h2_insnGenerated, (long long) h2_codeGenTime,  (long long) h2_codeGenTime/h2_insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {

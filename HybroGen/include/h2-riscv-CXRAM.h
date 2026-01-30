@@ -81,7 +81,7 @@ static void h2_iflush(void *addr, void *last)
 	uint64_t codeGenDuration = h2_end_codeGen - h2_start_codeGen;
 	uint64_t insnGenerated = (last-addr)/sizeof (h2_insn_t);
     printf ("Flush data cache from %p to %p\n", addr, last);
-	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", insnGenerated, codeGenDuration, codeGenDuration/insnGenerated);
+	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", h2_insnGenerated, h2_codeGenTime, codeGenTime/h2_insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	{

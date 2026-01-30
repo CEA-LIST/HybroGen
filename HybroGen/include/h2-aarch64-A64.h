@@ -7,8 +7,8 @@
 #include <sys/mman.h>
 #endif
 
-typedef uint32_t   h2_insn_t;
-static  h2_insn_t  *h2_asm_pc;
+typedef uint32_t   h2_insn_t;   /* Instruction size */
+static  h2_insn_t  *h2_asm_pc; /* PC for code generation */
 static  h2_insn_t  *h2_save_asm_pc;
 #define H2Aarch64SP  (h2_sValue_t) {REGISTER, 'i', 1, 32, 31, 0}
 /* aarch64 / power examples :
@@ -38,7 +38,7 @@ static void h2_iflush(void *addr, void *last)
 #endif
 #ifdef H2_DEBUG
     printf ("Flush data cache from %p to %p\n", addr, last);
-	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", insnGenerated, h2_codeGenTime, h2_codeGenTime/insnGenerated);
+	printf ("%ld insn generated in %ld ticks. %ld ticks / insn\n", h2_insnGenerated, h2_codeGenTime, h2_codeGenTime/h2_insnGenerated);
 #endif
 	if (!h2_codeGenerationOK)
 	  {
