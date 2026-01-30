@@ -27,7 +27,7 @@ demo ={
                                  ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),
                                 ),
     "Add-With-Specialization" : (("3", "25"),),
-    "Mult-With-Specialization" : (("3", "25"),),
+    "Mult-With-Specialization" : (("3", "25"), ("4", "25"), ("3", "32"), ("8", "32")),
     "CelciusFarenheit" : (("3",), ("25",),),
     "Array-St" : (("3",), ("5",)),
     "Array-Ld" : (("3",), ("5",)),
