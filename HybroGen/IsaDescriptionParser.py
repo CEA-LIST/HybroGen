@@ -1,12 +1,9 @@
-# Generated from IsaDescription.g4 by ANTLR 4.9.2
+# Generated from IsaDescription.g4 by ANTLR 4.7.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
+from typing.io import TextIO
 import sys
-if sys.version_info[1] > 5:
-	from typing import TextIO
-else:
-	from typing.io import TextIO
 
 def serializedATN():
     with StringIO() as buf:
@@ -116,14 +113,13 @@ class IsaDescriptionParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.9.2")
+        self.checkVersion("4.7.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
 
 
     class IsadescriptionContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -170,7 +166,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class HeaderlinesContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -256,7 +251,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ArchlineContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -322,7 +316,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class IsalinesContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -405,7 +398,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class CommentlineContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -445,7 +437,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class IsalineContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -499,7 +490,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class EmptylineContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -539,7 +529,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BindescrContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -594,7 +583,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BinelemContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -661,7 +649,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class BinvalueContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -701,7 +688,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class RegbinContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -767,7 +753,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ExpbinContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -833,7 +818,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class AsmdescrContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -915,7 +899,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ExtnameContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -955,7 +938,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ArithContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -999,7 +981,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class OpnameContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1039,7 +1020,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class RegNameContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1079,7 +1059,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class SemnameContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1119,7 +1098,6 @@ class IsaDescriptionParser ( Parser ):
         return localctx
 
     class ReglistContext(ParserRuleContext):
-        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
