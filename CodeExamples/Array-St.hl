@@ -3,19 +3,19 @@
 #include <stdlib.h>
 
 /* Pointer on function which take 1 pointer, an index and return int */
-typedef  int (*pifli)(long int *,   int);
-typedef  int (*pifii)(int *,   int);
-typedef  int (*pifsi)(short *, int);
-typedef  int (*pifci)(char *,  int);
+typedef  int (*pifli)(long int *,   int,   long int);
+typedef  int (*pifii)(int *,        int,   int);
+typedef  int (*pifsi)(short *,      int,   short);
+typedef  int (*pifci)(char *,       int,   char);
 
 /* C compilette prototype */
 h2_insn_t * gen_Array_St(h2_insn_t * ptr, int wordSize)
 {
   #[
-  int 32 1 Array_St (int[] #(wordSize) 1 a, int 32 1 index)
+  int 32 1 Array_St (int[] #(wordSize) 1 a, int 32 1 index, int #(wordSize) 1 value)
     {
-	  a[index] = 42;
-      return 1;
+	  a[index] = value;
+	  return 1;
     }
   ]#
   return (h2_insn_t *)ptr;
@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
   loopLimit = sizeof(a64) / sizeof (long int);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
   fPtr64 = (pifii) gen_Array_St(ptr, 8 * sizeof (long int)); // Generate instructions
-  res  = fPtr64(a64, in0);  // Call generated code
+  res  = fPtr64(a64, in0, 42);  // Call generated code
   CHECK (a64, in0, resultOK, loopLimit, 42);
   PRINTARRAY("64 bits : ", a64, loopLimit);
 
@@ -79,7 +79,7 @@ int main(int argc, char * argv[])
   loopLimit = sizeof(a32) / sizeof (int);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
   fPtr32 = (pifii) gen_Array_St(ptr, 8 * sizeof (int)); // Generate instructions
-  res  = fPtr32(a32, in0);  // Call generated code
+  res  = fPtr32(a32, in0, 42);  // Call generated code
   CHECK (a32, in0, resultOK, loopLimit, 42);
   PRINTARRAY("32 bits : ", a32, loopLimit);
 
@@ -87,7 +87,7 @@ int main(int argc, char * argv[])
   loopLimit = sizeof(a16) / sizeof (short);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
   fPtr16 = (pifsi) gen_Array_St(ptr, 8 * sizeof (short)); // Generate instructions
-  res  = fPtr16(a16, in0);  // Call generated code
+  res  = fPtr16(a16, in0, 42);  // Call generated code
   PRINTARRAY("16 bits : ", a16, loopLimit);
   CHECK (a16, in0, resultOK, loopLimit, 42);
 
@@ -95,7 +95,7 @@ int main(int argc, char * argv[])
   loopLimit = sizeof(a8) / sizeof (char);
   ptr  = h2_malloc (1024);  // Allocate memory for 1024 instructions
   fPtr8 = (pifci) gen_Array_St(ptr, 8 * sizeof (char)); // Generate instructions
-  res  = fPtr8(a8, in0);  // Call generated code
+  res  = fPtr8(a8, in0, 42);  // Call generated code
   CHECK (a8, in0, resultOK, loopLimit, 42);
   PRINTARRAY("8  bits : ", a8, loopLimit);
 
