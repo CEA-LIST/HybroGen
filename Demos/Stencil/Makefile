@@ -3,7 +3,7 @@ FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	Filter/*
 CFLAGS=-O3 # -DVERBOSE # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
 # CFLAGS= -g -O1 -DVERBOSE -Wall -Wno-unused-variable  -DH2_DEBUG # -DH2_DEBUG_REGISTER
-HLFLAGS=-g
+# HLFLAGS=-g # With instruction selector as functions instead of macro
 
 all:
 	echo "make allAarch64Qemu or make allAarch64Native"
@@ -20,7 +20,7 @@ riscv:
 	make build   ARCH=riscv
 	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
 #	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-1x1.pgm
-	qemu-riscv32 
+	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
 
 aarch64:
 	make build   ARCH=aarch64
@@ -54,7 +54,7 @@ allRiscvNative:
 # Run on various filters
 runAll:
 	-rm -f ${LOG}
-	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAFS = ${HLFLAGS}" > ${LOG}
+	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Null-3x3.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Id-3x3.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Blur-3x3.pgm
@@ -66,7 +66,7 @@ runAll:
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Blur-5x5.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/GaussianFilter-5x5.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Synthetic-5x5.pgm
-
+	echo "Results in ${LOG}"
 # Then on various image sizes
 run:
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=320x240
@@ -95,6 +95,4 @@ send:
 	scp /tmp/a.tgz ${DEST}:/tmp
 
 clean:
-	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.c Stencil.*.c a.out 
-
-
+	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.c Stencil.*.c a.out
