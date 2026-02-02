@@ -110,7 +110,7 @@ pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
       sum = sum + In[stride + njm1]   * #(Filter[0][1]);
       sum = sum + In[stride + column] * #(Filter[0][2]);
       sum = sum + In[stride + njp1]   * #(Filter[0][3]);
-      sum = sum + In[stride + njp1]   * #(Filter[0][4]);
+      sum = sum + In[stride + njp2]   * #(Filter[0][4]);
       
       ni = line-1;
       stride = ni * imgWidth;
@@ -120,29 +120,29 @@ pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
       sum = sum + In[stride + njp1]   * #(Filter[1][3]);
       sum = sum + In[stride + njp2]   * #(Filter[1][4]);
 
-      //  ni = line; 
-      //  stride = ni * imgWidth; 
-	  //  sum = sum + In[stride + njm2]   * #(Filter[2][0]); 
-      //  sum = sum + In[stride + njm1]   * #(Filter[2][1]); 
-      //  sum = sum + In[stride + column] * #(Filter[2][2]); 
-      //  sum = sum + In[stride + njp1]   * #(Filter[2][3]); 
-      //  sum = sum + In[stride + njp2]   * #(Filter[2][4]); 
+      ni = line; 
+      stride = ni * imgWidth; 
+	  sum = sum + In[stride + njm2]   * #(Filter[2][0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[2][1]); 
+      sum = sum + In[stride + column] * #(Filter[2][2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[2][3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[2][4]); 
 
-      //  ni = line+1; 
-      //  stride = ni * imgWidth; 
-	  //  sum = sum + In[stride + njm2]   * #(Filter[3][0]); 
-      //  sum = sum + In[stride + njm1]   * #(Filter[3][1]); 
-	  //  sum = sum + In[stride + column] * #(Filter[3][2]); 
-      //  sum = sum + In[stride + njp1]   * #(Filter[3][3]); 
-      //  sum = sum + In[stride + njp2]   * #(Filter[3][4]); 
+      ni = line+1; 
+      stride = ni * imgWidth; 
+	  sum = sum + In[stride + njm2]   * #(Filter[3][0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[3][1]); 
+	  sum = sum + In[stride + column] * #(Filter[3][2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[3][3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[3][4]); 
 
-      //  ni = line+2; 
-      //  stride = ni * imgWidth; 
-	  //  sum = sum + In[stride + njm2]   * #(Filter[4][0]); 
-      //  sum = sum + In[stride + njm1]   * #(Filter[4][1]); 
-      //  sum = sum + In[stride + column] * #(Filter[4][2]); 
-      //  sum = sum + In[stride + njp1]   * #(Filter[4][3]); 
-      //  sum = sum + In[stride + njp2]   * #(Filter[4][4]); 
+      ni = line+2; 
+      stride = ni * imgWidth; 
+	  sum = sum + In[stride + njm2]   * #(Filter[4][0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[4][1]); 
+      sum = sum + In[stride + column] * #(Filter[4][2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[4][3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[4][4]); 
       return sum / #(coeff);
     }
   ]#
@@ -156,8 +156,7 @@ int kernelStatic(imgStruct_t *In, int l, int c, imgStruct_t *Filter, int coeff)
   int line, column, sum = 0;
   int offset = (Filter->width)/2;
 
-  //   for (line = 0; line < Filter->height; line++)
-  for (line = 0; line < 2; line++)
+  for (line = 0; line < Filter->height; line++)
 	{
       for (column = 0; column < Filter->width; column++)
 		{
@@ -287,7 +286,7 @@ int main(int argc, char *argv[])
 		 timeStatic,
 		 timeH4, h2_codeGenTime, h2_insnGenerated, error);
 
-#if 1 // VERBOSE
+#if VERBOSE
   writePgmImage(OutStatic, argv[2]);
   writePgmImage(OutH4,     argv[3]);
 #endif

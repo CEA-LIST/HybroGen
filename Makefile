@@ -1,10 +1,10 @@
 # Main Hybrogen makefile
 
 all:
-	echo "What action do you target ?"
-	echo "make buildGrammar # Build grammars (need antlr)"
-	echo "make DbPopulate   # Fill database with instruction sets"
-	echo "make clean buildGrammar DbPopulate "
+	@echo "What action do you target ?"
+	@echo "make buildGrammar # Build grammars (need antlr)"
+	@echo "make DbPopulate   # Fill database with instruction sets"
+	@echo "make clean buildGrammar DbPopulate "
 
 # Uncomment if you whish to use distant database
 # DBIDS = --dbIds "DistantHost:DataBaseName:UserDbName:DbPassword"
