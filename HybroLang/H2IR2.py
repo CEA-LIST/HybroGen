@@ -92,13 +92,13 @@ class H2IR2():
             self.trace("No specific rewrite for %s"%(self.platform))
         if self.doShowTree: debug.showTree(self.archMaster+": After Arch specific optim.", self.IList)
 
-        new = []
-        p = H2ConstantOptimizer(self.archMaster, verbose=self.verbose)
-        for i in self.IList :
-            new += p.rewriteInsn(i)
-        self.IList = new
-        if self.verbose :   self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
-        if self.doShowTree: debug.showTree(self.archMaster+": After constant optim", self.IList)
+        # new = []
+        # p = H2ConstantOptimizer(self.archMaster, verbose=self.verbose)
+        # for i in self.IList :
+        #     new += p.rewriteInsn(i)
+        # self.IList = new
+        #if self.verbose :   self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
+        # if self.doShowTree: debug.showTree(self.archMaster+": After constant optim", self.IList)
 
         p = H2WindowRewrite(self.IList, self.archMaster, verbose=self.verbose)
         self.IList = p.getOptimizedInsnList()
