@@ -106,10 +106,13 @@ def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
 
 def compile (File, Arch, Debug, Verbose):
     compilerAndArg = [config.getCompilerForArch(Arch[0])]
-    cmd(("rm", "-f", File, File+".c"), Verbose)
+    cFileName = File+f".{Arch[0]}.c"
+    exeFileName = File+f".{Arch[0]}"
+    cmd(("rm", "-f", File, cFileName), Verbose)
     o1 = 0
     o2 = 0
     cmdH2 = tuple(["../HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
+    cmdMv = tuple(["mv", File+".c", cFileName])
     o0 = cmd (["which", compilerAndArg[0]], Verbose)
     if 0 != o0:
         fatalError ("C Compiler not found (environment pb ?)", -1)
@@ -118,11 +121,12 @@ def compile (File, Arch, Debug, Verbose):
     if Verbose:
         cmdH2 += ("--verboseParsing",)
     o1 = cmd(cmdH2, Verbose)
+    cmd(cmdMv, Verbose)
     if 0 != o1:
         fatalError ("Hybrogen compiler error", -2)
     if Debug:
         compilerAndArg += ["-g", "-DH2_DEBUG_INSN", "-DH2_DEBUG_REGISTER"]
-    o2 = cmd(compilerAndArg + ["-DQEMU_TARGET", "-Wall", "-o", File, File+".c"], Verbose)
+    o2 = cmd(compilerAndArg + ["-DQEMU_TARGET", "-Wall", "-o", exeFileName, cFileName], Verbose)
     if o2 != 0:
         fatalError ("C compilation compiler error", -3)
     return 0
@@ -131,14 +135,15 @@ def run(File, Arch, Verbose):
     emulatorAndArgs = (config.getQemuForArch(Arch),)
 #    print(emulatorAndArgs)
     output = 0
+    exeFileName = File+f".{Arch}"
     if demo[File] is None:
-        output = cmd(emulatorAndArgs + (File,), Verbose)
+        output = cmd(emulatorAndArgs + (exeFileName,), Verbose)
     else:
         for param in demo[File]:
             # print(demo[File])
             # print(File)
             print(param)
-            output += cmd(emulatorAndArgs + (File,)+ param, Verbose)
+            output += cmd(emulatorAndArgs + (exeFileName,)+ param, Verbose)
     if output != 0:
         return -4
 
