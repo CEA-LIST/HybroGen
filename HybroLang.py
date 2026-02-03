@@ -31,6 +31,8 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         extList = platform["extension"][0]
         abi = platform["abi"]
         self.gen = GenGeneratorFromDb (archMaster, extList[0], abi, dbIds, args)         # Connect to backend only for master architecture
+        if   self.archMaster in ("riscv",):          self.addrOpType = H2Type("i", 32, 1)
+        elif self.archMaster in ("aarch64", "power"):self.addrOpType = H2Type("i", 64, 1)
         self.printIfVerbose ("HybrogenVisitor for %s Verbose : %s Debug : %s"%(archList, self.verbose, self.debug))
         if self.verbose:
             print ("HybrogenVisitor for %s Verbose : %s Debug : %s"%(archList, self.verbose, self.debug))
@@ -210,7 +212,7 @@ class HybrogenTreeCompiler(HybroLangVisitor):
             wordLen   = opType['wordLen']
             vectorLen = opType['vectorLen']
             nodeVar   = H2Node(H2NodeType.VARIABLE, variableName = arrayName, opType = opType)
-            nodeConst = H2Node(H2NodeType.CONST,    constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType = H2Type("int", 64, 1))
+            nodeConst = H2Node(H2NodeType.CONST,    constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType = self.addrOpType)
             nodeMul   = H2Node(H2NodeType.OPERATOR, opName = "*", sonsList = [nodeArrayIndex, nodeConst])
             nodeAdd   = H2Node(H2NodeType.OPERATOR, opName = "+", sonsList = [nodeVar, nodeMul])
             zeroNode  = H2Node(H2NodeType.CONST, constValue = 0)
@@ -277,16 +279,13 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         # @ R = @nodeVar + treeArrayIndex * wordLen / 8
         array_opType = self.sTable.get(arrayName)
         R_opType = H2Type(array_opType["arith"].replace("[]",""), array_opType["wordLen"], array_opType["vectorLen"])
-        # NOTE : this only stands true for 32-bit architectures, the width of the data type should be given as
-        # a parameter
-        addrOpType = H2Type("i", 64, 1)
-        nodeVar   = H2Node(H2NodeType.VARIABLE, variableName=arrayName, opType=addrOpType)
+        nodeVar   = H2Node(H2NodeType.VARIABLE, variableName=arrayName, opType=self.addrOpType)
         wordLen = array_opType['wordLen']
         vectorLen = array_opType['vectorLen']
         # Compute array address
-        nodeConst = H2Node(H2NodeType.CONST, constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType=addrOpType)
-        nodeMul   = H2Node(H2NodeType.OPERATOR, opName = "*", sonsList = [treeArrayIndex, nodeConst], opType=addrOpType)
-        nodeAdd   = H2Node(H2NodeType.OPERATOR, opName = "+", sonsList = [nodeVar, nodeMul], opType=addrOpType)
+        nodeConst = H2Node(H2NodeType.CONST, constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType=self.addrOpType)
+        nodeMul   = H2Node(H2NodeType.OPERATOR, opName = "*", sonsList = [treeArrayIndex, nodeConst], opType=self.addrOpType)
+        nodeAdd   = H2Node(H2NodeType.OPERATOR, opName = "+", sonsList = [nodeVar, nodeMul], opType=self.addrOpType)
         self.tab -= 1
         return H2Node(H2NodeType.R, opName = "R", sonsList = [nodeAdd], opType=R_opType)
 
