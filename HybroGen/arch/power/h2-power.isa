@@ -3,10 +3,13 @@
 
 ARCH power 32
 
+# Most power arithmetic mnemonic come in 2 forms mnemonic or mnemonic. The dot indicate
+# a status condition update at an additionnal timing cost
+
 # add Add
-011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100     | p1 i 1 32 add add r0 r1 r2
-# add. Add
-#011111 r0[4:0] r1[4:0] r2[4:0]  01000 010101   | p1 i 1 32 add add. r0 r1 r2
+ 011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100    | p1 i 1 32 add add  r0 r1 r2
+ 011111 r0[4:0] r1[4:0] r2[4:0] 01000 010100    | p1 i 1 64 add add  r0 r1 r2
+#011111 r0[4:0] r1[4:0] r2[4:0] 01000 010101    | p1 i 1 32 add add. r0 r1 r2
 # addo Add
 #011111 r0[4:0] r1[4:0] r2[4:0]  11000 010100	| p1 i 1 32 add addo r0 r1 r2
 # addo. Add
