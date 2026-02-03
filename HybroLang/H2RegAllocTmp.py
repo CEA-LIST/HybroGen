@@ -48,6 +48,7 @@ class H2RegAllocTmp():
         # elif  typeL['wordLen'] == typeR['wordLen']: localType = typeL
         # else: localType = typeR
         localType = typeR
+        if localType == "NoneType": localType = typeL
         return localType
 
     def genTemps(self, Insn):
