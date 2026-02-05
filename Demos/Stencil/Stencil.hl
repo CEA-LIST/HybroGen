@@ -204,9 +204,8 @@ int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 	{
 	  for(int column = 0 ; column < staticImg->width ; column++)
 		{
-		  if((staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]) > 0)
+		  if((staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column])  != 0)
 			{
-              //  printf ("Difference %5dx%5d static-dynamic: %d \n", line, column, staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column]);
 			  if (0 == errors)
                 {
                   printf("Alert : first difference at line %i column %i\n", line, column);
