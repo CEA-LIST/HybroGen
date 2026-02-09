@@ -15,7 +15,7 @@ void printImage(imgStruct_t *img, char *imageName)
 	{
 	  for(int column = 0 ; column < img->width ; column++)
 		{
-		  printf("%03d ", img->pixelsArray[line][column]);
+		  printf("%03d ", img->pixelsArray[line*img->width+column]);
 		}
 	  printf("\n");
 	}
@@ -28,9 +28,9 @@ int imgSum (imgStruct_t *img)
   sum = 0;
   for(int line = 0 ; line < img->height ; line++)
 	{
-	  for(int column = 0 ; column < img->width ; column++)
+	  for(int column = 0 ; column < img->width; column++)
 		{
-		  sum += img->pixelsArray[line][column];
+		  sum += img->pixelsArray[line*img->width+column];
 		}
 	}
   return (0 == sum)?1:sum;
@@ -45,54 +45,53 @@ unsigned char clamp(int value)
 #define clamp(value) ((unsigned char)(0 > value)?0:(255 < value)?255:value)
 #endif
 
-pifc genKernel1x1(pifc ptr, int** Filter, int coeff)
+pifc genKernel1x1(pifc ptr, int* Filter, int coeff)
 {
 #[
   int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 imgWidth)
     {
       int 32 1 sum;
-	  sum = In[line*imgWidth+column] * #(Filter[0][0]);
+	  sum = In[line*imgWidth+column] * #(Filter[0]);
       return sum/#(coeff);
     }
   ]#
   return ptr;
 }
 
-pifc genKernel3x3(pifc ptr, int** Filter, int coeff)
+pifc genKernel3x3(pifc ptr, int* Filter, int coeff)
 {
 #[
   int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 imgWidth)
     {
-      int 32 1 sum, ni, njp1, njp0, njm1, stride;
+      int 32 1 sum, ni, njp1, njm1, stride;
 
 	  njp1 = column + 1;
-	  njp0 = column;
 	  njm1 = column - 1;
 
       ni  = line-1;
       stride = ni * imgWidth;
-	  sum =       In[stride + njm1] * #(Filter[0][0]);
-	  sum = sum + In[stride + njp0] * #(Filter[0][1]);
-	  sum = sum + In[stride + njp1] * #(Filter[0][2]);
+	  sum =       In[stride + njm1]   * #(Filter[0]);
+	  sum = sum + In[stride + column] * #(Filter[1]);
+	  sum = sum + In[stride + njp1]   * #(Filter[2]);
 
 	  ni  = line;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm1] * #(Filter[1][0]);
-	  sum = sum + In[stride + njp0] * #(Filter[1][1]);
-	  sum = sum + In[stride + njp1] * #(Filter[1][2]);
+	  sum = sum + In[stride + njm1]   * #(Filter[1*3+0]);
+	  sum = sum + In[stride + column] * #(Filter[1*3+1]);
+	  sum = sum + In[stride + njp1]   * #(Filter[1*3+2]);
 
       ni  = line+1;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm1] * #(Filter[2][0]);
-	  sum = sum + In[stride + njp0] * #(Filter[2][1]);
-	  sum = sum + In[stride + njp1] * #(Filter[2][2]);
+	  sum = sum + In[stride + njm1]   * #(Filter[2*3+0]);
+	  sum = sum + In[stride + column] * #(Filter[2*3+1]);
+	  sum = sum + In[stride + njp1]   * #(Filter[2*3+2]);
       return sum/#(coeff);
     }
   ]#
   return ptr;
 }
 
-pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
+pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
 {
   #[
     int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 imgWidth)
@@ -106,43 +105,43 @@ pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
 
       ni = line-2;
       stride = ni * imgWidth;
-  	  sum =       In[stride + njm2]   * #(Filter[0][0]);
-      sum = sum + In[stride + njm1]   * #(Filter[0][1]);
-      sum = sum + In[stride + column] * #(Filter[0][2]);
-      sum = sum + In[stride + njp1]   * #(Filter[0][3]);
-      sum = sum + In[stride + njp2]   * #(Filter[0][4]);
+  	  sum =       In[stride + njm2]   * #(Filter[0*5+0]);
+      sum = sum + In[stride + njm1]   * #(Filter[0*5+1]);
+      sum = sum + In[stride + column] * #(Filter[0*5+2]);
+      sum = sum + In[stride + njp1]   * #(Filter[0*5+3]);
+      sum = sum + In[stride + njp2]   * #(Filter[0*5+4]);
       
       ni = line-1;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm2]   * #(Filter[1][0]);
-      sum = sum + In[stride + njm1]   * #(Filter[1][1]);
-      sum = sum + In[stride + column] * #(Filter[1][2]);
-      sum = sum + In[stride + njp1]   * #(Filter[1][3]);
-      sum = sum + In[stride + njp2]   * #(Filter[1][4]);
+	  sum = sum + In[stride + njm2]   * #(Filter[1*5+0]);
+      sum = sum + In[stride + njm1]   * #(Filter[1*5+1]);
+      sum = sum + In[stride + column] * #(Filter[1*5+2]);
+      sum = sum + In[stride + njp1]   * #(Filter[1*5+3]);
+      sum = sum + In[stride + njp2]   * #(Filter[1*5+4]);
 
       ni = line; 
       stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[2][0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[2][1]); 
-      sum = sum + In[stride + column] * #(Filter[2][2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[2][3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[2][4]); 
+	  sum = sum + In[stride + njm2]   * #(Filter[2*5+0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[2*5+1]); 
+      sum = sum + In[stride + column] * #(Filter[2*5+2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[2*5+3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[2*5+4]); 
 
       ni = line+1; 
       stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[3][0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[3][1]); 
-	  sum = sum + In[stride + column] * #(Filter[3][2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[3][3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[3][4]); 
+	  sum = sum + In[stride + njm2]   * #(Filter[3*5+0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[3*5+1]); 
+	  sum = sum + In[stride + column] * #(Filter[3*5+2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[3*5+3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[3*5+4]); 
 
       ni = line+2; 
       stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[4][0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[4][1]); 
-      sum = sum + In[stride + column] * #(Filter[4][2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[4][3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[4][4]); 
+	  sum = sum + In[stride + njm2]   * #(Filter[4*5+0]); 
+      sum = sum + In[stride + njm1]   * #(Filter[4*5+1]); 
+      sum = sum + In[stride + column] * #(Filter[4*5+2]); 
+      sum = sum + In[stride + njp1]   * #(Filter[4*5+3]); 
+      sum = sum + In[stride + njp2]   * #(Filter[4*5+4]); 
       return sum / #(coeff);
     }
   ]#
@@ -150,6 +149,7 @@ pifc genKernel5x5(pifc ptr, int** Filter, int coeff)
 #if 0
 #endif
 }
+
 // Compute a stencil for 1 point
 int kernelStatic(imgStruct_t *In, int l, int c, imgStruct_t *Filter, int coeff)
 {
@@ -162,7 +162,7 @@ int kernelStatic(imgStruct_t *In, int l, int c, imgStruct_t *Filter, int coeff)
 		{
 		  int ni = (l   + line)   - offset;
 		  int nj = (c   + column) - offset;
-		  sum += In->pixelsArray[ni][nj] * Filter->pixelsArray[line][column];
+		  sum += In->pixelsArray[ni*In->width+nj] * Filter->pixelsArray[line*Filter->width+column];
 		}
 	}
     return sum / coeff;
@@ -173,12 +173,12 @@ void convolutionStatic(imgStruct_t *In, imgStruct_t *Out, imgStruct_t *Filter, i
 {
   int offset = Filter->width/2;
   int result;
-  for (int line = offset; line < In->height-offset; line++)
+  for (int line = offset; line < In->height - offset; line++)
 	{
-	  for (int column = offset; column < In->width-offset; column++)
+	  for (int column = offset; column < In->width - offset; column++)
 		{
 		  result = kernelStatic(In, line, column, Filter, coeff);
-		  Out->pixelsArray[line][column] =  clamp (result);
+		  Out->pixelsArray[line*Out->width+column] =  clamp(result);
 		}
     }
 }
@@ -187,13 +187,16 @@ void convolutionH4(imgStruct_t* In, imgStruct_t *Out, imgStruct_t *Filter, pifc 
 {
   int offset = Filter->width/2;
   int result;
-  for (int line = offset; line < (In->height)-offset; line++)
+  for (int line = offset; line < In->height - offset; line++)
     {
-      for (int column = offset; column <  In->width-offset; column++)
+      //      printf ("%d : \n", line);
+      for (int column = offset; column <  In->width - offset; column++)
         {
-          result = kernelHL((int *) *In->pixelsArray, line, column, In->width);
-          Out->pixelsArray[line][column] = clamp(result);
+          result = kernelHL(In->pixelsArray, line, column, In->width);
+          //          printf ("%d \n", result);
+          Out->pixelsArray[line*Out->width+column] = clamp(result);
         }
+      //      printf ("\n");
     }
 }
 
@@ -204,7 +207,7 @@ int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 	{
 	  for(int column = 0 ; column < staticImg->width ; column++)
 		{
-		  if((staticImg->pixelsArray[line][column] - H4Img->pixelsArray[line][column])  != 0)
+		  if((staticImg->pixelsArray[line*staticImg->width+column] - H4Img->pixelsArray[line*H4Img->width+column])  != 0)
 			{
 			  if (0 == errors)
                 {
@@ -219,7 +222,7 @@ int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 
 int main(int argc, char *argv[])
 {
-  int error, coeff, nXperiment = 40;
+  int error, coeff, nXperiment = 1;
   imgStruct_t *In, *OutH4, *OutStatic, *Filter;
   char *filterImageName, *inputImageName;
   if (argc < 5)
@@ -259,9 +262,9 @@ int main(int argc, char *argv[])
   ticks_t timeCodeGen = h2_getticks();
   switch (Filter->width)
     {
-    case 1 : kernelHL = genKernel1x1 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
-    case 3 : kernelHL = genKernel3x3 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
-    case 5 : kernelHL = genKernel5x5 (kernelHL, (int**)Filter->pixelsArray, coeff); break;
+    case 1 : kernelHL = genKernel1x1 (kernelHL, Filter->pixelsArray, coeff); break;
+    case 3 : kernelHL = genKernel3x3 (kernelHL, Filter->pixelsArray, coeff); break;
+    case 5 : kernelHL = genKernel5x5 (kernelHL, Filter->pixelsArray, coeff); break;
     default: printf ("Unknown filter size\n"); exit(-1);
     }
   timeCodeGen = h2_getticks() - timeCodeGen;
