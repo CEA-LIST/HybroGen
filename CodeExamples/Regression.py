@@ -30,6 +30,7 @@ commonTestList = (
              "Array-Ld",
              "Array-St-flt",
              "Array-Ld-flt",
+             "Array-Sum-2D",
              "Array-Mult-Specialization",
              "Loop",
              "LoopNest",
