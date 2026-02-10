@@ -1,9 +1,9 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-CFLAGS=-O3 # -DVERBOSE # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
-# CFLAGS= -g -O1 -DVERBOSE -Wall -Wno-unused-variable  -DH2_DEBUG # -DH2_DEBUG_REGISTER
-# HLFLAGS=-g # With instruction selector as functions instead of macro
+# CFLAGS=-O3 # -DVERBOSE # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
+CFLAGS= -g -O1 -DVERBOSE -Wall -Wno-unused-variable  -DH2_DEBUG # -DH2_DEBUG_REGISTER
+HLFLAGS=-g # With instruction selector as functions instead of macro
 
 all:
 	echo "make allAarch64Qemu or make allAarch64Native"
