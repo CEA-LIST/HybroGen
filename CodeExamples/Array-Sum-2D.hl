@@ -1,0 +1,76 @@
+// -*- c -*-
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef  int(*pifpii)(int *, int, int);
+
+// Sum a 2D array with a constant
+// Code specialisation on stride and constant value
+pifpii genAddArray2D(pifpii ptr, int stride, int constant) /* C compilette prototype */
+{
+  #[
+  int 32 1 addArray2D(int[] 32 1 a, int 32 1 nLine, int 32 1 nColumn)
+  {
+	int 32 1 line, column, sum;
+
+	sum = 0;
+	for (line = 0; line < nLine; line = line + 1)
+	  {
+		for (column = 0; column < nColumn; column = column + 1)
+		  {
+			sum = sum + a[line * #(stride) + column] + #(constant);
+		  }
+	  }
+	return sum;
+  }
+  ]#
+ return ptr;
+}
+
+int sumArray(int nLine, int nColumn, int a[nLine][nColumn], int constant)
+{
+  int sum = 0;
+  for (int line = 0; line < nLine; line = line + 1)
+	for (int column = 0; column < nColumn; column = column + 1)
+		sum = sum + a[line][column] + constant;
+  return sum;
+}
+
+int main(int argc, char * argv[])
+{
+  pifpii ptr;
+  int in0, resultH, resultS;
+  int constant, nLine, nColumn;
+
+  if (argc < 3)
+    {
+      printf ("./%s <NLine> <NColumn> <Constant Value>\n", argv[0]);
+      exit(-1);
+    }
+  nLine    = atoi(argv[1]);
+  nColumn  = atoi(argv[2]);
+  constant = atoi(argv[3]);
+
+  printf ("Array %dx%d. Constant Value %d\n", nLine, nColumn, constant);
+  int a32[nLine][nColumn]; // Create & fill the array
+  for (int line = 0; line < nLine; line++)
+	{
+	  printf ("%d: ", line);
+	  for (int column = 0; column < nColumn; column++)
+		{
+		  a32[line][column] = line+column;
+		  printf ("%d ", a32[line][column]);
+		}
+	  printf ("\n");
+	}
+  ptr = (pifpii) genAddArray2D (h2_malloc (1024), nColumn, constant);// Generate instructions
+  resultH = ptr(nLine, nColumn, (int *)a32);  			// Call generated code
+
+  resultS = sumArray(nLine, nColumn, a32, constant);
+  printf ("%d %d\n", resultH, resultS);
+  if (resultS == resultH)
+	return 0;
+  else
+	return -1;
+
+}
