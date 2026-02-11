@@ -23,6 +23,10 @@ class H2CodeGeneration:
         self.regMask = 0xFFFFFFFF # Collect available register
         self.regMask = regTmp.getCMask(self.regMask) # From tmp bank
         self.regMask = regIn.getCMask(self.regMask)  # From in bank
+        stackCode = [] # RISCV frame & generation & callee saved
+        if self.archName == "riscv":
+            self.g.setIndentLevel (0)
+            stackCode += self.calleeSaveRegisters(list(range(18, 28)))
         for i in range(len(IList)): # For all instructions, generate generators
             insn = IList[i]
             if self.verbose :
@@ -51,6 +55,7 @@ class H2CodeGeneration:
  "#ifdef H2_DEBUG_REGISTER",
  'printf("Tmp registers mask initialization\\n");',
  "#endif // H2_DEBUG_REGISTER",
+ "\n".join(stackCode),
         ]
         self.callBack = [                 # General pattern for the code generation
  "/* Call back code for loops */",
@@ -95,11 +100,42 @@ class H2CodeGeneration:
     def getExpressionType(self, insn):
         return insn.sonsList[0].getVariableName()
 
+    def calleeSaveRegisters(self, registerList):
+        stackSize = self.g.genImmValue (-4*len(registerList))
+        saveWindow = []
+        # Create stack window (for RISCV)
+        saveWindow += self.g.codeGen3T("ADD", "SP", "SP", stackSize)
+        # Save registers on stack
+        index = 0
+        for reg in registerList:
+            theReg = f"intReg32sValue({reg})"
+            saveWindow += self.g.codeGen3T("W", "SP", theReg, self.g.genImmValue (4*index))
+            index += 1
+        return saveWindow
+
+    def calleeRestoreRegisters(self, registerList):
+        SP = "intReg32sValue(2)" # RISCV SP
+        stackSize = self.g.genImmValue (4*len(registerList))
+
+        saveWindow = []
+        # Load saved registers
+        index = 0
+        for reg in registerList:
+            theReg = f"intReg32sValue({reg})"
+            saveWindow += self.g.codeGen3T("R", theReg, "SP", self.g.genImmValue (4*index))
+            index += 1
+        # Erase stack window
+        saveWindow += self.g.codeGen3T("ADD", SP, SP, stackSize)
+        return saveWindow
+
     def codeGeneration(self, insn:H2Node, sTable, tab):
         """Recursively generate code generators"""
+        indentLevel = tab*"\t"
+        self.g.setIndentLevel (tab)
         code = [] # Instruction list for one node
         callback = []
         immValueZero = self.g.genImmValue(0) # TODO : optimize for const values
+
         for son in insn.sonsList: # Generate recursively code for sons first
             tmpCode, tmpCallback = self.codeGeneration (son, sTable, tab+1)
             code += tmpCode
@@ -109,8 +145,6 @@ class H2CodeGeneration:
             #     if varName != None and "tmp" in varName and 7 == len(varName) : # TODO change this test
             #         regsToBeFree += [varName]
 
-        indentLevel = tab*"\t"
-        self.g.setIndentLevel (tab)
         varName = insn.getVariableName()
 
         # Then for leaf instruction & operations with sons
@@ -150,10 +184,9 @@ class H2CodeGeneration:
             srcRight = insn.sonsList[1].getVariableName()
             if None == srcRight: # In case where loop limit is a CONST
                 srcRight = self.g.genImmValue(insn.sonsList[1].getConstValue())
-                #val0 = "(h2_sValue_t) {H2VALUE, 'i', 1, 32, 0, 0}" # Hardwired 0
             code += self.g.codeGen2(insn.getSemName(), srcLeft, srcRight)
         elif insn.isBA(): # Branch always management
-            reg0 = f"{indentLevel}(h2_sValue_t) {{H2REGISTER, 'i', 1, 32, 0, 0}}" # Hardwired 0
+            reg0 = f"{indentLevel}intReg32sValue(0)" # Hardwired 0
             if self.archName in ("power", "aarch64"):
                 target = self.g.genImmValue ("(labelAddresses ["+insn.getTargetName()+"] - h2_asm_pc)")
                 code += self.g.codeGen1W(insn.getSemName(), target)
@@ -183,7 +216,8 @@ class H2CodeGeneration:
         elif insn.isLabel():
             code += self.g.codeGen1W(insn.getSemName(), insn.getLabelName())
         elif insn.isRtn():
-            # code += self.calleeSaveRestore(list(range(9, 28)))
+            if self.archName == "riscv":
+                code += self.calleeRestoreRegisters(list(range(18, 28)))
             code += self.g.codeGen0W("RET")
         else:
             if self.verbose:
