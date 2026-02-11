@@ -13,6 +13,8 @@ static  h2_insn_t   *h2_asm_pc; /* PC for code generation */
 static  h2_insn_t    *h2_save_asm_pc;
 static int h2_riscvVectorLen = 1;
 static int h2_riscvVectorWidth = 1;
+static h2_sValue_t SP= {H2REGISTER, 'i', 1, 32, 2, 0};
+
 /*
 https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
 */
