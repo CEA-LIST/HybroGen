@@ -25,7 +25,8 @@ typedef struct
   bool dontFree; // if register, don't free
 } h2_sValue_t;
 #define sValueDef(VALUE, ARITH, VECTORLEN, WORDLEN, REGNO, IMMVAL) ((h2_sValue_t){.ValOrReg = VALUE, .arith = ARITH, .vLen = VECTORLEN, .wLen = WORDLEN, .regNro = REGNO, .valueImm = IMMVAL})
-#define intsValue(V) sValueDef(H2VALUE, 'i', 1, 32, -1, V)
+#define intsValue(V)      sValueDef(H2VALUE, 'i', 1, 32, -1, V)
+#define intReg32sValue(R) sValueDef(H2REGISTER, 'i', 1, 32, R, 0)
 #define immValueZero intsValue(0)
 // Usefull macro instruction to simplify instruction selector code
 #define isInt64_1(P)  ((P.arith == 'i') && (P.wLen <= 64) && (P.vLen == 1))
@@ -49,7 +50,7 @@ static int h2_log2(int value)
   while (value >>= 1) { ++log; }
   return log;
 }
-
+// Print register map : F for free register, . for allocated
 void printRev (int value, int pos)
 { // Print a bitset in reversal order (recursive)
   if (pos != 0)
@@ -89,18 +90,12 @@ void printRegState(char * msg, int regNo, int registerSet)
 // Initialize registers sets allocation
 static void h2_initRegisterMasks(int intmask, int fltmask, int vectorintmask, int vectorfltmask)
 { // See H2SymbolTable & H2RegisterBank
-  h2_regSetInit.intSet  = intmask;
-  h2_regSetInit.fltSet  = fltmask;
-  h2_regSetInit.vintSet = vectorintmask;
-  h2_regSetInit.vfltSet = vectorfltmask;
+  h2_regSetInit  = (h2_RegSets_t){intmask, fltmask, vectorintmask, vectorfltmask};
 }
 
 static void h2_resetRegisterMasks() // Reset register set from initializers
 {
-  h2_regSet.intSet  = h2_regSetInit.intSet;
-  h2_regSet.fltSet  = h2_regSetInit.fltSet;
-  h2_regSet.vintSet = h2_regSetInit.vintSet;
-  h2_regSet.vfltSet = h2_regSetInit.vfltSet;
+  h2_regSet = h2_regSetInit;
 #ifdef H2_DEBUG_REGISTER
   printRegState("RESET", -1, h2_regSet.intSet);
 #endif // H2_DEBUG_REGISTER
