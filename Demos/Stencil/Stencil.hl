@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
   printImage(OutH4, "Out H4");
 #endif
   error = compareImages(OutH4, OutStatic);
-  printf("%s;%ix%i;%ix%i;%llu;%llu;%llu;%d;%d\n",
+  printf("%s;%ix%i;%ix%i;%lld;%lld;%lld;%d;%d\n",
 		 filterImageName,
 		 Filter->width, Filter->height, In->width, In->height,
 		 timeStatic/nXperiment, timeH4/nXperiment,
