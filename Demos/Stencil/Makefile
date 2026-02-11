@@ -1,9 +1,9 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-# CFLAGS=-O3 # -DVERBOSE # -g # -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
-CFLAGS= -g -O1 -DVERBOSE -Wall -Wno-unused-variable  -DH2_DEBUG # -DH2_DEBUG_REGISTER
-HLFLAGS=-g # With instruction selector as functions instead of macro
+CFLAGS=-O3 -g # -DVERBOSE  -g  -DH2_DEBUG -DVERBOSE -DH2_DEBUG_REGISTER
+# CFLAGS= -g -O1 -DVERBOSE -Wall -Wno-unused-variable # -DH2_DEBUG  # -DH2_DEBUG_REGISTER
+# HLFLAGS=-g # With instruction selector as functions instead of macro
 
 all:
 	echo "make allAarch64Qemu or make allAarch64Native"
@@ -19,13 +19,18 @@ resize:
 riscv:
 	make build   ARCH=riscv
 	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-#	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-1x1.pgm
-	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+#	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
 
 aarch64:
 	make build   ARCH=aarch64
 	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	qemu-aarch64 Stencil.aarch64 Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	qemu-aarch64 Stencil.aarch64 Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+
+power:
+	make build   ARCH=power
+	make compile ARCH=power CC=powerpc64le-linux-gnu-gcc
+	qemu-ppc64le Stencil.power Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
 
 resizeImages:
 	make resize  ARCH=aarch64 RUNNER=qemu-aarch64
@@ -88,7 +93,7 @@ build: Stencil.hl
 	mv Stencil.c Stencil.${ARCH}.c
 
 compile: Stencil.${ARCH}.c
-	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH} -g
+	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH}
 
 send:
 	-tar cvf /tmp/a.tgz ${FILELIST}

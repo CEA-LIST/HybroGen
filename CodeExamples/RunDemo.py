@@ -21,11 +21,7 @@ demo ={
     "Multiple-int":		(("24", "3"),                ("3", "24"),             ("100000", "100")),
     "Multiple-flt":		(("24.5", "3"),              ("3", "24"),             ("100000", "100")),
     "Add-With-Transprecision":  (("39.0", "3.0"),            ("39e-6", "3e-6"),       ("39e-12", "3e-12"),
-                                 ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),
-                                ),
-    "TestAdd1632":  (("39.0", "3.0"),            ("39e-6", "3e-6"),       ("39e-12", "3e-12"),
-                                 ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),
-                                ),
+                                 ("39e-18", "3e-18"),        ("39e-24", "3e-24"),     ("39e-32", "3e-32"),),
     "Add-With-Specialization" : (("3", "25"),),
     "Mult-With-Specialization" : (("3", "25"), ("4", "25"), ("3", "32"), ("8", "32")),
     "CelciusFarenheit" : (("3",), ("25",),),
@@ -34,6 +30,7 @@ demo ={
     "Array-St-flt" : (("3","12.0"), ("5","132.00")),
     "Array-Ld-flt" : (("3",), ("5",)),
     "Array-Mult-Specialization": (("10", "42",),),
+    "Array-Sum-2D": (("50", "10", "32",), ("100", "200", "37")),
     "If"          : (("42", "42"), ("4", "4"), ),
     "If-in-Loop"  : (("42", "42"), ("4", "4"), ),
     "Loop-in-If"  : (("1", "10"), ("0", "10"), ),
@@ -147,9 +144,9 @@ def run(File, Arch, Verbose):
     if output != 0:
         return -4
 
-def clean(Verbose):
+def clean(archName, Verbose):
     for p in demo:
-        cmd(("rm", "-f", p, p+".c"), Verbose)
+        cmd(["rm", "-f", p+"."+archName, p+"."+archName+".c"], Verbose)
 
 if __name__ == "__main__":
     import sys, subprocess, argparse
@@ -170,7 +167,7 @@ if __name__ == "__main__":
         p.print_help(sys.stderr)
         sys.exit(0)
     if (a.clean):
-        clean(a.verbose)
+        clean(a.arch[0], a.verbose)
         sys.exit(0)
     else:
         Architecture = a.arch
@@ -180,7 +177,9 @@ if __name__ == "__main__":
                 if o != 0:
                     sys.exit(o)
                 o = run (Program, a.arch[0], a.verbose)
-                if o != 0:
+                print (o)
+                if o != None:
                     sys.exit(o)
+                # clean(a.arch[0], a.verbose)
             else:
                 print ("Give program name without extension : %s"%Program)

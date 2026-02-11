@@ -2,7 +2,7 @@
 typedef struct
 {
   int width, height;
-  int **pixelsArray;
+  int *pixelsArray;
 } imgStruct_t;
 
 void          writePgmImage(imgStruct_t * img, char * fileName);

@@ -25,7 +25,7 @@ void writePgmImage (imgStruct_t * img, char * fileName)
 
   for (int i = 0; i < img->height; i++) {
     for (int j = 0; j < img->width; j++) {
-        fprintf(out, "%d ", img->pixelsArray[i][j]);
+        fprintf(out, "%d ", img->pixelsArray[i*img->width+j]);
     }
     fprintf(out, "\n");
   }
@@ -33,9 +33,9 @@ void writePgmImage (imgStruct_t * img, char * fileName)
 }
 
 /* Create image in memory
- * Allocate the structure
- * Allocate the pointer column
- * Then allocate all lines
+ * Allocate the structure /
+ * Allocate the 1D array
+ * https://stackoverflow.com/questions/3911400/how-to-pass-2d-array-matrix-in-a-function-in-c
  */
 imgStruct_t * createImage (int height, int width)
 {
@@ -45,13 +45,7 @@ imgStruct_t * createImage (int height, int width)
   theImage = malloc (sizeof (imgStruct_t));
   theImage->height = height;
   theImage->width = width;
-  theImage->pixelsArray = calloc (height, sizeof (int*));
-  block = calloc (height*width, sizeof (int));
-  for (line = 0; line < height; line++)
-	{
-      // theImage->pixelsArray[line] = calloc (width, sizeof (int));
-      theImage->pixelsArray[line] = &block[line*width];
-	}
+  theImage->pixelsArray = calloc (height*width, sizeof (int));
   return theImage;
 }
 
@@ -117,7 +111,7 @@ imgStruct_t * readPgmImage (char * fileName)
     {
       for (columnNo = 0; columnNo < width; columnNo++)
         {
-          fscanf(theFile,"%i",&theImage->pixelsArray[lineNo][columnNo]);
+          fscanf(theFile,"%i",&theImage->pixelsArray[lineNo*width+columnNo]);
 
 		  //          fscanf (theFile, "%hd ", &theImage->pixelsArray[lineNo][columnNo] );
 #ifdef DEBUG
