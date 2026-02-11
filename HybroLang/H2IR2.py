@@ -59,7 +59,6 @@ class H2IR2():
         insnCode = ""     # Code generator code
         callbackCode = "" # Callback for branch resolution
 
-
         debug = H2Debug()
         if self.verbose :   self.printIR(self.IList,"IR before code generation")
         if self.doShowTree: debug.showTree(self.archMaster+": Initial IR", self.IList)
@@ -139,6 +138,8 @@ class H2IR2():
         #     prefixTuple.setdefault("int", set()).add("SR")
         prefixTuple.setdefault("int", set()).add("SL") # Add shift left & right for div and mul low level optimization
         prefixTuple.setdefault("int", set()).add("SR")
+        prefixTuple.setdefault("int", set()).add("W") # For W/R stack management
+        prefixTuple.setdefault("int", set()).add("R")
         return prefixTuple
 
     def getPrefixCode(self):
