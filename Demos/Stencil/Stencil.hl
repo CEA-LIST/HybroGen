@@ -110,7 +110,7 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
       sum = sum + In[stride + column] * #(Filter[0*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[0*5+3]);
       sum = sum + In[stride + njp2]   * #(Filter[0*5+4]);
-      
+
       ni = line-1;
       stride = ni * imgWidth;
 	  sum = sum + In[stride + njm2]   * #(Filter[1*5+0]);
@@ -119,29 +119,29 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
       sum = sum + In[stride + njp1]   * #(Filter[1*5+3]);
       sum = sum + In[stride + njp2]   * #(Filter[1*5+4]);
 
-      ni = line; 
-      stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[2*5+0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[2*5+1]); 
-      sum = sum + In[stride + column] * #(Filter[2*5+2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[2*5+3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[2*5+4]); 
+      ni = line;
+      stride = ni * imgWidth;
+	  sum = sum + In[stride + njm2]   * #(Filter[2*5+0]);
+      sum = sum + In[stride + njm1]   * #(Filter[2*5+1]);
+      sum = sum + In[stride + column] * #(Filter[2*5+2]);
+      sum = sum + In[stride + njp1]   * #(Filter[2*5+3]);
+      sum = sum + In[stride + njp2]   * #(Filter[2*5+4]);
 
-      ni = line+1; 
-      stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[3*5+0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[3*5+1]); 
-	  sum = sum + In[stride + column] * #(Filter[3*5+2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[3*5+3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[3*5+4]); 
+      ni = line+1;
+      stride = ni * imgWidth;
+	  sum = sum + In[stride + njm2]   * #(Filter[3*5+0]);
+      sum = sum + In[stride + njm1]   * #(Filter[3*5+1]);
+	  sum = sum + In[stride + column] * #(Filter[3*5+2]);
+      sum = sum + In[stride + njp1]   * #(Filter[3*5+3]);
+      sum = sum + In[stride + njp2]   * #(Filter[3*5+4]);
 
-      ni = line+2; 
-      stride = ni * imgWidth; 
-	  sum = sum + In[stride + njm2]   * #(Filter[4*5+0]); 
-      sum = sum + In[stride + njm1]   * #(Filter[4*5+1]); 
-      sum = sum + In[stride + column] * #(Filter[4*5+2]); 
-      sum = sum + In[stride + njp1]   * #(Filter[4*5+3]); 
-      sum = sum + In[stride + njp2]   * #(Filter[4*5+4]); 
+      ni = line+2;
+      stride = ni * imgWidth;
+	  sum = sum + In[stride + njm2]   * #(Filter[4*5+0]);
+      sum = sum + In[stride + njm1]   * #(Filter[4*5+1]);
+      sum = sum + In[stride + column] * #(Filter[4*5+2]);
+      sum = sum + In[stride + njp1]   * #(Filter[4*5+3]);
+      sum = sum + In[stride + njp2]   * #(Filter[4*5+4]);
       return sum / #(coeff);
     }
   ]#
@@ -189,14 +189,11 @@ void convolutionH4(imgStruct_t* In, imgStruct_t *Out, imgStruct_t *Filter, pifc 
   int result;
   for (int line = offset; line < In->height - offset; line++)
     {
-      //      printf ("%d : \n", line);
       for (int column = offset; column <  In->width - offset; column++)
         {
           result = kernelHL(In->pixelsArray, line, column, In->width);
-          //          printf ("%d \n", result);
           Out->pixelsArray[line*Out->width+column] = clamp(result);
         }
-      //      printf ("\n");
     }
 }
 
@@ -222,7 +219,7 @@ int compareImages(imgStruct_t *staticImg, imgStruct_t *H4Img)
 
 int main(int argc, char *argv[])
 {
-  int error, coeff, nXperiment = 1;
+  int error, coeff, nXperiment = 20;
   imgStruct_t *In, *OutH4, *OutStatic, *Filter;
   char *filterImageName, *inputImageName;
   if (argc < 5)
@@ -284,9 +281,11 @@ int main(int argc, char *argv[])
   printImage(OutH4, "Out H4");
 #endif
   error = compareImages(OutH4, OutStatic);
-  printf("%s;%ix%i;%ix%i;%llu;%llu;%llu;%d;%d\n", filterImageName, Filter->width, Filter->height, In->width, In->height,
-		 timeStatic,
-		 timeH4, h2_codeGenTime, h2_insnGenerated, error);
+  printf("%s;%ix%i;%ix%i;%llu;%llu;%llu;%d;%d\n",
+		 filterImageName,
+		 Filter->width, Filter->height, In->width, In->height,
+		 timeStatic/nXperiment, timeH4/nXperiment,
+		 h2_codeGenTime, h2_insnGenerated, error);
 
 #if VERBOSE
   writePgmImage(OutStatic, argv[2]);
