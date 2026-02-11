@@ -30,7 +30,7 @@ class H2GenGen:
         if 0 == value :
             return "immValueZero"
         else:
-            return self.genSValue("H2VALUE", 'i', 1, 32, 0, value)
+            return f"intsValue({value})"
 
     def genFixedRegister(self, regNo):
         return self.genSValue("H2REGISTER", 'i', 1, 32, regNo, 0)
@@ -40,6 +40,9 @@ class H2GenGen:
 
     def codeGen3(self, semName, destReg, srcL, srcR = "immValueZero"):
         return self.codeGen(3, semName, destReg, srcL, srcR)
+
+    def codeGen3T(self, semName, destReg, srcL, srcR = "immValueZero"):
+        return self.codeGenT(3, semName, destReg, srcL, srcR)
 
     def codeGen3Inv(self, semName, destReg, srcL, srcR = "immValueZero"):
         """ Special code generator for LD: set srcL as destination register"""
@@ -60,6 +63,15 @@ class H2GenGen:
         elif opN == 2: genF =  f"{self.tabLevel}{destReg} = {self.archName}_gen{semName}_2({destReg}, {srcL});"
         elif opN == 3: genF =  f"{self.tabLevel}{destReg} = {self.archName}_gen{semName}_3({destReg}, {srcL}, {srcR});"
         elif opN == 4: genF =  f"{self.tabLevel}{destReg} = {self.archName}_gen{semName}_4({destReg}, {srcL}, {srcR}, {option});"
+        else: genF = "Unknown operand number"
+        return [genF]
+
+    def codeGenT(self, opN, semName, destReg="", srcL="", srcR = "", option=""):
+        if   opN == 0: genF =  f"{self.archName}_gen{semName}_0();"
+        elif opN == 1: genF =  f"{self.archName}_gen{semName}_1({destReg});"
+        elif opN == 2: genF =  f"{self.archName}_gen{semName}_2({destReg}, {srcL});"
+        elif opN == 3: genF =  f"{self.archName}_gen{semName}_3({destReg}, {srcL}, {srcR});"
+        elif opN == 4: genF =  f"{self.archName}_gen{semName}_4({destReg}, {srcL}, {srcR}, {option});"
         else: genF = "Unknown operand number"
         return [genF]
 
