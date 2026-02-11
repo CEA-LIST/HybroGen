@@ -107,11 +107,11 @@ class H2RegisterBank():
         self.print ("%s : Freed register %d for '%s'"%(self.bankName, regNo, arith))
 
     def add(self, arith, numberList):
-         nb_registers = len(numberList[0])
-         alloc_flags = [H2RegisterAllocationType.F] * nb_registers
-         self.numberList.update({arith: [numberList[0],numberList[1], alloc_flags]})
-         self.print("Adding arithmetic '%s' --->:" % arith)
-         self.print("\n" + str(self))
+        nb_registers = len(numberList[0])
+        alloc_flags = [H2RegisterAllocationType.F] * nb_registers
+        self.numberList.update({arith: [numberList[0],numberList[1], alloc_flags]})
+        self.print("Adding arithmetic '%s' --->:" % arith)
+        self.print("\n" + str(self))
 
 
     def __str__(self):
