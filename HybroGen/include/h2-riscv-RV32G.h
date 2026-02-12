@@ -19,6 +19,7 @@ static h2_sValue_t SP= {H2REGISTER, 'i', 1, 32, 2, 0};
 https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
 */
 
+#if 0
 ticks_t h2_getticks(void)
 {
     unsigned long dst;
@@ -33,7 +34,31 @@ ticks_t h2_getticks(void)
     //asm volatile ("rdcycle %0" : "=r" (dst) );
     return dst;
 }
+#else
+// From https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h
+ticks_t h2_getticks(void)
+{
+  uint64_t result;
+#if __riscv_xlen == 64
+  asm volatile("rdtime %0" : "=r" (result));
+#elif __riscv_xlen == 32
+  uint32_t l, h, h2;
+  do
+	{
+	  asm volatile(
+				   "rdtimeh %0 \n"
+				   "rdtime  %1 \n"
+				   "rdtimeh %2 \n"
+				   : "=r" (h), "=r" (l), "=r" (h2));
+	} while (h2 != h);
+  result = (((uint64_t)h)<<32) | ((uint64_t)l);
+#else
+#error "unknown __riscv_xlen"
+#endif
+  return result;
+}
 
+#endif
 
 static void h2_iflush(void *addr, void *last)
 {
@@ -54,7 +79,7 @@ static void h2_iflush(void *addr, void *last)
 #endif
 	if (!h2_codeGenerationOK)
 	  {
-		fprintf (stderr, "(iflush) Failed code generation\n");
+		perror("(iflush) Failed code generation\n");
 		exit(-5);
 	  }
 }

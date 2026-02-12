@@ -101,31 +101,29 @@ class H2CodeGeneration:
         return insn.sonsList[0].getVariableName()
 
     def calleeSaveRegisters(self, registerList):
-        stackSize = self.g.genImmValue (-4*len(registerList))
+        stackSize = 4*(len(registerList)+2)
         saveWindow = []
         # Create stack window (for RISCV)
-        saveWindow += self.g.codeGen3T("ADD", "SP", "SP", stackSize)
+        saveWindow += self.g.codeGen3T("ADD", "SP", "SP", self.g.genImmValue (-stackSize))
         # Save registers on stack
-        index = 0
+        index = stackSize - 4
         for reg in registerList:
             theReg = f"intReg32sValue({reg})"
-            saveWindow += self.g.codeGen3T("W", "SP", theReg, self.g.genImmValue (4*index))
-            index += 1
+            saveWindow += self.g.codeGen3T("W", "SP", theReg, self.g.genImmValue (index))
+            index -= 4
         return saveWindow
 
     def calleeRestoreRegisters(self, registerList):
-        SP = "intReg32sValue(2)" # RISCV SP
-        stackSize = self.g.genImmValue (4*len(registerList))
-
+        stackSize = 4*(len(registerList)+2)
         saveWindow = []
         # Load saved registers
-        index = 0
+        index = stackSize - 4
         for reg in registerList:
             theReg = f"intReg32sValue({reg})"
-            saveWindow += self.g.codeGen3T("R", theReg, "SP", self.g.genImmValue (4*index))
-            index += 1
+            saveWindow += self.g.codeGen3T("R", theReg, "SP", self.g.genImmValue (index))
+            index -= 4
         # Erase stack window
-        saveWindow += self.g.codeGen3T("ADD", SP, SP, stackSize)
+        saveWindow += self.g.codeGen3T("ADD", "SP", "SP",  self.g.genImmValue (stackSize))
         return saveWindow
 
     def codeGeneration(self, insn:H2Node, sTable, tab):

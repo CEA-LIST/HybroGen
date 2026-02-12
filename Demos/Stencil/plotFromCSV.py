@@ -24,7 +24,7 @@ if __name__ == "__main__":
                     results[filterName] += [line[2:]] #
                 else:
                     results[filterName] = []
-    pprint.pprint(results)
+    # pprint.pprint(results)
     fig, ax = plt.subplots(figsize=(6, 6))
     imgSizeListMax = []
     imgSizeListMaxName = []
@@ -39,11 +39,11 @@ if __name__ == "__main__":
             imgSizeListMaxName = imgList
             imgSizeListMax = imgSizeList
         speedups= [100*int(data[1])/int(data[2]) for data in results[filterName] ]
-        print (imgList)
-        print (imgSizeList)
+        # print (imgList)
+        # print (imgSizeList)
         print (speedups)
         plt.plot(imgSizeList, speedups, "-D", label=filterName)
-    print(imgSizeListMax)
+    # print(imgSizeListMax)
     plt.xticks(imgSizeListMax, imgSizeListMaxName, rotation=45)
     ax.legend()
     print (f"Results in {fileName}.png")
