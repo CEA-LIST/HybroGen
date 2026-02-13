@@ -15,11 +15,11 @@ static int h2_riscvVectorLen = 1;
 static int h2_riscvVectorWidth = 1;
 static h2_sValue_t SP= {H2REGISTER, 'i', 1, 32, 2, 0};
 
+#if 0
 /*
 https://stackoverflow.com/questions/52187221/how-to-calculate-the-no-of-clock-cycles-in-riscv-clang
 */
 
-#if 0
 ticks_t h2_getticks(void)
 {
     unsigned long dst;
@@ -34,8 +34,11 @@ ticks_t h2_getticks(void)
     //asm volatile ("rdcycle %0" : "=r" (dst) );
     return dst;
 }
-#else
+#endif
+
+#if 1
 // From https://github.com/FFTW/fftw3/blob/master/kernel/cycle.h
+// HW counter measument
 ticks_t h2_getticks(void)
 {
   uint64_t result;
@@ -51,13 +54,31 @@ ticks_t h2_getticks(void)
 				   "rdtimeh %2 \n"
 				   : "=r" (h), "=r" (l), "=r" (h2));
 	} while (h2 != h);
-  result = (((uint64_t)h)<<32) | ((uint64_t)l);
-#else
-#error "unknown __riscv_xlen"
-#endif
+  result =(((uint64_t)h)<<32) | ((uint64_t)l);
   return result;
 }
+#endif
+#endif
 
+
+#if 0
+// System level clock measurment
+#include <sys/time.h>
+ticks_t h2_getticks(void)
+{
+    int res;
+    struct timeval My_time;
+    uint64_t tick;
+    res = gettimeofday(&My_time, NULL);
+    tick = My_time.tv_sec * 1000000 + My_time.tv_usec;
+    if (0 == res)
+	  {
+        return tick;
+	  } else
+	  {
+        return 0;
+	  }
+}
 #endif
 
 static void h2_iflush(void *addr, void *last)
