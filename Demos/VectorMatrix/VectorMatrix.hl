@@ -124,9 +124,9 @@ int main (int argc, char *argv[])
   char *matrixName;
   vector_t g0  = {1, 2, 3, 4}, g1  = {5, 6, 7, 8};
   vector_t tmp0, tmp1, utmp0, utmp1, ctmp0, ctmp1;
-  uint64_t dateStart, dateStop, timeGeneral, timeCompilette, timeUnrolled;
+  uint64_t timeGeneral, timeCompilette, timeUnrolled;
   pifvv vmProduct;
-  int tmp, doPrint;
+  int tmp, doPrint, nXperiment = 10000;
   unsigned long acc;
   bool resultValid;
 
@@ -144,33 +144,43 @@ int main (int argc, char *argv[])
       {
         m[line][column] = atoi (argv[2 + line*4+column]);
       }
+#ifdef VERBOSE
   printMatrix(m, matrixName);
+#endif
+
   tmp = VectorMatrixProductCount (m);
-  printf("Operation count Matrix %s : %d speedup %.1f\n", matrixName, tmp, 32.0/tmp);
+  printf("Operation count Matrix %s : %d theoritical speedup %.1f\n", matrixName, tmp, 32.0/tmp);
 
-#define DO(INSN, REPEAT, TIME) {dateStart = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  dateStop = h2_getticks(); TIME = dateStop - dateStart;}
+// Repeat one instruction and count ticks
+#define DO(INSN, REPEAT, TIME) {uint64_t tickCount = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  TIME = h2_getticks() - tickCount;}
 
+#ifdef VERBOSE
   printVector (g1, "Input  vector");
+#endif
+
   acc += VectorMatrixProduct (tmp0, g0, m); /* Cold start */
-  DO(acc += VectorMatrixProduct (tmp1, g1, m), 1000, timeGeneral)
+  DO(acc += VectorMatrixProduct (tmp1, g1, m), nXperiment, timeGeneral)
+
+#ifdef VERBOSE
   printVector (tmp1, "Output vector   (general)");
+#endif
 
 #if 0 // Possible test with a source level unrolled version
   acc += VectorMatrixProductUnrolled (utmp0, g0, m);
-  DO(acc += VectorMatrixProductUnrolled (utmp1, g1, m), 1000, timeUnrolled);
+  DO(acc += VectorMatrixProductUnrolled (utmp1, g1, m), nXperiment, timeUnrolled);
   vectorCompare(tmp1, utmp1, "Unrolled tmp0", doPrint);
 #endif
 
   vmProduct = (pifvv) h2_malloc(1024);
   vmProduct = genVectorMatrixProduct (vmProduct, m);
   acc += vmProduct (ctmp0, g0);
-  DO(acc += vmProduct (ctmp1, g1), 1000, timeCompilette);
-    
+  DO(acc += vmProduct (ctmp1, g1), nXperiment, timeCompilette);
+
   resultValid = vectorCompare(tmp1, ctmp1, "Compilette tmp1", doPrint);
-  
-  printf ("General    ticks %lu\n", timeGeneral);
+
+  printf ("General    ticks %llu\n", timeGeneral);
   //  printf ("Unrolled   ticks %lu\n", timeUnrolled);
-  printf ("Compilette ticks %lu\n", timeCompilette);
+  printf ("Compilette ticks %llu\n", timeCompilette);
   //  printf ("Speedups unrolled   : %.2f%%\n", (float) 100.0*timeGeneral/timeUnrolled);
   printf ("Speedups compilette : %.2f%%\n", (float) 100.0*timeGeneral/timeCompilette);
   printf ("Accumulator value to avoid hard optimizations %ld\n", acc);
