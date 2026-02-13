@@ -22,6 +22,7 @@ ARCH power 32
 # 011111 ..... ..... ..... 00010 010100         | power addg6s
 # addi Add Immediate p67
 001110 r0[4:0] r1[4:0] i0[15:0]					| p1  i 1 32 add addi r0 r1 i0
+001110 r0[4:0] r1[4:0] i0[15:0]					| p1  i 1 64 add addi r0 r1 i0
 # subi Add Immediate
 001110 r0[4:0] r1[4:0] {-i0}[15:0]  			| p1  i 1 32 sub subi r0 r1 i0
 # li load immediate (alias addi with 0 reg#) p67
