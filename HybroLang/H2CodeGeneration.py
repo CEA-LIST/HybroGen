@@ -23,6 +23,7 @@ class H2CodeGeneration:
         self.regMask = 0xFFFFFFFF # Collect available register
         self.regMask = regTmp.getCMask(self.regMask) # From tmp bank
         self.regMask = regIn.getCMask(self.regMask)  # From in bank
+        # https://www.ibm.com/docs/en/aix/7.2.0?topic=overview-runtime-process-stack
         stackCode = [] # RISCV frame & generation & callee saved
         if self.archName == "riscv":
             self.g.setIndentLevel (0)
