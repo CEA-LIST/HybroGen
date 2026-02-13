@@ -1,33 +1,44 @@
-H2FLAGS= -g
-CFLAGS =-Wall -O0 -g -DH2_DEBUG_REGISTER -DH2_DEBUG_INSN
-CFLAGS =-Wall -O0 -g # -DH2_DEBUG_REGISTER -DH2_DEBUG_INSN
-# CFLAGS =-Wall -O3 # -DH2_DEBUG_REGISTER  -DH2_DEBUG_INSN
+HLFLAGS= -g
+CFLAGS =-Wall -O0 -g # -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
+CFLAGS =-Wall -O3 # -DH2_DEBUG_REGISTER  -DH2_DEBUG_INSN
 FILE = VectorMatrix
-
+# HLFLAGS=-g
 all:
-	echo "which tartet ? make [power|aarch64|riscv]"
+	@echo "make riscv"
+	@echo "make aarch64"
+	@echo "make power"
 
 power:
-	../../HybroLang.py -c -a power -i ${FILE}.hl        ${H2FLAGS}
-	powerpc64le-linux-gnu-gcc -o ${FILE} ${FILE}.c ${CFLAGS}
-	make QEMU=qemu-ppc64le CODE=${FILE} run
+	make build   ARCH=$@
+	make compile ARCH=$@ CC=powerpc64le-linux-gnu-gcc
+	make run     ARCH=$@ QEMU=qemu-ppc64le CODE=${FILE}
 
 aarch64:
-	../../HybroLang.py -c -a aarch64 -i ${FILE}.hl  ${H2FLAGS}
-	aarch64-linux-gnu-gcc -o ${FILE} ${FILE}.c ${CFLAGS}
-	make QEMU=qemu-aarch64 CODE=${FILE} run
+	make build   ARCH=$@
+	make compile ARCH=$@ CC=aarch64-linux-gnu-gcc
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE}
 
 riscv:
-	../../HybroLang.py -c -a riscv -i ${FILE}.hl  ${H2FLAGS}
-	riscv32-linux-gnu-gcc -o ${FILE} ${FILE}.c ${CFLAGS}
-	make QEMU=qemu-riscv32 CODE=${FILE} run
+	make build   ARCH=$@
+	make compile ARCH=$@ CC=riscv32-linux-gnu-gcc
+	make run     ARCH=$@ QEMU=qemu-riscv32 CODE=${FILE}
+
+build:
+	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./VectorMatrix.hl
+	mv VectorMatrix.c VectorMatrix.${ARCH}.c
+
+compile: VectorMatrix.${ARCH}.c
+	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}
 
 run:
-	${QEMU} ${CODE} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
-	${QEMU} ${CODE} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
-	${QEMU} ${CODE} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
-	${QEMU} ${CODE} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
-	${QEMU} ${CODE} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+	${QEMU} ${CODE}.${ARCH} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
+	${QEMU} ${CODE}.${ARCH} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
+	${QEMU} ${CODE}.${ARCH} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
+	${QEMU} ${CODE}.${ARCH} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
+	${QEMU} ${CODE}.${ARCH} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
 
 clean:
 	-rm ${FILE}.c ${FILE}
+	-rm ${FILE}.aarch64.c ${FILE}.aarch64
+	-rm ${FILE}.power.c   ${FILE}.power
+	-rm ${FILE}.riscv.c   ${FILE}.riscv
