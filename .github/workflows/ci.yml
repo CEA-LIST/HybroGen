@@ -28,11 +28,8 @@ jobs:
           export TEMP_DIR="$RUNNER_TEMP/my_temp"
 
       - name: GenCrossTools test on each arch
-        env:
-          TEMP_DIR: ${{ runner.temp }}/my_temp
         run: |
           echo "Start Gen cross tools test"
-          TEMP_DIR: ${{ runner.temp }}/my_temp        	
           python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
           python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
           python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
