@@ -20,3 +20,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'  # to change
+
+      - name: Create temp folder
+        run: |
+          echo "Using temp folder: $RUNNER_TEMP/my_temp"
+          mkdir -p $RUNNER_TEMP/my_temp
+          export TEMP_DIR="$RUNNER_TEMP/my_temp"
+
+      - name: GenCrossTools test on each arch
+        run: |
+        	python3 GenCrossTools.py -a aarch64  -p ${TEMP_DIR} -w ${TEMP_DIR}/tmp \
+          && python3 GenCrossTools.py -a riscv -p ${TEMP_DIR} -w ${TEMP_DIR}/tmp -t \
+          && python3 GenCrossTools.py -a power  -p ${TEMP_DIR} -w ${TEMP_DIR}/tmp -s
