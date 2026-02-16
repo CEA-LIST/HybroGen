@@ -30,7 +30,7 @@ jobs:
       - name: GenCrossTools test on each arch
         run: |
           echo "Start Gen cross tools test"
-          python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
-          python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
-          python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
+          python GenCrossTools.py -a aarch64  -p "$TEMP_DIR/" -w "$TEMP_DIR/" 
+          python GenCrossTools.py -a riscv  -p "$TEMP_DIR/" -w "$TEMP_DIR/" 
+          python GenCrossTools.py -a power  -p "$TEMP_DIR/" -w "$TEMP_DIR/" 
 
