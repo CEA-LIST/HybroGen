@@ -1,7 +1,7 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-# nCFLAGS=-O3 # -DVERBOSE  -g  -DH2_DEBUG_REGISTER
+CFLAGS=-O3 # -DVERBOSE  -g  -DH2_DEBUG_REGISTER
 # CFLAGS= -DH2_DEBUG_REGISTER -g -O0 -Wall -Wno-unused-variable # -DVERBOSE -DH2_DEBUG  -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
 # -g With instruction selector as functions instead of macro
 # -z Visual tree
@@ -40,31 +40,34 @@ power:
 	make compile ARCH=power CC=powerpc64le-linux-gnu-gcc
 	qemu-ppc64le Stencil.power Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
 
-
 # Do all experiments on aarch64 or riscv / qemu or native
 allPowerQemu:
-	make build   ARCH=power
-	make compile ARCH=power CC=powerpc64le-linux-gnu-gcc
-	make runAll	 ARCH=power RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=power CC=powerpc64le-linux-gnu-gcc RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allAarch64Qemu:
-	make build   ARCH=aarch64
-	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	make runAll	 ARCH=aarch64 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
-
-allAarch64Native:
-	make compile ARCH=aarch64 CC=cc
-	make runAll  ARCH=aarch64 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvQemu:
-	make build   ARCH=riscv
-	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-	make runAll	 ARCH=riscv RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+
+allQemu:
+	make build   ARCH=${ARCH}
+	make compile ARCH=${ARCH} CC=${CC}
+	make runAll	 ARCH=${ARCH} RUNNER=${RUNNER} LOG=${LOG}
+	./InstructionCount.awk      ${LOG}
+	./CyclesPerGeneratedInsn.awk ${LOG}
+
+allAarch64Native:
+	make allNative ARCH=aarch64 CC=cc RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvNative:
-	make compile ARCH=riscv CC=cc
-	make runAll  ARCH=riscv RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allNative ARCH=riscv CC=cc RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
+allNative:
+	make compile ARCH=${ARCH} CC=${CC}
+	make runAll	 ARCH=${ARCH} RUNNER=${RUNNER} LOG=${LOG}
+	./InstructionCount.awk      ${LOG}
+	./CyclesPerGeneratedInsn.awk ${LOG}
 
 # Run on various filters
 runAll:
