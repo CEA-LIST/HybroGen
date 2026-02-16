@@ -21,6 +21,15 @@ jobs:
         with:
           python-version: '3.11'  # to change
 
+      - name: Install QEMU dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libglib2.0-dev \
+            libpixman-1-dev \
+            zlib1g-dev \
+            pkg-config
+
       - name: Create temp folder
         env:
           TEMP_DIR: ${{ runner.temp }}/my_temp
@@ -35,6 +44,17 @@ jobs:
         run: |
           echo "Start Gen cross tools test"
           python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
+          echo "Aarch64 arch has been setup with GenCrossTools"
           python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
+          echo "riscv arch has been setup with GenCrossTools"
           python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
+          echo "power arch has been setup with GenCrossTools"
+
+      - name: Regression test on each arch
+        env:
+          TEMP_DIR: ${{ runner.temp }}/my_temp
+        run: |
+          echo "Trying do"
+          mkdir -p $RUNNER_TEMP/my_temp
+          export TEMP_DIR="$RUNNER_TEMP/my_temp"
 
