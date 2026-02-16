@@ -285,7 +285,8 @@ int main(int argc, char *argv[])
 		 filterImageName,
 		 Filter->width, Filter->height, In->width, In->height,
 		 timeStatic/nXperiment, timeH4/nXperiment,
-		 h2_codeGenTime, h2_insnGenerated, error);
+		 h2_codeGenTime, h2_insnGenerated,
+         error);
 
 #if VERBOSE
   writePgmImage(OutStatic, argv[2]);
