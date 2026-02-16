@@ -1,0 +1,39 @@
+name: CI Test
+
+on:
+  push:
+    branches:
+      - ci-test
+  pull_request:
+    branches:
+      - ci-test
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/Checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # to change
+
+      - name: Create temp folder
+        run: |
+          echo "Using temp folder: $RUNNER_TEMP/my_temp"
+          mkdir -p $RUNNER_TEMP/my_temp
+          export TEMP_DIR="$RUNNER_TEMP/my_temp"
+
+      - name: GenCrossTools test on each arch
+        env:
+          TEMP_DIR: ${{ runner.temp }}/my_temp
+        run: |
+          echo "Start Gen cross tools test"
+          TEMP_DIR: ${{ runner.temp }}/my_temp        	
+          python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
+          python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
+          python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/tmp" 
+
