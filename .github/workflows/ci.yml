@@ -22,15 +22,18 @@ jobs:
           python-version: '3.11'  # to change
 
       - name: Create temp folder
+        env:
+          TEMP_DIR: ${{ runner.temp }}/my_temp
         run: |
           echo "Using temp folder: $RUNNER_TEMP/my_temp"
           mkdir -p $RUNNER_TEMP/my_temp
           export TEMP_DIR="$RUNNER_TEMP/my_temp"
 
       - name: GenCrossTools test on each arch
+        env:
+          TEMP_DIR: ${{ runner.temp }}/my_temp
         run: |
           echo "Start Gen cross tools test"
-          echo "$TEMP_DIR"
           python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
           python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
           python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
