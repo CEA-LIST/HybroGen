@@ -71,9 +71,20 @@ jobs:
 
   regression-test-aarch64:
     runs-on: ubuntu-latest
+    needs: build-toolschains
     steps:
+      
     - name: Checkout repo
       uses: actions/Checkout@v4
+    - name: Download toolchains artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: ./toolchains  # où tu veux récupérer l'artifact
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
     - name: Regression test on each arch
       run: |
         make aarch64
