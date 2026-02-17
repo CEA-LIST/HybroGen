@@ -69,6 +69,8 @@ jobs:
   regression-test:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout repo
+      uses: actions/Checkout@v4
     - name: Regression test on each arch
       run: |
         make aarch64 riscv power
