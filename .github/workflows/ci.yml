@@ -32,7 +32,7 @@ jobs:
             pkg-config
 
       - name: Restore cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: toolchains
           key: toolchain-${{ hashFiles('GenCrossTools.py') }}
@@ -44,7 +44,7 @@ jobs:
           python GenCrossTools.py -a riscv  -p toolchains -w toolchains/
           python GenCrossTools.py -a power  -p toolchains -w toolchains/         
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: toolchains
           path: toolchains
