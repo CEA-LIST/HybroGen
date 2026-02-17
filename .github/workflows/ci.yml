@@ -66,7 +66,7 @@ jobs:
 
 
 
-  regression-test:
+  regression-test-aarch64:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repo
@@ -74,7 +74,21 @@ jobs:
     - name: Regression test on each arch
       run: |
         make aarch64
-        make riscv
-        make power
-      continue-on-error: true
 
+  regression-test-riscv:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+    - name: Regression test on each arch
+      run: |
+        make riscv
+
+  regression-test-power:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+    - name: Regression test on each arch
+      run: |
+        make power
