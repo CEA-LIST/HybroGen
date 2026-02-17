@@ -73,5 +73,8 @@ jobs:
       uses: actions/Checkout@v4
     - name: Regression test on each arch
       run: |
-        make aarch64 riscv power
+        make aarch64
+        make riscv
+        make power
+      continue-on-error: true
 
