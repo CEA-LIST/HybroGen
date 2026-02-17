@@ -38,11 +38,14 @@ jobs:
           key: toolchain-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
+        env:
+          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
-          mkdir toolchains
-          python GenCrossTools.py -a aarch64 -p ./toolchains -w ./toolchains/
-          python GenCrossTools.py -a riscv  -p ./toolchains -w ./toolchains/
-          python GenCrossTools.py -a power  -p ./toolchains -w ./toolchains/        
+          mkdir -p "$TOOLCHAIN_DIR"
+          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
