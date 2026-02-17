@@ -39,7 +39,7 @@ jobs:
 
       - name: Build toolchains
         run: |
-          mkdir -p toolchains
+          mkdir toolchains
           python GenCrossTools.py -a aarch64 -p toolchains -w toolchains
           python GenCrossTools.py -a riscv  -p toolchains -w toolchains
           python GenCrossTools.py -a power  -p toolchains -w toolchains         
