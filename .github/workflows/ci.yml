@@ -10,7 +10,7 @@ on:
 
 jobs:
 
-  build-and-test:
+  build-toolschains:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,39 +31,41 @@ jobs:
             zlib1g-dev \
             pkg-config
 
-      - name: Create temp folder
-        env:
-          TEMP_DIR: ${{ runner.temp }}/my_temp
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: toolchains
+          key: toolchain-${{ hashFiles('GenCrossTools.py') }}
+
+      - name: Build toolchains
         run: |
-          echo "Using temp folder: $RUNNER_TEMP/my_temp"
-          mkdir -p $RUNNER_TEMP/my_temp
-          export TEMP_DIR="$RUNNER_TEMP/my_temp"
+          mkdir -p toolchains
+          python GenCrossTools.py -a aarch64 -p toolchains -w toolchains/
+          python GenCrossTools.py -a riscv  -p toolchains -w toolchains/
+          python GenCrossTools.py -a power  -p toolchains -w toolchains/         
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: toolchains
+          path: toolchains
 
-
-  build-GenCrossTools:
-    if: contains(github.event.head_commit.modified, 'GenCrossTools.py')
+  build-grammar:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout repo
-      uses: actions/Checkout@v4
-    - name: GenCrossTools test on each arch
-      env:
-        TEMP_DIR: ${{ runner.temp }}/my_temp
-      run: |
-        echo "Start Gen cross tools test"
-        python GenCrossTools.py -a aarch64  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
-        echo "Aarch64 arch has been setup with GenCrossTools"
-        python GenCrossTools.py -a riscv  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
-        echo "riscv arch has been setup with GenCrossTools"
-        python GenCrossTools.py -a power  -p "$TEMP_DIR" -w "$TEMP_DIR/" 
-        echo "power arch has been setup with GenCrossTools"
+      - name: Checkout repo
+        uses: actions/Checkout@v4
+      
+      - name: LaunchConstruction
+        run: | 
+            make buildGrammar
+
+
 
   regression-test:
     runs-on: ubuntu-latest
     steps:
     - name: Regression test on each arch
-      env:
-        TEMP_DIR: ${{ runner.temp }}/my_temp
       run: |
         cd CodeExamples && ./Regression.py aarch64 riscv power
 
