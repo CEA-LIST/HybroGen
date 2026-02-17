@@ -40,9 +40,9 @@ jobs:
       - name: Build toolchains
         run: |
           mkdir -p toolchains
-          python GenCrossTools.py -a aarch64 -p toolchains -w toolchains/
-          python GenCrossTools.py -a riscv  -p toolchains -w toolchains/
-          python GenCrossTools.py -a power  -p toolchains -w toolchains/         
+          python GenCrossTools.py -a aarch64 -p toolchains -w toolchains
+          python GenCrossTools.py -a riscv  -p toolchains -w toolchains
+          python GenCrossTools.py -a power  -p toolchains -w toolchains         
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -71,5 +71,5 @@ jobs:
     steps:
     - name: Regression test on each arch
       run: |
-        cd CodeExamples && ./Regression.py aarch64 riscv power
+        make aarch64 riscv power
 
