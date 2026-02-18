@@ -143,13 +143,13 @@ jobs:
           PGPASSWORD: hybrogen
         run: |
           mkdir -p artifacts
-          pg_dump -h localhost -U hybrogen > artifacts/hybrogen.sql
+          pg_dump -h localhost > artifacts/hybrogen.sql
 
       - name: Copy generated code
         run: |
           mkdir -p artifacts/generated
-          cp -r Hybrogen artifacts/generated/
-          cp -r Hybrolang artifacts/generated/
+          cp -r ./Hybrogen artifacts/generated/
+          cp -r ./Hybrolang artifacts/generated/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
