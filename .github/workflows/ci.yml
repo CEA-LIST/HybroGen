@@ -69,6 +69,10 @@ jobs:
       - name: LaunchConstruction
         run: | 
             make buildGrammar
+            test -f IsaDescriptionLexer.py
+            test -f IsaDescriptionParser.py
+            python -c "from HybroGen.IsaDescriptionLexer import IsaDescriptionLexer"
+            python -c "from HybroGen.IsaDescriptionParser import IsaDescriptionParser"
 
       - name: Setup Python
         uses: actions/setup-python@v5
