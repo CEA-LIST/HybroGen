@@ -139,10 +139,11 @@ jobs:
 
       - name: Dump database
         env:
-          PGPASSWORD: postgres
+          PGUSER: hybrogen
+          PGPASSWORD: hybrogen
         run: |
           mkdir -p artifacts
-          pg_dump -h localhost -U hybrogen hybrogen > artifacts/hybrogen.sql
+          pg_dump -h localhost -U hybrogen > artifacts/hybrogen.sql
 
       - name: Copy generated code
         run: |
