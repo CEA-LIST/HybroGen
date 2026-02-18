@@ -57,11 +57,42 @@ jobs:
 
   build-grammar-and-dataBase:
     runs-on: ubuntu-latest
-
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hybrogen
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
 
       - name: Checkout repo
         uses: actions/Checkout@v4
+      
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Create hybrogen dataBase and schema
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d hybrogen <<EOF
+          CREATE USER hybrogen WITH PASSWORD 'hybrogen';
+          GRANT ALL PRIVILEGES ON DATABASE hybrogen TO hybrogen;
+          CREATE SCHEMA IF NOT EXISTS hybrogen AUTHORIZATION hybrogen;
+          EOF
+      
       - name: Install ANTLR4 via apt
         run: |
           sudo apt update          
