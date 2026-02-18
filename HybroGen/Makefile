@@ -5,7 +5,7 @@ ANTLRP = antlr4 -Dlanguage=Python3
 
 all: ${FILES} ${FILESR}
 
-run: all
+run: all clean
 
 ${FILES} : IsaDescription.g4
 	${ANTLRP} IsaDescription.g4
