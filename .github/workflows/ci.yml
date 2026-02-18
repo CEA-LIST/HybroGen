@@ -42,9 +42,9 @@ jobs:
           TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
           mkdir -p "$TOOLCHAIN_DIR"
-          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/ -s"
-          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/ -s"
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/ -s"
+          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Create tar archive
         run: |
