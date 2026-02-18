@@ -46,11 +46,16 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
 
+      - name: Prepare artifact folder
+        run: |
+          mkdir artifact-toolchains
+          cp -r toolchains/* artifact-toolchains/
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolchains
-          path: toolchains
+          path: artifact-toolchains
 
   build-grammar:
     runs-on: ubuntu-latest
