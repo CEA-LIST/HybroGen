@@ -138,6 +138,8 @@ jobs:
           make DbPopulate
 
       - name: Dump database
+        env:
+          PGPASSWORD: postgres
         run: |
           mkdir -p artifacts
           pg_dump -h localhost -U hybrogen hybrogen > artifacts/hybrogen.sql
