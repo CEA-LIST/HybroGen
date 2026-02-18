@@ -78,13 +78,6 @@ jobs:
         run: |
             test -f ./HybroGen/IsaDescriptionLexer.py
             test -f ./HybroGen/IsaDescriptionParser.py
-            
-            
-      - name: Try import
-        run: |
-          python -c "from HybroGen.IsaDescriptionLexer import IsaDescriptionLexer"
-          python -c "from HybroGen.IsaDescriptionParser import IsaDescriptionParser"
-
 
       - name: Install ANTLR4 for H2ISA
         run: |
@@ -92,6 +85,14 @@ jobs:
           sudo apt install -y python3-antlr4
           python -m pip install --upgrade pip
           pip install antlr4-python3-runtime
+            
+      - name: Try import
+        run: |
+          python -c "from HybroGen.IsaDescriptionLexer import IsaDescriptionLexer"
+          python -c "from HybroGen.IsaDescriptionParser import IsaDescriptionParser"
+
+
+
 
       
       - name: make Db
