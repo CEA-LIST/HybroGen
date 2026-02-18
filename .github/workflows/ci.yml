@@ -64,7 +64,7 @@ jobs:
         uses: actions/Checkout@v4
       - name: Install ANTLR4 via apt
         run: |
-          sudo apt update
+          sudo apt update          
           sudo apt install -y antlr4      
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -74,8 +74,8 @@ jobs:
       - name: Get ANTLR version
         id: antlr-version
         run: |
-          VERSION=$(antlr4 | awk '{print $5}')
-          echo "ANTLR version is $VERSION"
+          VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+          echo "ANTLR version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       
       - name: Install ANTLR4 for H2ISA
@@ -83,7 +83,7 @@ jobs:
           sudo apt update
           sudo apt install -y python3-antlr4
           python -m pip install --upgrade pip
-          pip install antlr4-python3-runtime==$VERSION
+          pip install antlr4-python3-runtime==${VERSION}
           
 
       - name: LaunchConstruction
