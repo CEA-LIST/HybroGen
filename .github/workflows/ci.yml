@@ -74,7 +74,7 @@ jobs:
       - name: Get ANTLR version
         id: antlr-version
         run: |
-          VERSION=$(antlr4 -version | awk '{print $4}')
+          VERSION=$(antlr4 | awk '{print $5}')
           echo "ANTLR version is $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       
