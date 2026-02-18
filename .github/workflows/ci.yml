@@ -148,8 +148,8 @@ jobs:
       - name: Copy generated code
         run: |
           mkdir -p artifacts/generated
-          cp -r ./Hybrogen artifacts/generated/
-          cp -r ./Hybrolang artifacts/generated/
+          cp -r ./HybroGen artifacts/generated/
+          cp -r ./HybroLang artifacts/generated/
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -186,18 +186,50 @@ jobs:
 
   regression-test-riscv:
     runs-on: ubuntu-latest
+    needs: [build-toolschains,build-grammar-and-dataBase] 
     steps:
+      
     - name: Checkout repo
       uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+
+    - name: Extract toolchains
+      run: |
+        mkdir toolchains
+        tar -xzf toolchains.tar.gz -C toolchains
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
     - name: Regression test on each arch
       run: |
         make riscv
 
   regression-test-power:
     runs-on: ubuntu-latest
+    needs: [build-toolschains,build-grammar-and-dataBase] 
     steps:
+      
     - name: Checkout repo
       uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+
+    - name: Extract toolchains
+      run: |
+        mkdir toolchains
+        tar -xzf toolchains.tar.gz -C toolchains
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
     - name: Regression test on each arch
       run: |
         make power
