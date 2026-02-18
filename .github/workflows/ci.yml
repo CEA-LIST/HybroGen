@@ -71,20 +71,30 @@ jobs:
         with:
           python-version: '3.11'
           
+      - name: Get ANTLR version
+        id: antlr-version
+        run: |
+          VERSION=$(antlr4 -version | awk '{print $4}')
+          echo "ANTLR version is $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Install ANTLR4 for H2ISA
+        run: | # BE CAREFUL antlr4-python3-runtime==4.7.2 Doit etre tenu a jour ou trouver une manière de synchroniser antlr4 version et antlr4 python runtime
+          sudo apt update
+          sudo apt install -y python3-antlr4
+          python -m pip install --upgrade pip
+          pip install antlr4-python3-runtime==$VERSION
+          
+
       - name: LaunchConstruction
         run: | 
             make buildGrammar
+      
       - name: builded file present 
         run: |
             test -f ./HybroGen/IsaDescriptionLexer.py
             test -f ./HybroGen/IsaDescriptionParser.py
 
-      - name: Install ANTLR4 for H2ISA
-        run: |
-          sudo apt update
-          sudo apt install -y python3-antlr4
-          python -m pip install --upgrade pip
-          pip install antlr4-python3-runtime
             
       - name: Try import
         run: |
