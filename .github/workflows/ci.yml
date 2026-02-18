@@ -51,11 +51,14 @@ jobs:
           mkdir artifact-toolchains
           cp -r toolchains/* artifact-toolchains/
 
+      - name: Create tar archive
+        run: |
+          tar -czf toolchains.tar.gz -C toolchains .
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolchains
-          path: artifact-toolchains
+          path: toolchains.tar.gz
 
   build-grammar:
     runs-on: ubuntu-latest
@@ -77,6 +80,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/Checkout@v4
+      - name: Install ANTLR4 via apt
+        run: |
+          sudo apt update
+          sudo apt install -y antlr4   
       - name: make Db
         run: |
           make DbPopulate
@@ -89,12 +96,15 @@ jobs:
     - name: Checkout repo
       uses: actions/Checkout@v4
 
-    - name: Download toolchains artifact
+    - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: ./toolchains  # où tu veux récupérer l'artifact
 
+    - name: Extract toolchains
+      run: |
+        mkdir toolchains
+        tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
       run: |
