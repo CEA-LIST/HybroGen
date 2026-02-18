@@ -46,11 +46,6 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
 
-      - name: Prepare artifact folder
-        run: |
-          mkdir artifact-toolchains
-          cp -r toolchains/* artifact-toolchains/
-
       - name: Create tar archive
         run: |
           tar -czf toolchains.tar.gz -C toolchains .
@@ -80,10 +75,13 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/Checkout@v4
-      - name: Install ANTLR4 via apt
+
+      - name: Install ANTLR4 for H2ISA
         run: |
           sudo apt update
-          sudo apt install -y antlr4   
+          sudo apt install -y antlr4
+          sudo apt install -y python3-antlr4
+      
       - name: make Db
         run: |
           make DbPopulate
