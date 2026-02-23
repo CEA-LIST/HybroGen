@@ -28,19 +28,20 @@ int main(int argc, char * argv[])
 {
   int arrayLen, i, resultOK;
   pifi fPtr;
-  int *arrayIn, *arrayOut;
+  int *arrayIn, *arrayOut, *arrayRef;
   int stencil[3];
   int testval, stenLen = 3;
 
-  if (argc < 5)
+  if (argc != 5)
     {
       printf("Give 4 values (array len & 3 stencil coefficient)\n");
       exit(-1);
     }
   arrayLen = atoi (argv[1]);   // Get the array len
   stenLen = 3;
-  arrayIn =  calloc (arrayLen, sizeof (int));
+  arrayIn  = calloc (arrayLen, sizeof (int));
   arrayOut = calloc(arrayLen, sizeof (int));
+  arrayRef = calloc(arrayLen, sizeof (int));
   for (i=0; i<stenLen; i++)
     {
       stencil[i] = atoi(argv[i+2]);
@@ -54,18 +55,31 @@ int main(int argc, char * argv[])
   printArray ("stencil", stencil, stenLen);
 
   fPtr = (pifi) genStencil (h2_malloc (1024), stencil[0], stencil[1], stencil[2], arrayLen);
+#if 0
   printf("IN             Compilette C\n");
-  for (i=1; i<arrayLen-1; i++)
+#endif
+  for (i = 1; i < arrayLen-1; i++)
     {
       fPtr(arrayIn, arrayOut, i);  // Call generated code
-      testval = arrayIn[i-1]*stencil[0] + arrayIn[i]*stencil[1] +  arrayIn[i+1]*stencil[2];
+      // Reference code
+      arrayRef[i] = arrayIn[i-1]*stencil[0] + arrayIn[i]*stencil[1] +  arrayIn[i+1]*stencil[2];
+#if 0
       printf("%4d, %4d, %4d, %4d, %4d : %s\n",
              arrayIn[i-1],
              arrayIn[i],
              arrayIn[i+1],
-             arrayOut[i], testval, (testval != arrayOut[i])?"NOK":"OK");
+             arrayOut[i], arrayRef[i], (arrayRef[i] != arrayOut[i])?"NOK":"OK");
+#endif
     }
+  printf ("\t%d insn generated\n", h2_insnGenerated);
+  printArray ("arrayRef", arrayRef, arrayLen);
   printArray ("arrayOut", arrayOut, arrayLen);
   resultOK = 0;
+  // Check if result are similar
+  for (i = 1; i < arrayLen-1; i++)
+    {
+      if (arrayRef[i] != arrayOut[i])
+        resultOK = -1;
+    }
   return resultOK;
 }

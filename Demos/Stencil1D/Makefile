@@ -18,15 +18,20 @@ aarch64:
 	make QEMU=qemu-aarch64 CODE=${FILE} run
 
 riscv:
-	../../HybroLang.py -c -a riscv -i ${FILE}.hl  ${H2FLAGS}
-	riscv32-linux-gnu-gcc -o ${FILE} ${FILE}.c ${CFLAGS}
-	make QEMU=qemu-riscv32 CODE=${FILE} run
+	make compileAndRun ARCH=riscv CC=riscv32-linux-gnu-gcc QEMU=qemu-riscv32
 
-run:
+compileAndRun:
+	../../HybroLang.py -c -a ${ARCH} -i ${FILE}.hl  ${H2FLAGS}
+	cp ${FILE}.c ${FILE}.${ARCH}.c 
+	${CC} -o ${FILE}.${ARCH} ${FILE}.${ARCH}.c ${CFLAGS}
+	make run QEMU=${QEMU} CODE=${FILE}.${ARCH}
+
+run: # <Array Len> <convolution value #1> <value #2> <value #3>
 	${QEMU} ${CODE} 10 1 1 1
 	${QEMU} ${CODE} 10 7 7 7 
 	${QEMU} ${CODE} 10 8 8 8
 	${QEMU} ${CODE} 10 0 0 0 
+	${QEMU} ${CODE} 10 0 1 0
 
 clean:
-	-rm ${FILE}.c ${FILE}
+	-rm ${FILE}.*.c ${FILE}.riscv ${FILE}.aarch64 ${FILE}.power
