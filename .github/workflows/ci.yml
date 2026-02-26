@@ -65,7 +65,7 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: hybrogen
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
@@ -78,7 +78,7 @@ jobs:
       
       - name: Wait for PostgreSQL
         run: |
-          until pg_isready -h localhost -p 5433 -U postgres; do
+          until pg_isready -h localhost -p 5432 -U postgres; do
             echo "Waiting for PostgreSQL..."
             sleep 2
           done
@@ -87,7 +87,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: |
-          psql -p 5433 -h localhost -U postgres -d hybrogen <<EOF
+          psql -h localhost -U postgres -d hybrogen <<EOF
           CREATE USER hybrogen WITH PASSWORD 'hybrogen';
           GRANT ALL PRIVILEGES ON DATABASE hybrogen TO hybrogen;
           CREATE SCHEMA IF NOT EXISTS hybrogen AUTHORIZATION hybrogen;
@@ -170,7 +170,7 @@ jobs:
           POSTGRES_PASSWORD: hybrogen
           POSTGRES_DB: hybrogen
         ports:
-          - 5433:5432
+          - 5432:5432
         options: >-
           --health-cmd "pg_isready -U hybrogen"
           --health-interval 10s
