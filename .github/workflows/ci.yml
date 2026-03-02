@@ -207,7 +207,7 @@ jobs:
 
     - name: Verify files
       run: |
-        ls -Rl ./toolchains
+        ls -Rla ./toolchains
 
     - name: Regression test on each arch
       run: |
@@ -402,14 +402,6 @@ jobs:
       with:
         name: hybrogen-artifacts
         path: ./artifacts
-
-    - name: Extract toolchains
-      run: |
-        tar -xzf toolchains.tar.gz -C toolchains
-
-    - name: Verify files
-      run: |
-        ls -l ./toolchains
         
     - name: Test Vector
       run: |
@@ -436,14 +428,6 @@ jobs:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Extract toolchains
-      run: |
-        tar -xzf toolchains.tar.gz -C toolchains
-
-    - name: Verify files
-      run: |
-        ls -l ./toolchains
-        
     - name: Test Vector
       run: |
         source ./toolchains/power/.cshrc
