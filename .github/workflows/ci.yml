@@ -204,10 +204,6 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-    - name: Extract toolchains
-      run: |
-        mkdir -p toolchains
-        tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
       run: |
@@ -261,11 +257,6 @@ jobs:
           sleep 2
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
-
-    - name: Extract toolchains
-      run: |
-        mkdir -p toolchains
-        tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
       run: |
@@ -328,4 +319,132 @@ jobs:
       run: |
         source ./toolchains/power/.cshrc
         make power
-  
+
+  demo-stencil-riscv:
+    runs-on: ubuntu-latest
+    needs: [regression-test-riscv]
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: toolchains
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
+        
+    - name: Test Stencil
+      run: |
+        source ./toolchains/power/.cshrc
+        cd ./Demos/Stencil && make allRiscvQemu
+
+  demo-stencil-aarch64:
+    runs-on: ubuntu-latest
+    needs: [regression-test-aarch64]
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: toolchains
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Extract toolchains
+      run: |
+        tar -xzf toolchains.tar.gz -C toolchains
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
+        
+    - name: Test Stencil
+      run: |
+        source ./toolchains/power/.cshrc
+        cd ./Demos/Stencil && make allAarch64Qemu
+
+
+  demo-vectorMatrix-aarch64:
+    runs-on: ubuntu-latest
+    needs: [regression-test-aarch64]
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: toolchains
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Extract toolchains
+      run: |
+        tar -xzf toolchains.tar.gz -C toolchains
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
+        
+    - name: Test Vector
+      run: |
+        source ./toolchains/power/.cshrc
+        cd ./Demos/VectorMatrix && make aarch64
+
+  demo-vectorMatrix-riscv:
+    runs-on: ubuntu-latest
+    needs: [regression-test-riscv]
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: toolchains
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Extract toolchains
+      run: |
+        tar -xzf toolchains.tar.gz -C toolchains
+
+    - name: Verify files
+      run: |
+        ls -l ./toolchains
+        
+    - name: Test Vector
+      run: |
+        source ./toolchains/power/.cshrc
+        cd ./Demos/VectorMatrix && make riscv
