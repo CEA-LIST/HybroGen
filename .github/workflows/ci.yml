@@ -321,7 +321,7 @@ jobs:
         
     - name: Regression test on each arch
       run: |
-        source ./toolchains/power/.cshrc
+        source ./toolchains/power/.bashrc
         make power
 
   demo-stencil-riscv:
@@ -350,7 +350,7 @@ jobs:
         
     - name: Test Stencil
       run: |
-        source ./toolchains/power/.cshrc
+        source ./toolchains/power/.bashrc
         cd ./Demos/Stencil && make allRiscvQemu
 
   demo-stencil-aarch64:
