@@ -48,14 +48,12 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" 
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
 
-      - name: Create tar archive
-        run: |
-          tar -czf toolchains.tar.gz -C toolchains .
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolchains
-          path: toolchains.tar.gz
+          path: toolchains/
 
   build-grammar-and-dataBase:
     runs-on: ubuntu-latest
@@ -187,7 +185,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: toolchains.tar.gz
+        path: toolchains
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -245,7 +243,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: toolchains.tar.gz
+        path: toolchains
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -303,7 +301,8 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-
+        path: toolchains
+  
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
