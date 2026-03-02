@@ -207,7 +207,7 @@ jobs:
 
     - name: Verify files
       run: |
-        ls -l ./toolchains
+        ls -Rl ./toolchains
 
     - name: Regression test on each arch
       run: |
