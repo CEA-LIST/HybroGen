@@ -52,7 +52,10 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
-
+      - name: Check bashrc
+        run: |
+          test -f toolchains/aarch64/.bashrc && echo "Found .bashrc" || echo "Missing .bashrc"
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
