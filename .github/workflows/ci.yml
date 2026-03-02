@@ -1,10 +1,11 @@
 name: CI Test
 
+# test refus de commit on main pour garder une branch main toujours fonctionnel
 on:
-  push:
+  push: # on push branch main
     branches:
       - '**'
-  pull_request:
+  pull_request: # on pull request on all branch
     branches:
       - '**'
 
@@ -382,7 +383,7 @@ jobs:
         
     - name: Test Stencil
       run: |
-        source ./toolchains/power/.cshrc
+        source ./toolchains/power/.bashrc
         cd ./Demos/Stencil && make allAarch64Qemu
 
 
@@ -408,7 +409,7 @@ jobs:
         
     - name: Test Vector
       run: |
-        source ./toolchains/power/.cshrc
+        source ./toolchains/power/.bashrc
         cd ./Demos/VectorMatrix && make aarch64
 
   demo-vectorMatrix-riscv:
@@ -433,5 +434,5 @@ jobs:
 
     - name: Test Vector
       run: |
-        source ./toolchains/power/.cshrc
+        source ./toolchains/power/.bashrc
         cd ./Demos/VectorMatrix && make riscv
