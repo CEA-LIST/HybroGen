@@ -185,7 +185,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: ./toolchains
+        path: toolchains.tar.gz
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
