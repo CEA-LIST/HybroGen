@@ -207,6 +207,7 @@ jobs:
 
     - name: Extract toolchains
       run: |
+        mkdir -p toolchains
         tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
@@ -264,6 +265,7 @@ jobs:
 
     - name: Extract toolchains
       run: |
+        mkdir -p toolchains
         tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
@@ -321,6 +323,7 @@ jobs:
 
     - name: Extract toolchains
       run: |
+        mkdir -p toolchains
         tar -xzf toolchains.tar.gz -C toolchains
 
     - name: Verify files
