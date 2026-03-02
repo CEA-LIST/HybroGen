@@ -215,7 +215,7 @@ jobs:
 
     - name: Regression test on each arch
       run: |
-        source ./toolchains/aarch64/.cshrc
+        source ./toolchains/aarch64/.bashrc
         make aarch64
 
   regression-test-riscv:
@@ -268,7 +268,7 @@ jobs:
         
     - name: Regression test on each arch
       run: |
-        source ./toolchains/riscv/.cshrc
+        source ./toolchains/riscv/.bashrc
         make riscv
 
   regression-test-powerpc:
