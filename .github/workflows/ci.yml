@@ -190,17 +190,11 @@ jobs:
       
     - name: Checkout repo
       uses: actions/Checkout@v4
-
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: toolchains
-        path: ./toolchains/
-
     - name: Install ANTLR4 via apt
       run: |
         sudo apt update          
         sudo apt install -y antlr4      
+        
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
@@ -220,6 +214,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install antlr4-python3-runtime==${VERSION}
         pip install psycopg2-binary
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: ./toolchains/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -242,7 +242,7 @@ jobs:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
         chmod -R +x toolchains/aarch64/bin
-        cd CodeExamples && ../HybroLang.py --toC --arch aarch64 --inputfile Add-With-Consts.hl 
+        cd CodeExamples && python3 ../HybroLang.py --toC --arch aarch64 --inputfile Add-With-Consts.hl 
         make aarch64
 
   regression-test-riscv:
