@@ -51,19 +51,13 @@ jobs:
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
-
-      - name: Check bashrc
-        run: |
-          test -f toolchains/aarch64/.bashrc && echo "Found .bashrc" || echo "Missing .bashrc"
-          ls -la ./toolchains/aarch64
-          ls -la ./toolchains/riscv
-          ls -la ./toolchains/power
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: toolchains
           path: toolchains/
+          include-hidden-files: true
           if-no-files-found: error
 
   build-grammar-and-dataBase:
