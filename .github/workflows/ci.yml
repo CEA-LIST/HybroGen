@@ -55,6 +55,9 @@ jobs:
       - name: Check bashrc
         run: |
           test -f toolchains/aarch64/.bashrc && echo "Found .bashrc" || echo "Missing .bashrc"
+          ls -la ./toolchains/aarch64
+          ls -la ./toolchains/riscv
+          ls -la ./toolchains/power
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
