@@ -223,7 +223,6 @@ jobs:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
         chmod -R +x toolchains/aarch64/bin
-        aarch64-linux-gnu-gcc
         make aarch64
 
   regression-test-riscv:
