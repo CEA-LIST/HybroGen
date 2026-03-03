@@ -124,9 +124,8 @@ jobs:
           sudo apt update
           sudo apt install -y python3-antlr4
           python -m pip install --upgrade pip
-          pip install antlr4-python3-runtime==${VERSION}
-          pip install psycopg2-binary
-          
+          python -m pip install antlr4-python3-runtime==${VERSION}
+          python -m pip install psycopg2-binary
 
       - name: LaunchConstruction
         run: | 
@@ -212,8 +211,8 @@ jobs:
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
-        pip install antlr4-python3-runtime==${VERSION}
-        pip install psycopg2-binary
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
 
     - name: Download artifact
       uses: actions/download-artifact@v4
