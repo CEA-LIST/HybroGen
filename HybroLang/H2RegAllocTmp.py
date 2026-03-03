@@ -57,6 +57,7 @@ class H2RegAllocTmp():
         for sons in Insn.sonsList : # Descent first
             self.genTemps(sons)
             # self.sTable.resetTemps("i")
+#        breakpoint()
         if Insn.isOperator() and None == Insn.getRegister():
             if None == Insn.getOpType(): # A node without type
                 # Propagate leaf data type to the top
@@ -67,7 +68,8 @@ class H2RegAllocTmp():
                 Insn.setVariableName(self.sTable.getTemps(localType))
             else:
                 # For all non terminal node, alloc register
-                if Insn.getVariableName() != "h2_outputVarName":
+                # if Insn.getVariableName() != "h2_outputVarName" or Insn.getVariableName() == None:
+                if Insn.getVariableName() == None:
                     localType = Insn.getOpType()
                     Insn.setVariableName(self.sTable.getTemps(localType))
         else: # Compare types
