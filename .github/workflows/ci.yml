@@ -241,7 +241,7 @@ jobs:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
         chmod -R +x toolchains/aarch64/bin
-        cd CodeExamples && python3 ../HybroLang.py --toC --arch aarch64 --inputfile Add-With-Consts.hl 
+        cd CodeExamples && python ../HybroLang.py --toC --arch aarch64 --inputfile Add-With-Consts.hl 
         make aarch64
 
   regression-test-riscv:
