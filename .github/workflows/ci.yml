@@ -197,6 +197,30 @@ jobs:
         name: toolchains
         path: ./toolchains/
 
+    - name: Install ANTLR4 via apt
+      run: |
+        sudo apt update          
+        sudo apt install -y antlr4      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Get ANTLR version
+      id: antlr-version
+      run: |
+        VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+        echo "ANTLR version: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+    
+    - name: Install ANTLR4 for H2ISA
+      run: | # BE CAREFUL antlr4-python3-runtime==4.7.2 Doit etre tenu a jour ou trouver une manière de synchroniser antlr4 version et antlr4 python runtime
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        pip install antlr4-python3-runtime==${VERSION}
+        pip install psycopg2-binary
+
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
