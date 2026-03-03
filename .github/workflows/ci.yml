@@ -221,6 +221,7 @@ jobs:
     - name: Regression test on each arch
       run: |
         source ./toolchains/aarch64/.bashrc
+        aarch64-linux-gnu-gcc
         make aarch64
 
   regression-test-riscv:
