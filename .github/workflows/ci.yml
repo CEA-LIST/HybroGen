@@ -219,9 +219,9 @@ jobs:
         ls -Rla ./toolchains
 
     - name: Regression test on each arch
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
-        source ./toolchains/aarch64/.bashrc
-        aarch64-linux-gnu-gcc
         make aarch64
 
   regression-test-riscv:
