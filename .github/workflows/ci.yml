@@ -213,16 +213,12 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-
-    - name: Verify files
-      run: |
-        ls -Rla ./toolchains
-
     - name: Regression test on each arch
       env:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
         chmod -R +x toolchains/aarch64/bin
+        cd CodeExamples && ../HybroLang.py --toC --arch aarch64 --inputfile Add-With-Consts.hl 
         make aarch64
 
   regression-test-riscv:
