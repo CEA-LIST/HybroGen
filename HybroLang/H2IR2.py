@@ -8,7 +8,6 @@ from HybroLang.H2PowerRewrite      import H2PowerRewrite
 from HybroLang.H2CxRAMRewrite      import H2CxRAMRewrite
 from HybroLang.H2TransformToMac    import H2TransformToMac
 from HybroLang.H2CodeGeneration    import H2CodeGeneration
-from HybroLang.H2ConstantOptimizer import H2ConstantOptimizer
 from HybroLang.H2LabelTable        import H2LabelTable
 from HybroLang.H2MovOptimize       import H2MovOptimize
 from HybroLang.H2Node              import H2Node
@@ -90,14 +89,6 @@ class H2IR2():
         else:
             self.trace("No specific rewrite for %s"%(self.platform))
         if self.doShowTree: debug.showTree(self.archMaster+": After Arch specific optim.", self.IList)
-
-        # new = []
-        # p = H2ConstantOptimizer(self.archMaster, verbose=self.verbose)
-        # for i in self.IList :
-        #     new += p.rewriteInsn(i)
-        # self.IList = new
-        #if self.verbose :   self.printIR (self.IList, "IR after H2ConstantOptimizer pass")
-        # if self.doShowTree: debug.showTree(self.archMaster+": After constant optim", self.IList)
 
         p = H2WindowRewrite(self.IList, self.archMaster, verbose=self.verbose)
         self.IList = p.getOptimizedInsnList()

@@ -415,20 +415,20 @@ def extractCompilette(fileIn):
 if __name__ == '__main__':
     import sys, os, argparse
 
-    archList = ("riscv", "power", "kalray", "cxram", "aarch64")
+    archList = ("riscv", "power", "aarch64", "cxram")
     aliasDict = { "riscv": { "arch":["riscv", ],
                              "extension": [["RV32I", "RV32F", "RV32M", "RV32D", "RV64D"],],
                              "abi": "RV32G"},
                  "power": { "arch":["power",],
                             "extension": [["p1", "ppc", "v2.03", "v2.07", "v3.0", "3.0b"],],
                              "abi": "power" },
-                  "cxram":{ "arch":["riscv", "cxram"],
-                            "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
-                            "abi": "CXRAM"},
                   "aarch64":{ "arch":["aarch64"],
                           "extension": [["A64"], ],
                           "abi": "A64"},
-    }
+                  "cxram":{ "arch":["riscv", "cxram"],
+                            "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
+                            "abi": "CXRAM"},
+                }
     parser = argparse.ArgumentParser("Hybrogen to C rewriter")
     group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument ('-i', '--inputfile', required=True, help="give input file name")
