@@ -1,4 +1,11 @@
 /* -*- c -*- */
+if (isInt0(P2))
+  { //   X * 0 = 0 Avoid 1 operation mul & 1 mv
+#ifdef H2_DEBUG_INSN
+	printf ("Optim for *0 P2 (riscv)\n");
+#endif
+	return riscv_genMV_2(P0, immValueZero);
+  }
 if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
 {
 	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
