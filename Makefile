@@ -41,6 +41,9 @@ clean:
 	-(cd CodeExamples/; make clean)
 	-(cd docs/;         make clean)
 
+doregression:
+	(cd CodeExamples ; ./Regression.py ${THEARCH})
+
 aarch64:
 	make doregression THEARCH=aarch64
 
