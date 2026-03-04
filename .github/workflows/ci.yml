@@ -219,6 +219,12 @@ jobs:
         name: hybrogen-artifacts
         path: ./artifacts
 
+    - name: Move artifacts
+      run: |
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
+
     - name: Restore database
       env:
         PGPASSWORD: hybrogen
