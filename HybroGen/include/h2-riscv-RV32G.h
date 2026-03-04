@@ -55,9 +55,9 @@ ticks_t h2_getticks(void)
 				   : "=r" (h), "=r" (l), "=r" (h2));
 	} while (h2 != h);
   result =(((uint64_t)h)<<32) | ((uint64_t)l);
+#endif
   return result;
 }
-#endif
 #endif
 
 
