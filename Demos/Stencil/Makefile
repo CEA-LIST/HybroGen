@@ -33,7 +33,7 @@ resizeImages:
 oneXperiment:
 	make build   ARCH=${ARCH}
 	make compile ARCH=${ARCH} CC=${CC}
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Blur-3x3.pgm
 
 riscv:
 	make oneXperiment ARCH=riscv CC=riscv32-linux-gnu-gcc QEMU=qemu-riscv32
