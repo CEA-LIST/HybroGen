@@ -11,19 +11,19 @@
   /*       #endif */
   /*       return immValueZero; */
   /*   } */
-  if (isInt1(P2))
-    { // X * 1 = X propagate register result
-        #ifdef H2_DEBUG_INSN
-        printf ("Optim for *1 P2 (generic)\n");
-        #endif
-		P1.dontFree = true;
-        return P1;
-    }
-  if (isInt1(P1))
-    { // 1 * X = X propagate register result
-        #ifdef H2_DEBUG_INSN
-        printf ("Optim for *1 P1 (generic)\n");
-        #endif
-		P2.dontFree = true;
-        return P2;
-    }
+  /* if (isInt1(P2)) */
+  /*   { // X * 1 = X propagate register result */
+  /*       #ifdef H2_DEBUG_INSN */
+  /*       printf ("Optim for *1 P2 (generic)\n"); */
+  /*       #endif */
+  /* 		P1.dontFree = true; */
+  /*       return P1; */
+  /*   } */
+  /* if (isInt1(P1)) */
+  /*   { // 1 * X = X propagate register result */
+  /*       #ifdef H2_DEBUG_INSN */
+  /*       printf ("Optim for *1 P1 (generic)\n"); */
+  /*       #endif */
+  /* 		P2.dontFree = true; */
+  /*       return P2; */
+  /*   } */

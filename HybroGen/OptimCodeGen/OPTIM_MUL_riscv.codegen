@@ -6,11 +6,22 @@ if (isInt0(P2))
 #endif
 	return riscv_genMV_2(P0, immValueZero);
   }
-if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
+
+if  (isValue(P2) && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
+  {
+	int shiftValue = h2_log2(P2.valueImm);
+    #ifdef H2_DEBUG_INSN
+      printf ("Optim for MUL %d (power of 2) -> sl %d (riscv)\n", P2.valueImm, shiftValue);
+    #endif
+	P2.valueImm = shiftValue; 	// Instruction shift left immediat
+	return riscv_genSL_3(P0, P1, P2);
+  }
+
+if  (isValue(P2))
 {
 	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
     #ifdef H2_DEBUG_INSN
-      printf ("Fallback for no RRI mul (aarch64)\n");
+      printf ("Fallback for no RRI mul (riscv)\n");
     #endif
 	P2 = riscv_genMV_2(PTMP,  P2);
 	// No return continue instruction selection
