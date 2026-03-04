@@ -87,7 +87,7 @@ if __name__ == "__main__":
         for archName in archList:
             #commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName] + archExt[archName])
             commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName])
-            o = cmd (commande, False, doPrint = False)
+            o = cmd (commande, False, doPrint = True)
             print ("  %23s"%(errMsg[o]), end="")
             resultCode |= o;
         print()
