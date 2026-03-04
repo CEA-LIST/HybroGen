@@ -7,7 +7,7 @@ CLASSP = ${JDIR}/antlr4-runtime.jar
 GRUN = java -cp .:${JDIR}/antlr4.jar:${JDIR}/antlr4-runtime.jar:${JDIR}/treelayout.jar org.antlr.v4.gui.TestRig
 all: ${FILES}
 
-${FILES} : HybroLang.g4
+${FILES} : clean HybroLang.g4
 	${ANTLRP} ${ANTLRFLAGS} HybroLang.g4
 
 debuggui:
