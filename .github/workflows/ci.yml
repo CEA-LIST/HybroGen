@@ -252,6 +252,8 @@ jobs:
         make aarch64
       
     - name: Debug toolchain
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
         which aarch64-linux-gnu-gcc
         aarch64-linux-gnu-gcc -v
