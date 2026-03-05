@@ -11,6 +11,10 @@ on:
 
 jobs:
 
+
+  #######################################################################################
+  ###################### Building of HybroGen ###########################################
+  #######################################################################################
   build-toolschains:
     runs-on: ubuntu-latest
 
@@ -178,7 +182,9 @@ jobs:
           path: artifacts/
           if-no-files-found: error
 
-
+  #######################################################################################
+  ###################### Regression test ################################################
+  #######################################################################################
 
   regression-test-aarch64:
     runs-on: ubuntu-latest
@@ -252,7 +258,6 @@ jobs:
     - name: Regression test on each arch
       env:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
-      continue-on-error: true
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
@@ -263,22 +268,6 @@ jobs:
         chmod -R +x toolchains/aarch64
         make aarch64
       
-    - name: Debug toolchain
-      env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
-      run: |
-        which aarch64-linux-gnu-gcc
-        aarch64-linux-gnu-gcc -v
-        find /usr -name cc1 | grep aarch64 || true
-        ls -laR ./toolchains/aarch64/libexec/gcc
-
-    - name: test compile classic
-      env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
-      run: |
-          aarch64-linux-gnu-gcc -DQEMU_TARGET -Wall -o ./CodeExamples/Add-With-Transprecision.aarch64 ./CodeExamples/Add-With-Transprecision.aarch64.c
-
-
   regression-test-riscv:
     runs-on: ubuntu-latest
     needs: [build-toolschains,build-grammar-and-dataBase] 
@@ -301,17 +290,42 @@ jobs:
     - name: Checkout repo
       uses: actions/Checkout@v4
 
+    
+    - name: Install ANTLR4 via apt
+      run: |
+        sudo apt update          
+        sudo apt install -y antlr4      
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Get ANTLR version
+      id: antlr-version
+      run: |
+        VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+        echo "ANTLR version: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+  
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: toolchains
+        path: ./toolchains/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         name: hybrogen-artifacts
         path: ./artifacts
+
+    - name: Move artifacts
+      run: |
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
 
     - name: Restore database
       env:
@@ -323,16 +337,20 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-    - name: Verify files
-      run: |
-        ls -l ./toolchains
-        
     - name: Regression test on each arch
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
       run: |
-        source ./toolchains/riscv/.bashrc
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        python -c "import psycopg2; print(psycopg2.__version__)"
+        chmod -R +x toolchains/riscv
         make riscv
 
-  regression-test-powerpc:
+  regression-test-power:
     runs-on: ubuntu-latest
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
@@ -354,17 +372,42 @@ jobs:
     - name: Checkout repo
       uses: actions/Checkout@v4
 
+    
+    - name: Install ANTLR4 via apt
+      run: |
+        sudo apt update          
+        sudo apt install -y antlr4      
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Get ANTLR version
+      id: antlr-version
+      run: |
+        VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+        echo "ANTLR version: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+  
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: toolchains
-  
+        path: ./toolchains/
+
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         name: hybrogen-artifacts
         path: ./artifacts
+
+    - name: Move artifacts
+      run: |
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
 
     - name: Restore database
       env:
@@ -376,15 +419,27 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-    - name: Verify files
-      run: |
-        ls -l ./toolchains
-        
     - name: Regression test on each arch
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
       run: |
-        source ./toolchains/power/.bashrc
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        python -c "import psycopg2; print(psycopg2.__version__)"
+        chmod -R +x toolchains/power
         make power
 
+  #######################################################################################
+  ###################### Regression Single Op ###########################################
+  #######################################################################################
+
+
+  #######################################################################################
+  ###################### Demo Stencil ###################################################
+  #######################################################################################
   demo-stencil-riscv:
     runs-on: ubuntu-latest
     needs: [regression-test-riscv]
@@ -413,6 +468,8 @@ jobs:
       run: |
         source ./toolchains/power/.bashrc
         cd ./Demos/Stencil && make allRiscvQemu
+
+
 
   demo-stencil-aarch64:
     runs-on: ubuntu-latest
