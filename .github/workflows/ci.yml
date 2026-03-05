@@ -250,7 +250,10 @@ jobs:
         python -c "import psycopg2; print(psycopg2.__version__)"
         chmod -R +x toolchains/aarch64/bin
         make aarch64
-        aarch64-linux-gnu-gcc -DQEMU_TARGET -Wall -o Add-With-Transprecision.aarch64 Add-With-Transprecision.aarch64.c
+
+    - name: test compile classic
+      run: |
+          aarch64-linux-gnu-gcc -DQEMU_TARGET -Wall -o Add-With-Transprecision.aarch64 Add-With-Transprecision.aarch64.c
 
 
   regression-test-riscv:
