@@ -255,7 +255,7 @@ jobs:
       env:
         BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
-          aarch64-linux-gnu-gcc -DQEMU_TARGET -Wall -o Add-With-Transprecision.aarch64 Add-With-Transprecision.aarch64.c
+          aarch64-linux-gnu-gcc -DQEMU_TARGET -Wall -o ./CodeExamples/Add-With-Transprecision.aarch64 Add-With-Transprecision.aarch64.c
 
 
   regression-test-riscv:
