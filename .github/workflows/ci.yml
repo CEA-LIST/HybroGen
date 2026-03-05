@@ -52,6 +52,14 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
+      - name: test toolchains
+        env:
+          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+        run: |
+          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
+
       - name: Check bashrc
         run: |
           cat ./toolchains/aarch64/.bashrc
