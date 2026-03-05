@@ -250,6 +250,12 @@ jobs:
         python -c "import psycopg2; print(psycopg2.__version__)"
         chmod -R +x toolchains/aarch64/bin
         make aarch64
+      
+    - name: Debug toolchain
+      run: |
+        which aarch64-linux-gnu-gcc
+        aarch64-linux-gnu-gcc -v
+        find /usr -name cc1 | grep aarch64 || true
 
     - name: test compile classic
       env:
