@@ -506,7 +506,7 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-    - name: Regression test on riscv
+    - name: Stencil test on riscv
       env:
         BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
       run: |
@@ -522,17 +522,50 @@ jobs:
 
   demo-stencil-aarch64:
     runs-on: ubuntu-latest
-    needs: [regression-test-aarch64]
+    needs: [build-toolschains,build-grammar-and-dataBase] 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: hybrogen
+          POSTGRES_PASSWORD: hybrogen
+          POSTGRES_DB: hybrogen
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hybrogen"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       
     - name: Checkout repo
       uses: actions/Checkout@v4
 
+    
+    - name: Install ANTLR4 via apt
+      run: |
+        sudo apt update          
+        sudo apt install -y antlr4      
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Get ANTLR version
+      id: antlr-version
+      run: |
+        VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+        echo "ANTLR version: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+  
+
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
         name: toolchains
-        path: toolchains
+        path: ./toolchains/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -540,18 +573,118 @@ jobs:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Extract toolchains
+    - name: Move artifacts
       run: |
-        tar -xzf toolchains.tar.gz -C toolchains
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
 
-    - name: Verify files
+    - name: Restore database
+      env:
+        PGPASSWORD: hybrogen
       run: |
-        ls -l ./toolchains
-        
-    - name: Test Stencil
+        until pg_isready -h localhost -p 5432 -U hybrogen; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
+
+    - name: Stencil test on aarch64
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
-        source ./toolchains/power/.bashrc
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        chmod -R +x toolchains/aarch64
         cd ./Demos/Stencil && make allAarch64Qemu
+
+  demo-stencil-power:
+    runs-on: ubuntu-latest
+    needs: [build-toolschains,build-grammar-and-dataBase] 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: hybrogen
+          POSTGRES_PASSWORD: hybrogen
+          POSTGRES_DB: hybrogen
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hybrogen"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/Checkout@v4
+
+    
+    - name: Install ANTLR4 via apt
+      run: |
+        sudo apt update          
+        sudo apt install -y antlr4      
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Get ANTLR version
+      id: antlr-version
+      run: |
+        VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+        echo "ANTLR version: $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+  
+
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: toolchains
+        path: ./toolchains/
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Move artifacts
+      run: |
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
+
+    - name: Restore database
+      env:
+        PGPASSWORD: hybrogen
+      run: |
+        until pg_isready -h localhost -p 5432 -U hybrogen; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
+
+    - name: Stencil test on power
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
+      run: |
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        chmod -R +x toolchains/power
+        cd ./Demos/Stencil && make allPowerQemu
+
+  #######################################################################################
+  ###################### Demo Vector Matrix ###################################################
+  #######################################################################################
 
 
   demo-vectorMatrix-aarch64:
