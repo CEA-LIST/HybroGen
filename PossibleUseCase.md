@@ -3,20 +3,28 @@
 
 # Introduction
 
-# OpenCV https://opencv.org/
-
+# OpenCV 
+* Reference code : https://opencv.org/
 * Possible optimisation : based on filters values
 * Initial implementation : Demos/Stencil
     
-# Mesa OpenGL https://gitlab.freedesktop.org/mesa/mesa
-
+# Mesa OpenGL 
+* Reference code : https://gitlab.freedesktop.org/mesa/mesa
 * Possible optimisaion : based on transformation matrix value
   * Matrix which is "constant" during 1 image génération
   * https://gitlab.freedesktop.org/mesa/mesa/-/blob/main/src/mesa/math/m_matrix.c
 * Initial implementation : Demos/VectorMatrix    
 
-# Variable precision number library
+# GMP integer / rational & FP numbers
 
+* Reference code :  https://gmplib.org/
+* Possible optimisation : based on code specialization
+* Possible usage
+  * CADO-NFS for big numbers factorization
+
+# Variable precision floating point number library
+
+* Reference code : https://mpfr.loria.fr/mpfr-current/
 * Possible optimisation : based on code specialisation for
   optimization by a given number
 * Memoise binary code based on input parameters
@@ -31,4 +39,5 @@
 
 # High performance computing
 
-* Possible optimisation : identify possible optimization (kernel BigDfT)    
+* Possible optimisation : identify possible optimization (kernel BigDfT)
+
