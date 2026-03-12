@@ -1,4 +1,4 @@
-#!/bin/awk -f
+#!/usr/bin/awk -f
 BEGIN{FS=";"}
 {
 	if (NF == 8) S[$1]=$7

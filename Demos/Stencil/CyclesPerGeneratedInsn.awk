@@ -1,4 +1,4 @@
-#!/bin/awk -f
+#!/usr/bin/awk -f
 BEGIN{FS=";"; InsnSum=0; CycleSum = 0}
 {if ($7 != "") {
 		InsnSum += $7; # Accumulate generated insn count & timing
