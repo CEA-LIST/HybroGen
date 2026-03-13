@@ -756,10 +756,16 @@ jobs:
         done
         psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
 
-        
     - name: Test Vector
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
       run: |
-        source ./toolchains/power/.bashrc
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        chmod -R +x toolchains/aarch64
         cd ./Demos/VectorMatrix && make aarch64
 
   demo-vectorMatrix-riscv:
@@ -833,6 +839,13 @@ jobs:
 
         
     - name: Test Vector
+      env:
+        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
       run: |
-        source ./toolchains/power/.bashrc
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        python -m pip install --upgrade pip
+        python -m pip install antlr4-python3-runtime==${VERSION}
+        python -m pip install psycopg2-binary
+        chmod -R +x toolchains/riscv
         cd ./Demos/VectorMatrix && make riscv
