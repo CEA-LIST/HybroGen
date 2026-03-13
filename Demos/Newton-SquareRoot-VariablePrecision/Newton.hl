@@ -69,6 +69,9 @@ int main(int argc, char **argv)
 			 iterationNumber++,
 			 isFloat?"float ":"double",
 			 next, isFloat?precf:precd);
+       if(iterationNumber > 100){
+        return -1;
+       }
     } while ( diff > precd);
     return 0;
 }
