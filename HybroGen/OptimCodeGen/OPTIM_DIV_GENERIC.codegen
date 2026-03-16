@@ -4,3 +4,10 @@ if  ((P2.ValOrReg == H2VALUE) && (P1.ValOrReg == H2VALUE) && (P1.arith == 'i')&&
 {
   return (h2_sValue_t) {H2VALUE, P1.arith, P1.vLen, P1.wLen, -1, P1.valueImm / P2.valueImm };
 }
+// Transform RIR in RRI : P1 & P2 permutation
+if  ((P1.ValOrReg == H2VALUE) && (P2.ValOrReg == H2REGISTER))
+    {
+       h2_sValue_t PTMP = P2;
+       P2 = P1;
+       P1 = PTMP;
+    }

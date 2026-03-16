@@ -1,11 +1,16 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
 	Filter/*
-# nCFLAGS=-O3 # -DVERBOSE  -g  -DH2_DEBUG_REGISTER
-# CFLAGS= -DH2_DEBUG_REGISTER -g -O0 -Wall -Wno-unused-variable # -DVERBOSE -DH2_DEBUG  -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
+
+# Performance & experimentations
+CFLAGS=-O3 # -DVERBOSE  -g  -DH2_DEBUG_REGISTER
+HLFLAGS=
+
+# Debuggage
 # -g With instruction selector as functions instead of macro
 # -z Visual tree
 # HLFLAGS= -g
+# CFLAGS=  -g -O0 -Wall -Wno-unused-variable -DVERBOSE -DH2_DEBUG  # -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
 
 all:
 	@echo "make allAarch64Qemu"
@@ -13,6 +18,7 @@ all:
 	@echo "make allRiscvQemu"
 	@echo "make allRiscvNative"
 	@echo "make allPowerQemu"
+
 exec:
 	make compile CC=cc
 	make run RUNNER=x
@@ -23,51 +29,61 @@ resize:
 resizeImages:
 	make resize  ARCH=aarch64 RUNNER=qemu-aarch64
 
-# Do one experiment
+# Do one experiment for ARCH which CC & emulation with QEMU
+oneXperiment:
+	make build   ARCH=${ARCH}
+	make compile ARCH=${ARCH} CC=${CC}
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm	Filter/Null-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Blur-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Synthetic-3x3.pgm
+
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Null-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Blur-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Synthetic-5x5.pgm
 riscv:
-	make build   ARCH=riscv
-	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-#	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
-	qemu-riscv32 Stencil.riscv Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	make oneXperiment ARCH=riscv CC=riscv32-linux-gnu-gcc QEMU=qemu-riscv32
 
 aarch64:
-	make build   ARCH=aarch64
-	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	qemu-aarch64 Stencil.aarch64 Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+	make oneXperiment ARCH=aarch64 CC=aarch64-linux-gnu-gcc QEMU=qemu-aarch64
 
 power:
-	make build   ARCH=power
-	make compile ARCH=power CC=powerpc64le-linux-gnu-gcc
-	qemu-ppc64le Stencil.power Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	make oneXperiment ARCH=power CC=powerpc64le-linux-gnu-gcc QEMU=qemu-ppc64le
 
+# Do all experiments for ARCH which CC & emulation with QEMU results in LOG file
+allQemu:
+	make build   ARCH=${ARCH}
+	make compile ARCH=${ARCH} CC=${CC}
+	make runAll	 ARCH=${ARCH} RUNNER=${RUNNER} LOG=${LOG}
+	./InstructionCount.awk      ${LOG}
+	./CyclesPerGeneratedInsn.awk ${LOG}
 
-# Do all experiments on aarch64 or riscv / qemu or native
 allPowerQemu:
-	make build   ARCH=power
-	make compile ARCH=power CC=powerpc64le-linux-gnu-gcc
-	make runAll	 ARCH=power RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=power CC=powerpc64le-linux-gnu-gcc RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allAarch64Qemu:
-	make build   ARCH=aarch64
-	make compile ARCH=aarch64 CC=aarch64-linux-gnu-gcc
-	make runAll	 ARCH=aarch64 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
-
-allAarch64Native:
-	make compile ARCH=aarch64 CC=cc
-	make runAll  ARCH=aarch64 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvQemu:
-	make build   ARCH=riscv
-	make compile ARCH=riscv CC=riscv32-linux-gnu-gcc
-	make runAll	 ARCH=riscv RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+
+# Do native experiment i.e. do only CC & run natively, log in LOG file
+allAarch64Native:
+	make allNative ARCH=aarch64 CC=cc RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allRiscvNative:
-	make compile ARCH=riscv CC=cc
-	make runAll  ARCH=riscv RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allNative ARCH=riscv CC=cc RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
+allNative:
+	make compile ARCH=${ARCH} CC=${CC}
+	make runAll	 ARCH=${ARCH} RUNNER=${RUNNER} LOG=${LOG}
+	./InstructionCount.awk      ${LOG}
+	./CyclesPerGeneratedInsn.awk ${LOG}
 
-# Run on various filters
-runAll:
+runAll: # Run on various filters
 	-rm -f ${LOG}
 	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Null-3x3.pgm
@@ -82,8 +98,8 @@ runAll:
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/GaussianFilter-5x5.pgm
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Synthetic-5x5.pgm
 	echo "Results in ${LOG}"
-# Then on various image sizes
-run:
+
+run: # Then on various image sizes
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=320x240
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=640x480
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=800x600

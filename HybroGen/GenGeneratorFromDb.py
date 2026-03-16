@@ -170,9 +170,9 @@ class GenGeneratorFromDb:
     SEM_FN_BODYW    = 'h2_sValue_t {arch}_gen{sem}_{paramN}({paramList})\n{{\n{codeList}\n\t{warningMsg}\n}}'
     SEM_FN_HEADER   = 'h2_sValue_t {arch}_gen{sem}_{paramN}({paramList});\n'
     SEM_FAILED_MSG  = 'printf ("Warning, {sem} instruction generation failed\\n");\n\th2_codeGenerationOK = false;\n'
-    SEM_HEAD_MSG    = 'printf ("Start code gen for {sem} instruction\\n");\n'
-    SEM_MESG        = '\tprintf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\\n");\n'
-    SEM_PARAM       = '\tprintf ("P%d: %s/%c/%d/%d/%d\\n", {N}, (0==P{N}.ValOrReg)?"REG":"VAL", P{N}.arith, P{N}.wLen, P{N}.vLen, P{N}.valueImm);\n'
+    SEM_HEAD_MSG    = '\tprintf ("Start code gen for {sem} instruction\\n");'
+    SEM_MESG        = '\tprintf ("ValOrReg / arith / wLen / vLen / regNro / valueImm\\n");'
+    SEM_PARAM       = '\tprintf ("P%d: %s/%c/%d/%d/%d\\n", {N}, (0==P{N}.ValOrReg)?"REG":"VAL", P{N}.arith, P{N}.wLen, P{N}.vLen, P{N}.valueImm);'
     SEM_INSN_FORMAT = """
     if (({P}.arith == '{ar}') && ({P}.wLen <= {wl}) && ({P}.vLen == {vl}) && {cond})
     {{

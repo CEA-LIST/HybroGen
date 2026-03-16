@@ -56,10 +56,10 @@ cxramTestList =(
     "CxRAM-Convolution32",
     "CxRAM-MatrixMultiplication"
     )
-allArchList = ("aarch64", "riscv", "power", "kalray")
+allArchList = ("aarch64", "riscv", "power",)
 archExt= {"riscv": ["RV32I","RV32F", "RV32M", "RV32D"],
           "power": ["p1", "ppc"],
-          "kalray": ["kalray"]}
+          }
 errMsg = {0:    "OK",
           251 : "Failed code gen",
           252 : "Bad exec result",

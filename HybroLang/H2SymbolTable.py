@@ -37,7 +37,7 @@ class H2SymbolTable:
         self.regAlloc[varName] = nro
 
     def getCDecl (self):
-        decl = "\t/*VarName = { ValOrLen, arith, vectorLen, wordLen, regNo, Value} */\n"
+        decl = "\t/*VarName = {ValOrLen, arith, vectorLen, wordLen, regNo, ValueImm, dontFree} */\n"
         for varName in self.symbolTable:
             v = self.get(varName)
             # print(varName, v)
@@ -51,7 +51,12 @@ class H2SymbolTable:
                 vLen = 1
             else:
                 arith = arith[0]
-            decl += f"\th2_sValue_t {varName} = {{H2REGISTER, '{arith}', {vLen}, {wLen}, {regNo}, 0}};\n"
+
+            if varName.startswith("tmp0"):
+                dontFree="false"
+            else:
+                dontFree="true"
+            decl += f"\th2_sValue_t {varName} = {{H2REGISTER, '{arith}', {vLen}, {wLen}, {regNo}, {dontFree}}};\n"
         return decl
 
     def __iter__(self):

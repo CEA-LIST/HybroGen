@@ -149,7 +149,11 @@ class H2CodeGeneration:
         # Then for leaf instruction & operations with sons
         if insn.isOperator():
             insnSemName = insn.getSemName()
-            if insnSemName in ["MV", "LUI"]:
+            if insnSemName in ["MV", "LUI"]: # MV operator (aka =) contain the destination in the node
+                # if None !=  insn.getRegister():
+                #     destReg = insn.getRegister()
+                # else:
+                #     destReg    = self.getDestination(insn.sonsList[0])
                 destReg = self.getDestination(insn.sonsList[0])
                 srcR    = self.getDestination(insn.sonsList[1])
                 if str(destReg) != str(srcR):

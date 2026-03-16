@@ -31,6 +31,7 @@ class HybrogenTreeCompiler(HybroLangVisitor):
         extList = platform["extension"][0]
         abi = platform["abi"]
         self.gen = GenGeneratorFromDb (archMaster, extList[0], abi, dbIds, args)         # Connect to backend only for master architecture
+        # Define address type size
         if   self.archMaster in ("riscv",):          self.addrOpType = H2Type("i", 32, 1)
         elif self.archMaster in ("aarch64", "power"):self.addrOpType = H2Type("i", 64, 1)
         self.printIfVerbose ("HybrogenVisitor for %s Verbose : %s Debug : %s"%(archList, self.verbose, self.debug))
@@ -194,30 +195,36 @@ class HybrogenTreeCompiler(HybroLangVisitor):
     def visitAffectexpr(self, ctx:HybroLangParser.AffectexprContext):
         self.Trace()
         self.tab += 1
-        if ctx.getChildCount() == 3: # Simple affectation e.g tmp = a + 4 ;
+        if ctx.getChildCount() == 3: # Simple affectation e.g var = Expr ;
             nodeVar  = H2Node(H2NodeType.VARIABLE, variableName = ctx.Name().getText())
-            opType = self.sTable.get(nodeVar.getVariableName())
-            nodeVar.setOpType(opType)
+            varType = self.sTable.get(nodeVar.getVariableName())
+            nodeVar.setOpType(varType)
             nodeExpr = self.visit(ctx.unaryexpr(0))
-            nodeExpr.setOpType(opType)  # Assume expressionType == variableType
-            IRnode   = H2Node(H2NodeType.OPERATOR,  opName = "=", sonsList = [nodeVar, nodeExpr], opType=opType)
+            nodeExpr.setOpType(varType)  # Assume expressionType == variableType TODO : type inference ?
+            if nodeExpr.opName in ("*", "+", "-", "/"):
+                nodeExpr.setVariableName(nodeVar.getVariableName())
+                IRnode = nodeExpr
+                # IRnode = H2Node(H2NodeType.OPERATOR,  opName = "=", sonsList = [nodeVar, nodeExpr],
+                #                 variableName = nodeVar.getVariableName(), opType=varType)
+            else:
+                IRnode = H2Node(H2NodeType.OPERATOR,  opName = "=", sonsList = [nodeVar, nodeExpr], opType=varType)
         elif ctx.getChildCount() == 6:
             # Array affectation  e.g. tmp[i] = a + 4;
             arrayName = ctx.Name().getText()
             nodeArrayIndex = self.visit(ctx.unaryexpr(0))
             nodeValue      = self.visit(ctx.unaryexpr(1))
             # @ store = @nodeVar + nodeArrayIndex * wordLen / 8
-            opType    = self.sTable.get(arrayName)
+            varType    = self.sTable.get(arrayName)
             # opType    = H2Type("int", 64, 1)
-            wordLen   = opType['wordLen']
-            vectorLen = opType['vectorLen']
-            nodeVar   = H2Node(H2NodeType.VARIABLE, variableName = arrayName, opType = opType)
+            wordLen   = varType['wordLen']
+            vectorLen = varType['vectorLen']
+            nodeVar   = H2Node(H2NodeType.VARIABLE, variableName = arrayName, opType = varType)
             nodeConst = H2Node(H2NodeType.CONST,    constValue = "(%s * %s) / 8" % (vectorLen, wordLen), opType = self.addrOpType)
             nodeMul   = H2Node(H2NodeType.OPERATOR, opName = "*", sonsList = [nodeArrayIndex, nodeConst])
             nodeAdd   = H2Node(H2NodeType.OPERATOR, opName = "+", sonsList = [nodeVar, nodeMul])
             zeroNode  = H2Node(H2NodeType.CONST, constValue = 0)
             # Assume expressionType == variableType
-            IRnode    = H2Node(H2NodeType.W, opName = "W", sonsList = [nodeAdd, nodeValue, zeroNode], opType=opType)
+            IRnode    = H2Node(H2NodeType.W, opName = "W", sonsList = [nodeAdd, nodeValue, zeroNode], opType=varType)
         else:
             fatalError("visitAffectexpr unknown child count %d"%ctx.getChildCount())
         self.tab -= 1
@@ -408,20 +415,20 @@ def extractCompilette(fileIn):
 if __name__ == '__main__':
     import sys, os, argparse
 
-    archList = ("riscv", "power", "kalray", "cxram", "aarch64")
+    archList = ("riscv", "power", "aarch64", "cxram")
     aliasDict = { "riscv": { "arch":["riscv", ],
                              "extension": [["RV32I", "RV32F", "RV32M", "RV32D", "RV64D"],],
                              "abi": "RV32G"},
                  "power": { "arch":["power",],
                             "extension": [["p1", "ppc", "v2.03", "v2.07", "v3.0", "3.0b"],],
                              "abi": "power" },
-                  "cxram":{ "arch":["riscv", "cxram"],
-                            "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
-                            "abi": "CXRAM"},
                   "aarch64":{ "arch":["aarch64"],
                           "extension": [["A64"], ],
                           "abi": "A64"},
-    }
+                  "cxram":{ "arch":["riscv", "cxram"],
+                            "extension": [["RV32I", "RV32F", "RV32M", "RV32D"], ["cxram"]],
+                            "abi": "CXRAM"},
+                }
     parser = argparse.ArgumentParser("Hybrogen to C rewriter")
     group = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument ('-i', '--inputfile', required=True, help="give input file name")

@@ -1,9 +1,19 @@
 /* -*- c -*- */
 if  ((P2.ValOrReg == H2VALUE) && (P2.arith == 'i'))
-{
+  { // RISCV has no DIVI
 	h2_sValue_t PTMP = {H2REGISTER, P2.arith, P2.vLen, P2.wLen, h2_getReg()};
     #ifdef H2_DEBUG_INSN
       printf ("Fallback for no RRI div (riscv)\\n");
     #endif
 	P2 = riscv_genMV_2(PTMP,  P2);
 }
+
+if  (isValue(P2) && ((P2.valueImm != 0) && !(P2.valueImm & (P2.valueImm - 1))))
+  { // X * NPowerOf2 = X >> N (immediate shift left)
+	int shiftValue = h2_log2(P2.valueImm);
+    #ifdef H2_DEBUG_INSN
+      printf ("Optim for DIV %d (power of 2) -> sr %d (riscv)\n", P2.valueImm, shiftValue);
+    #endif
+	P2.valueImm = shiftValue; 	// Instruction shift left immediat
+	return riscv_genSR_3(P0, P1, P2);
+  }

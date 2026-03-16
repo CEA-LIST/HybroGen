@@ -3,7 +3,7 @@
 ## Why
 
 Build, debug and run binary application on multiple platforms
-(powerpc, riscv, kalray, riscv with hardware accelerators) need
+(powerpc, riscv, riscv with hardware accelerators) need
 compilers, debuggers and simulators for each platforms. [Wikipedia, as
 usual is very useful explaining what is a
 cross-compiler](https://en.wikipedia.org/wiki/Cross_compiler).
