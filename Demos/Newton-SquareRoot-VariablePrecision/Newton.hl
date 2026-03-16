@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 
 #define True 1
@@ -69,9 +70,15 @@ int main(int argc, char **argv)
 			 iterationNumber++,
 			 isFloat?"float ":"double",
 			 next, isFloat?precf:precd);
+
        if(iterationNumber > 100){
         return -1;
        }
     } while ( diff > precd);
-    return 0;
+    if(isFloat){
+      return (next != sqrtf(af)) ? -1 : 0;
+    }
+    else{      
+      return (next != sqrt(af)) ? -1 : 0;
+    }
 }
