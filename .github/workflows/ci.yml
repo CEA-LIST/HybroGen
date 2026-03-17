@@ -34,7 +34,7 @@ jobs:
             libglib2.0-dev \
             libpixman-1-dev \
             zlib1g-dev \
-            pkg-config \ 
+            pkg-config \
             libc6
 
       - name: Restore cache
