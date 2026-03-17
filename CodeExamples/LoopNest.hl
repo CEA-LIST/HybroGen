@@ -37,8 +37,8 @@ h2_insn_t * genLoopNest(h2_insn_t * ptr) /* C compilette prototype */
             tmp = tmp + 7;
           }
       }
-    tmp = tmp + 1;
-    return tmp;
+	//    tmp = tmp + 1; // TOBE fixed
+    return tmp + 1;
   }
 
   ]#
