@@ -40,6 +40,7 @@ clean:
 	-(cd HybroLang;     make clean)
 	-(cd CodeExamples/; make clean)
 	-(cd docs/;         make clean)
+	-(cd Demos/; 		make clean)
 
 doregression:
 	cd CodeExamples && ./Regression.py ${THEARCH}
@@ -55,10 +56,3 @@ power:
 
 cxram:
 	make doregression THEARCH=cxram
-
-installH2Default:
-	./distrib.py --install /opt/H2/bin/
-
-distrib: buildGrammar all
-	mkdir -p /tmp/HybroGen/
-	./distrib.py --distribution /tmp/HybroGen/
