@@ -6,7 +6,8 @@ name: CI Test
 on:
   push: # on push branch main
     branches:
-      - '**'
+      - 'main'
+      - 'HybroGen_CI/CD_Developpment'
   pull_request: # on pull request on all branch
     branches:
       - 'main'
