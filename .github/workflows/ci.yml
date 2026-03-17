@@ -4,7 +4,7 @@ name: CI Test
 on:
   push: # on push branch main
     branches:
-      - 'main'
+      - '**'
   pull_request: # on pull request on all branch
     branches:
       - 'main'
@@ -34,7 +34,8 @@ jobs:
             libglib2.0-dev \
             libpixman-1-dev \
             zlib1g-dev \
-            pkg-config
+            pkg-config \ 
+            libc6
 
       - name: Restore cache
         id: toolchain-cache
