@@ -1,4 +1,4 @@
-CFLAGS = -g -DH2_DEBUG -I../../HybroGen/include
+CFLAGS = -g -DH2_DEBUG -I../../HybroGen/include -lm
 
 demo-power:
 	make clean newton run-newton ARCH="power" CC="powerpc64le-linux-gnu-gcc-10.2.0" SIM="qemu-ppc64le"

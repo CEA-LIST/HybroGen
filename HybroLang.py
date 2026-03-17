@@ -13,7 +13,7 @@ from HybroLang.H2IR2             import *
 from HybroLang.H2Type  		 import *
 from HybroGen.GenGeneratorFromDb import GenGeneratorFromDb
 
-H2_RELEASE = "v5.0"
+H2_RELEASE = "v5.1"
 
 class HybrogenTreeCompiler(HybroLangVisitor):
 
@@ -444,6 +444,7 @@ if __name__ == '__main__':
     parser.add_argument ('-g', '--debug',   	action='store_true', help="add function version instead of macros")
     parser.add_argument ('-d', '--dbIds',   	default="localhost:hybrogen:hybrogen:hybrogen", help="give quadruplet database identification host:dbName:dbUser:dbpasswd")
     parser.add_argument ('-z', '--graphviz',    action='store_true', help="Show graphviz IR during optimization phase")
+    parser.add_argument ('-r', '--release',    action='store_true', help="Print release info")
     args = parser.parse_args()
 
     if args.arch[0] in aliasDict:
@@ -461,6 +462,10 @@ if __name__ == '__main__':
         fileIn  = open(args.inputfile, 'r')
         compiletteCode = extractCompilette(fileIn)
         print(compiletteCode)
+    elif args.release:
+        ids = args.dbIds.split(":")
+        dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
+        print(f'HybroLang Compiler {H2_RELEASE} (host={dbIds["host"]} dbname={dbIds["dbname"]} user={dbIds["user"]}')
     elif args.toC:
         outFileName, ext = os.path.splitext(args.inputfile)
         outFileName += ".c"
