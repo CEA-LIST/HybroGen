@@ -124,6 +124,7 @@ def compile (File, Arch, Debug, Verbose):
     if Debug:
         compilerAndArg += ["-g", "-DH2_DEBUG_INSN", "-DH2_DEBUG_REGISTER"]
     o2 = cmd(compilerAndArg + ["-DQEMU_TARGET", "-Wall", "-o", exeFileName, cFileName], Verbose)
+    print(compilerAndArg)
     if o2 != 0:
         fatalError ("C compilation compiler error", -3)
     return 0

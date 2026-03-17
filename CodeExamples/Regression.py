@@ -70,7 +70,7 @@ errMsg = {0:    "OK",
 
 if __name__ == "__main__":
     import sys, subprocess, argparse
-
+    resultCode = 0
     testList = commonTestList
     if len(sys.argv) > 1:
         archList = sys.argv[1:]
@@ -87,8 +87,10 @@ if __name__ == "__main__":
         for archName in archList:
             #commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName] + archExt[archName])
             commande = tuple(["./RunDemo.py", "-i", testFile, "-a", archName])
-            o = cmd (commande, False, doPrint = False)
+            o = cmd (commande, False, doPrint = True)
             print ("  %23s"%(errMsg[o]), end="")
+            resultCode |= o;
         print()
     commande = tuple(["./RunDemo.py", "-c"])
     o = cmd (commande, False, doPrint = False)
+    sys.exit(resultCode)

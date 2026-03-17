@@ -3,9 +3,9 @@ FILES = IsaDescriptionLexer.py IsaDescriptionListener.py IsaDescriptionParser.py
 FILESR= RegisterDescriptionLexer.py RegisterDescriptionListener.py RegisterDescriptionParser.py
 ANTLRP = antlr4 -Dlanguage=Python3
 
-all: ${FILES} ${FILESR}
+all: clean ${FILES} ${FILESR}
 
-run: all
+run: all 
 
 ${FILES} : IsaDescription.g4
 	${ANTLRP} IsaDescription.g4

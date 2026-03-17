@@ -12,9 +12,9 @@ setenv ARCH $1
 setenv TMPDIR /opt/H-CI/
 
 echo "Génération pour $ARCH"
-./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/tmp
-./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/tmp -t
-./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/tmp -s
+./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/
+./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/ -t
+./GenCrossTools.py -a ${ARCH}  -p ${TMPDIR} -w ${TMPDIR}/ -s
 source ${TMPDIR}/${ARCH}/.cshrc
 cd CodeExamples/
 ./Regression.py ${ARCH}
