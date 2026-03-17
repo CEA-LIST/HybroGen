@@ -428,7 +428,7 @@ if __name__ == '__main__' :
             ppid = os.getppid()
             fInput = open('/proc/%d/cmdline'%ppid, "r")
             parentProcessName = fInput.read().split('\x00')[0]
-            if parentProcessName in ("bash", "-bash", "sh"):
+            if parentProcessName in ("bash", "-bash", "sh","/usr/bin/bash"):
                 shEnv =  "export PATH=%s:${PATH}\n"% ":".join(binList)
                 shEnv += "export LD_LIBRARY_PATH=%s:${LD_LIBRARY_PATH}\n"% ":".join(libList)
                 if a[0] in ("cxram-linux", "cxram-bm", ):
