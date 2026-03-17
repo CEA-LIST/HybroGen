@@ -25,9 +25,12 @@ class H2MovOptimize():
         return False
 
     def  doMovOptimize(self):
-        """Window optimization : if current operation is simple mv, place the
+        ''' Window optimization : if current operation is simple mv, place the
         dest register in the source reg of the preceding tree
-        """
+        e.g. replace either
+        * (1) a = c; ("current")     b = a ; ("new") to be replaced by b = c;
+        * (2) a = c + d; ("current") b = a ; ("new") to be replaced by b = c + d;
+        '''
         current = self.oldList[0]
         i = 1
         while i < len(self.oldList):
@@ -37,10 +40,13 @@ class H2MovOptimize():
                 srcNode  = new.sonsList[1]
                 replacedNode = current.sonsList[0]
                 # print("Optimize opportunity %s <- %s"%(destNode.getVariableName(), srcNode.getVariableName()))
-                # print(" %s %s "%(current.sonsList[0].getVariableName(),srcNode.getVariableName()))
+                # print(" %s %s "%(current.sonsList[0].getVariableName(),srcNode.getVariableName()))
                 if self.areVariableSimilar(replacedNode, srcNode):
                     # destNode.setOpType (srcNode.getOpType ()) # Should we transfert datatype ?
-                    current.sonsList[0] = destNode
+                    if current.getOpName() == "=":
+                        current.sonsList[0] = destNode
+                    else:
+                        current.setVariableName(destNode.getVariableName())
                     self.newList += [current]
                     i += 1
                     current = self.oldList[i]

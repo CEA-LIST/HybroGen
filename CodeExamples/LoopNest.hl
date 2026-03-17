@@ -37,8 +37,8 @@ h2_insn_t * genLoopNest(h2_insn_t * ptr) /* C compilette prototype */
             tmp = tmp + 7;
           }
       }
-	//    tmp = tmp + 1; // TOBE fixed
-    return tmp + 1;
+	tmp = tmp + 1;
+    return tmp ;
   }
 
   ]#
@@ -57,6 +57,7 @@ int main(int argc, char * argv[])
   resD  = fPtr(in0);  	// Call generated code
   resC  = in0*(in0*10+1+in0*11+1+in0*1+1)+in0*7*in0+1,
   printf("Result C : %d Result D : %d\n", resC, resD);
+  printf("Generated insn # %d code generation time :%d\n", h2_insnGenerated, h2_codeGenTime);
   if (resD == resC)
 	return 0;
   else
