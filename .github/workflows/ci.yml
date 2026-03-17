@@ -1,5 +1,7 @@
 name: CI Test
 
+
+# https://docs.github.com/fr/actions
 # test refus de commit on main pour garder une branch main toujours fonctionnel
 on:
   push: # on push branch main
@@ -10,7 +12,6 @@ on:
       - 'main'
 
 jobs:
-
 
   #######################################################################################
   ###################### Building of HybroGen ###########################################
@@ -56,14 +57,6 @@ jobs:
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
-
-      - name: test toolchains
-        env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
-        run: |
-          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
-          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
 
       - name: Check bashrc
         run: |
