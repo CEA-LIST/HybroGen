@@ -23,7 +23,7 @@ makedebug:
 	make clean
 	${ANTLRJ} HybroLang.g4
 	javac -cp ${CLASSP} HybroLang*.java
-	${GRUN} HybroLang compilationunit ${GRUNOPT} <  ../CodeExamples/undertest.hll
+	${GRUN} HybroLang compilationunit ${GRUNOPT} <  ../CodeExamples/Or32.hl
 
 clean:
 	-rm ${FILES}
