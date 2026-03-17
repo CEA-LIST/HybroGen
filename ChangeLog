@@ -1,3 +1,14 @@
+2026-03-17  Henri-Pierre CHARLES HC227932  <hc227932@gre056290>
+
+	* 5.1 Release contains many improvments :
+	* Validation of dynamic optimization on more complex
+	demonstrations Demos/(Stencil, VectorMatrix,
+	Newton-SquareRoot-VariablePrecision/)
+	* Use a static/dynamic register allocation : static for
+	variables, dynamic during run-time code generation for temporaries
+	* Thanks to Quentin Melotte, a robust CI is in place
+	* Contains metrics for couting the generated instructions & the
+	time for code generation
 2025-12-15  Henri-Pierre CHARLES HC227932  <hc227932@gre066469>
 
 	* Dynamic optimization : add optimization during code
