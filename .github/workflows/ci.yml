@@ -4,10 +4,10 @@ name: CI Test
 on:
   push: # on push branch main
     branches:
-      - '**'
+      - 'main'
   pull_request: # on pull request on all branch
     branches:
-      - '**'
+      - 'main'
 
 jobs:
 
@@ -16,7 +16,7 @@ jobs:
   ###################### Building of HybroGen ###########################################
   #######################################################################################
   build-toolschains:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repo
@@ -81,7 +81,7 @@ jobs:
           if-no-files-found: error
 
   build-grammar-and-dataBase:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: postgres:15
@@ -187,7 +187,7 @@ jobs:
   #######################################################################################
 
   regression-test-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -268,7 +268,7 @@ jobs:
         make aarch64
       
   regression-test-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -349,7 +349,7 @@ jobs:
         make riscv
 
   regression-test-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -438,7 +438,7 @@ jobs:
   ###################### Demo Stencil ###################################################
   #######################################################################################
   demo-stencil-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -521,7 +521,7 @@ jobs:
 
 
   demo-stencil-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -602,7 +602,7 @@ jobs:
         cd ./Demos/Stencil && make allAarch64Qemu
 
   demo-stencil-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-power] 
     services:
       postgres:
@@ -688,7 +688,7 @@ jobs:
 
 
   demo-vectorMatrix-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -769,7 +769,7 @@ jobs:
         cd ./Demos/VectorMatrix && make aarch64
 
   demo-vectorMatrix-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -852,7 +852,7 @@ jobs:
 
 
   demo-vectorMatrix-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-power] 
     services:
       postgres:
@@ -938,7 +938,7 @@ jobs:
   #######################################################################################
 
   demo-NewtonSquareRoot-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -1020,7 +1020,7 @@ jobs:
 
 
   demo-NewtonSquareRoot-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -1101,7 +1101,7 @@ jobs:
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-riscv
 
   demo-NewtonSquareRoot-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [regression-test-power] 
     services:
       postgres:
