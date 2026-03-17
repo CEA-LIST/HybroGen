@@ -36,7 +36,7 @@ jobs:
             libpixman-1-dev \
             zlib1g-dev \
             pkg-config 
-          sudo apt install -y libc6
+            sudo apt install -y libc6
 
       - name: Restore cache
         id: toolchain-cache
