@@ -59,6 +59,7 @@ if __name__ == "__main__":
     # Résolutions cibles
     resolutions = [ # Ordonnés par nombre de pixels !
         # https://upload.wikimedia.org/wikipedia/commons/0/0c/Vector_Video_Standards8.svg
+        (160, 120),
         (320, 240),  # QVGA
         (640, 480),  # VGA
         (800, 600),  # SVGA
