@@ -2,6 +2,7 @@ HLFLAGS= -g
 CFLAGS =-Wall -O0 -g # -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
 CFLAGS =-Wall -O3 # -DH2_DEBUG_REGISTER  -DH2_DEBUG_INSN
 FILE = VectorMatrix
+FILELIST = VectorMatrix.aarch64.c VectorMatrix.riscv.c VectorMatrix.power.c Makefile
 # HLFLAGS=-g
 all:
 	@echo "make riscv"
@@ -30,12 +31,34 @@ build:
 compile: VectorMatrix.${ARCH}.c
 	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}
 
+
+runAarch64Native:
+	make allNative ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make allNative ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+
+allNative:
+	make compile ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
+	make runAll	 ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} LOG=${LOG}
+
+runAll:
+	-rm -f ${LOG}
+	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
+	${FILE}.${ARCH} 10000 Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
+	${FILE}.${ARCH} 10000 Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
+	${FILE}.${ARCH} 10000 Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
+	${FILE}.${ARCH} 10000 Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
+	${FILE}.${ARCH} 10000 General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+
 run:
-	${QEMU} ${CODE}.${ARCH} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
-	${QEMU} ${CODE}.${ARCH} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
-	${QEMU} ${CODE}.${ARCH} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
-	${QEMU} ${CODE}.${ARCH} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
-	${QEMU} ${CODE}.${ARCH} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+	${QEMU} ${FILE}.${ARCH} 10000 Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
+	${QEMU} ${FILE}.${ARCH} 10000 Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} 10000 Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} 10000 Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} 10000 General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+
+send:
+	-tar cvf /tmp/a.tgz ${FILELIST}
+	scp /tmp/a.tgz ${DEST}:/tmp
 
 clean:
 	-rm ${FILE}.c ${FILE}
