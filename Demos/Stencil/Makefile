@@ -1,7 +1,6 @@
 FILELIST=Makefile Stencil.aarch64.c Stencil.riscv.c						\
 	StencilExperiment.py Image/Sun*.pgm ReadPgmImage.c ReadPgmImage.h	\
-	Filter/* InstructionCount.awk  CyclesPerGeneratedInsn.awk
-
+	Filter/* InstructionCount.awk CyclesPerGeneratedInsn.awk
 
 # Performance & experimentations
 # CFLAGS=-O3 # -DVERBOSE  -g  -DH2_DEBUG_REGISTER
@@ -24,11 +23,18 @@ exec:
 	make compile CC=cc
 	make run RUNNER=x
 
-resize:
-	./StencilExperiment.py ${EXPPARAM} --resize
+resizeAll:
+	make resizeImage SIZE=2048x1536
+	make resizeImage SIZE=1600x1200
+	make resizeImage SIZE=1280x960
+	make resizeImage SIZE=1024x768
+	make resizeImage SIZE=800x600
+	make resizeImage SIZE=640x480
+	make resizeImage SIZE=320x240
+	make resizeImage SIZE=11x9
 
-resizeImages:
-	make resize  ARCH=aarch64 RUNNER=qemu-aarch64
+resizeImage: # Works on ImageMagick > 7
+	magick Image/Sun.pgm -resize $SIZE -compress none -colorspace Gray pgm:Image/Sun__${SIZE}.pg
 
 # Do one experiment for ARCH which CC & emulation with QEMU
 oneXperiment:
@@ -81,8 +87,8 @@ allRiscvNative:
 	make allNative ARCH=riscv CC=cc RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allNative:
-	make compile ARCH=${ARCH} CC=${CC}
-	make runAll	 ARCH=${ARCH} RUNNER=${RUNNER} LOG=${LOG}
+	make compile ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
+	make runAll	 ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} LOG=${LOG}
 	./InstructionCount.awk      ${LOG}
 	./CyclesPerGeneratedInsn.awk ${LOG}
 

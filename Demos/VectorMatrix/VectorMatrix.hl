@@ -113,8 +113,8 @@ bool vectorCompare(vector_t ref, vector_t other, char * msg, int doPrint)
       if (doPrint)
         printf("%4d ", other[i]);
     }
-  printf("%s : ", msg);
-  printf(" %s\n", (has_differences)?"NOT OK":"OK");
+  /* printf("%s : ", msg); */
+  /* printf(" %s\n", (has_differences)?"NOT OK":"OK"); */
   return has_differences;
 }
 
@@ -126,30 +126,31 @@ int main (int argc, char *argv[])
   vector_t tmp0, tmp1, utmp0, utmp1, ctmp0, ctmp1;
   uint64_t timeGeneral, timeCompilette, timeUnrolled;
   pifvv vmProduct;
-  int tmp, doPrint, nXperiment = 10000;
+  int tmp, doPrint, nXperiment;
   unsigned long acc;
   bool resultValid;
 
-  if (argc != 18)
+  if (argc != 19)
     {
       printf ("Not enough arguments %d\n", argc);
-      printf ("VectorMatrix MatrixName M11 M12 ... M44\n");
+      printf ("VectorMatrix ExperimentNumber MatrixName M11 M12 ... M44\n");
       exit (-1);
     }
-  doPrint = 1;
+  doPrint = 0;
   acc = 0;
-  matrixName = argv[1];
+  nXperiment = atoi (argv[1]);
+  matrixName = argv[2];
   for (int line = 0; line < 4; line++)
     for (int column = 0; column < 4; column++)
       {
-        m[line][column] = atoi (argv[2 + line*4+column]);
+        m[line][column] = atoi (argv[3 + line*4+column]);
       }
 #ifdef VERBOSE
   printMatrix(m, matrixName);
 #endif
 
   tmp = VectorMatrixProductCount (m);
-  printf("Operation count Matrix %s : %d theoritical speedup %.1f\n", matrixName, tmp, 32.0/tmp);
+  printf("Operation count Matrix %s : %d theoretical speedup %.1f\n", matrixName, tmp, (0==tmp)?32:32.0/tmp);
 
 // Repeat one instruction and count ticks
 #define DO(INSN, REPEAT, TIME) {uint64_t tickCount = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  TIME = h2_getticks() - tickCount;}
@@ -178,11 +179,6 @@ int main (int argc, char *argv[])
 
   resultValid = vectorCompare(tmp1, ctmp1, "Compilette tmp1", doPrint);
 
-  printf ("General    ticks %llu\n", timeGeneral);
-  //  printf ("Unrolled   ticks %lu\n", timeUnrolled);
-  printf ("Compilette ticks %llu\n", timeCompilette);
-  //  printf ("Speedups unrolled   : %.2f%%\n", (float) 100.0*timeGeneral/timeUnrolled);
-  printf ("Speedups compilette : %.2f%%\n", (float) 100.0*timeGeneral/timeCompilette);
-  printf ("Accumulator value to avoid hard optimizations %ld\n", acc);
+  printf ("%s;%lld;%lld;%lld;%d;%d\n", matrixName, timeGeneral, timeCompilette, h2_codeGenTime, h2_insnGenerated);
   return resultValid;
 }
