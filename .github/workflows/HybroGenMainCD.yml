@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success'  && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'HybroGen_CI/CD_Developpment') }}
-
     runs-on: ubuntu-22.04
 
     strategy:
