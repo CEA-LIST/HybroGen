@@ -17,7 +17,14 @@ power:
 aarch64:
 	make build   ARCH=$@
 	make compile ARCH=$@ CC=aarch64-linux-gnu-gcc
-	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE}
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=10
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=100
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=1000
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=10000
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=100000
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=1000000
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=10000000
+	make run     ARCH=$@ QEMU=qemu-aarch64 CODE=${FILE} REPEAT=100000000
 
 riscv:
 	make build   ARCH=$@
@@ -34,7 +41,7 @@ compile: VectorMatrix.${ARCH}.c
 
 runAarch64Native:
 	make allNative ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
-	make allNative ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make allNative ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
 allNative:
 	make compile ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
@@ -43,18 +50,21 @@ allNative:
 runAll:
 	-rm -f ${LOG}
 	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
-	${FILE}.${ARCH} 10000 Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
-	${FILE}.${ARCH} 10000 Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
-	${FILE}.${ARCH} 10000 Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
-	${FILE}.${ARCH} 10000 Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
-	${FILE}.${ARCH} 10000 General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=10         >> ${LOG}
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100        >> ${LOG}
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=1000       >> ${LOG}
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=10000      >> ${LOG}
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100000     >> ${LOG}
+	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=1000000    >> ${LOG}
+#	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=10000000   >> ${LOG}
+#	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100000000  >> ${LOG}
 
 run:
-	${QEMU} ${FILE}.${ARCH} 10000 Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
-	${QEMU} ${FILE}.${ARCH} 10000 Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
-	${QEMU} ${FILE}.${ARCH} 10000 Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
-	${QEMU} ${FILE}.${ARCH} 10000 Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
-	${QEMU} ${FILE}.${ARCH} 10000 General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+	${QEMU} ${FILE}.${ARCH} ${REPEAT} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
+	${QEMU} ${FILE}.${ARCH} ${REPEAT} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} ${REPEAT} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} ${REPEAT} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
+	${QEMU} ${FILE}.${ARCH} ${REPEAT} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
 
 send:
 	-tar cvf /tmp/a.tgz ${FILELIST}
