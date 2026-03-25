@@ -62,45 +62,55 @@ def mergeCVS(noOptCVSFile, optCVSFile):
 if __name__ == "__main__":
     import os, re, sys, csv, pprint
     import matplotlib.pyplot as plt
-# https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html
-    if len(sys.argv) < 3:
-        error("Give 2 csv filename")
+# https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html
+    if len(sys.argv) < 4:
+        error("Give 2 csv filename + image size")
     results = {}
     fileNameNoOpt = sys.argv[1]
     fileNameOpt   = sys.argv[2]
+    imageSize     = sys.argv[3]
+    imageSizeSet = ("13x10", "160x120", "320x240", "1024x768",)
     if '-O0' not in fileNameNoOpt:
         error (f"No -O0 in {fileNameNoOpt}")
     if '-O3' not in fileNameOpt:
         error (f"No -O3 in {fileNameOpt}")
+    if imageSize not in (imageSizeSet):
+        error (f"Image size should be in {imageSizeSet}")
     d = mergeCVS (fileNameNoOpt, fileNameOpt)
-    printDict(d)
+    #   printDict(d)
 
     imgSizeListMax = []
     imgSizeListMaxName = []
     filterNames = [k.split("/")[1] for k in d.keys()]
-    print (filterNames)
+    #    print (filterNames)
     r = {}
-    r["noOpt"]         = [int(d[x]["1024x768"]["clockNoOpt"])     for x in d.keys()]
-    r["opt"]           = [int(d[x]["1024x768"]["clockOpt"])       for x in d.keys()]
-    r["CompiletteOpt"] = [int(d[x]["1024x768"]["clockCompiletteOpt"]) for x in d.keys()]
+    r["O0"]         = [int(d[x][imageSize]["clockNoOpt"])     for x in d.keys()]
+    r["O3"]           = [int(d[x][imageSize]["clockOpt"])       for x in d.keys()]
+    r["Compilette"] = [int(d[x][imageSize]["clockCompiletteOpt"]) for x in d.keys()]
+    r["clockCodeGen"]= [int(d[x][imageSize]["clockCodeGenOpt"]) for x in d.keys()]
     width = 0.25
     multiplier = 0
     x = [l for l in range(len(filterNames))]
     # print (x)
     fig, ax = plt.subplots(layout='constrained')
     # print (r)
-    for key in r:
+    for key in ("O0", "O3", "Compilette"):
         print (key)
         print (r[key])
         offset = width * multiplier
         rects = ax.bar([dx+offset for dx in x], r[key], width, label=key)
-        ax.bar_label(rects, padding=3)
+        # ax.bar_label(rects, padding=3)
         multiplier += 1
+    rects = ax.bar([dx+offset for dx in x], r["clockCodeGen"], width, bottom = r["Compilette"], label="Code Generation")
+
 #    plt.tight_layout()
 #    plt.subplots_adjust(bottom=0.15)
     ax.set_ylabel("Clock cycle")
     ax.set_xticks([d+width for d in x], filterNames)
     plt.xticks(rotation=45)
-    ax.set_title("Stencil execution time speedups relative to cc -O0")
-    print (f"Results in {fileNameOpt}.png")
-    plt.savefig(fileNameOpt+".png")
+#    plt.yscale("log")
+    ax.legend (ncol=3)
+    ax.set_title("Stencil execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
+#    plt.show()
+    print (f"Results in {fileNameOpt}-{imageSize}.png")
+    plt.savefig(f'{fileNameOpt}-{imageSize}.png')
