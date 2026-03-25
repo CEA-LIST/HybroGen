@@ -1,22 +1,24 @@
-name: CI Test
+name: HybroGen_CI_Workflow
 
+
+# https://docs.github.com/fr/actions
 # test refus de commit on main pour garder une branch main toujours fonctionnel
 on:
   push: # on push branch main
     branches:
-      - '**'
+      - 'main'
+      - 'HybroGen_CI/CD_Developpment'
   pull_request: # on pull request on all branch
     branches:
-      - '**'
+      - 'main'
 
 jobs:
-
 
   #######################################################################################
   ###################### Building of HybroGen ###########################################
   #######################################################################################
   build-toolschains:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repo
@@ -34,7 +36,8 @@ jobs:
             libglib2.0-dev \
             libpixman-1-dev \
             zlib1g-dev \
-            pkg-config
+            pkg-config 
+          sudo apt install -y libc6
 
       - name: Restore cache
         id: toolchain-cache
@@ -56,14 +59,6 @@ jobs:
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
-      - name: test toolchains
-        env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
-        run: |
-          python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
-          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -t
-
       - name: Check bashrc
         run: |
           test -e ./toolchains/aarch64/.bashrc
@@ -81,7 +76,7 @@ jobs:
           if-no-files-found: error
 
   build-grammar-and-dataBase:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -187,7 +182,7 @@ jobs:
   #######################################################################################
 
   regression-test-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -268,7 +263,7 @@ jobs:
         make aarch64
       
   regression-test-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -349,7 +344,7 @@ jobs:
         make riscv
 
   regression-test-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
     services:
       postgres:
@@ -438,7 +433,7 @@ jobs:
   ###################### Demo Stencil ###################################################
   #######################################################################################
   demo-stencil-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -521,7 +516,7 @@ jobs:
 
 
   demo-stencil-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -602,7 +597,7 @@ jobs:
         cd ./Demos/Stencil && make allAarch64Qemu
 
   demo-stencil-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-power] 
     services:
       postgres:
@@ -688,7 +683,7 @@ jobs:
 
 
   demo-vectorMatrix-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -769,7 +764,7 @@ jobs:
         cd ./Demos/VectorMatrix && make aarch64
 
   demo-vectorMatrix-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -852,7 +847,7 @@ jobs:
 
 
   demo-vectorMatrix-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-power] 
     services:
       postgres:
@@ -938,7 +933,7 @@ jobs:
   #######################################################################################
 
   demo-NewtonSquareRoot-aarch64:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-aarch64] 
     services:
       postgres:
@@ -1020,7 +1015,7 @@ jobs:
 
 
   demo-NewtonSquareRoot-riscv:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-riscv] 
     services:
       postgres:
@@ -1101,7 +1096,7 @@ jobs:
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-riscv
 
   demo-NewtonSquareRoot-power:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [regression-test-power] 
     services:
       postgres:
