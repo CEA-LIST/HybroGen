@@ -124,7 +124,7 @@ int main (int argc, char *argv[])
   matrix_t m;
   char *matrixName;
   //  vector_t in0  = {1, 2, 3, 4}, in1  = {5, 6, 7, 8};
-  //  vector_t out0, out1, cout0, cout1;
+  vector_t *out, *cout, *in;
   uint64_t timeGeneral, timeCompilette;
   pifvv vmProduct;
   int tmp, doPrint, nXperiment;
@@ -150,9 +150,9 @@ int main (int argc, char *argv[])
   printMatrix(m, matrixName);
 #endif
 
-  vector_t in[nXperiment];
-  vector_t out[nXperiment];
-  vector_t cout[nXperiment];
+  in   = calloc(nXperiment, sizeof (vector_t));
+  out  = calloc(nXperiment, sizeof (vector_t));
+  cout = calloc(nXperiment, sizeof (vector_t));
 
   for (int line = 0; line < nXperiment; line++)
 	for (int column = 0; column < 4; column++)
