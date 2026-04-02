@@ -379,7 +379,7 @@ def removeInstallDirs(args):
 
 if __name__ == '__main__' :
     import argparse, os, sys, subprocess, multiprocessing
-    from CI.SwConfig import SwConfig
+    from SwConfig import SwConfig
 
     config = SwConfig()
     parser = argparse.ArgumentParser()
