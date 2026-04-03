@@ -141,8 +141,8 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: toolchains
-          key: toolchain-${{ hashFiles('GenCrossTools.py') }}
+          path: toolchains/aarch64
+          key: toolchain/aarch64-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
