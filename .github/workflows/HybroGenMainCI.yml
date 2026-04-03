@@ -17,7 +17,106 @@ jobs:
   #######################################################################################
   ###################### Building of HybroGen ###########################################
   #######################################################################################
-  build-toolschains:
+  build-toolschains-riscv:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/Checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # to change
+
+      - name: Install QEMU dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libglib2.0-dev \
+            libpixman-1-dev \
+            zlib1g-dev \
+            pkg-config 
+            sudo apt install -y libc6
+
+      - name: Restore cache
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: toolchains/riscv
+          key: toolchain/riscv-${{ hashFiles('GenCrossTools.py') }}
+
+      - name: Build toolchains
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        env:
+          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+        run: |
+          mkdir -p "$TOOLCHAIN_DIR"
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" 
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
+
+      - name: Check bashrc
+        run: |
+          test -e ./toolchains/riscv/.bashrc
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolchains/riscv
+          path: toolchains/riscv
+          include-hidden-files: true
+          if-no-files-found: error
+  
+  build-toolschains-power:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/Checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # to change
+
+      - name: Install QEMU dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            libglib2.0-dev \
+            libpixman-1-dev \
+            zlib1g-dev \
+            pkg-config 
+            sudo apt install -y libc6
+
+      - name: Restore cache
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: toolchains/power
+          key: toolchain/power-${{ hashFiles('GenCrossTools.py') }}
+
+      - name: Build toolchains
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        env:
+          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+        run: |
+          mkdir -p "$TOOLCHAIN_DIR"
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
+
+      - name: Check bashrc
+        run: |
+          test -e ./toolchains/power/.bashrc
+
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolchains/power
+          path: toolchains/power
+          include-hidden-files: true
+          if-no-files-found: error
+  
+  build-toolschains-aarch64:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
@@ -52,25 +151,18 @@ jobs:
         run: |
           mkdir -p "$TOOLCHAIN_DIR"
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" 
-          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" 
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
-          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
           test -e ./toolchains/aarch64/.bashrc
-          test -e ./toolchains/power/.bashrc
-          test -e ./toolchains/riscv/.bashrc
-
 
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: toolchains
-          path: toolchains/
+          name: toolchains/aarch64
+          path: toolchains/aarch64
           include-hidden-files: true
           if-no-files-found: error
 
@@ -182,7 +274,7 @@ jobs:
 
   regression-test-aarch64:
     runs-on: ubuntu-24.04
-    needs: [build-toolschains,build-grammar-and-dataBase] 
+    needs: [build-toolschains-aarch64,build-grammar-and-dataBase] 
     services:
       postgres:
         image: postgres:15
@@ -224,8 +316,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/aarch64
+        path: ./aarch64
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -251,19 +343,19 @@ jobs:
 
     - name: Regression test on aarch64
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
+        BASH_ENV: ${{ github.workspace }}/aarch64/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/aarch64
+        chmod -R +x ./aarch64
         make aarch64
       
   regression-test-riscv:
     runs-on: ubuntu-24.04
-    needs: [build-toolschains,build-grammar-and-dataBase] 
+    needs: [build-toolschains-riscv,build-grammar-and-dataBase] 
     services:
       postgres:
         image: postgres:15
@@ -305,8 +397,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/riscv
+        path: ./riscv
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -332,19 +424,19 @@ jobs:
 
     - name: Regression test on riscv
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
+        BASH_ENV: ${{ github.workspace }}/riscv/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/riscv
+        chmod -R +x ./riscv
         make riscv
 
   regression-test-power:
     runs-on: ubuntu-24.04
-    needs: [build-toolschains,build-grammar-and-dataBase] 
+    needs: [build-toolschains-power,build-grammar-and-dataBase] 
     services:
       postgres:
         image: postgres:15
@@ -386,8 +478,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/power
+        path: ./power
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -413,14 +505,14 @@ jobs:
 
     - name: Regression test on power
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
+        BASH_ENV: ${{ github.workspace }}/power/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/power
+        chmod -R +x ./power
         make power
 
   #######################################################################################
@@ -475,8 +567,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/riscv
+        path: ./riscv
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -502,14 +594,14 @@ jobs:
 
     - name: Stencil test on riscv
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
+        BASH_ENV: ${{ github.workspace }}/riscv/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/riscv
+        chmod -R +x ./riscv
         cd ./Demos/Stencil && make allRiscvQemu
 
 
@@ -558,8 +650,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/aarch64
+        path: ./aarch64
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -585,14 +677,14 @@ jobs:
 
     - name: Stencil test on aarch64
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
+        BASH_ENV: ${{ github.workspace }}/aarch64/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/aarch64
+        chmod -R +x ./aarch64
         cd ./Demos/Stencil && make allAarch64Qemu
 
   demo-stencil-power:
@@ -639,8 +731,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/power
+        path: ./power
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -666,14 +758,14 @@ jobs:
 
     - name: Stencil test on power
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
+        BASH_ENV: ${{ github.workspace }}/power/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/power
+        chmod -R +x ./power
         cd ./Demos/Stencil && make allPowerQemu
 
   #######################################################################################
@@ -725,8 +817,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/aarch64
+        path: ./aarch64
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -752,14 +844,14 @@ jobs:
 
     - name: Test Vector
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
+        BASH_ENV: ${{ github.workspace }}/aarch64/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/aarch64
+        chmod -R +x ./aarch64
         cd ./Demos/VectorMatrix && make aarch64
 
   demo-vectorMatrix-riscv:
@@ -806,8 +898,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/riscv
+        path: ./riscv
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -834,14 +926,14 @@ jobs:
         
     - name: Test Vector
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
+        BASH_ENV: ${{ github.workspace }}/riscv/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/riscv
+        chmod -R +x ./riscv
         cd ./Demos/VectorMatrix && make riscv
 
 
@@ -889,8 +981,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/power
+        path: ./power/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -916,14 +1008,14 @@ jobs:
 
     - name: Test Vector
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
+        BASH_ENV: ${{ github.workspace }}/power/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/power
+        chmod -R +x ./power
         cd ./Demos/VectorMatrix && make power
 
 
@@ -975,8 +1067,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/aarch64
+        path: ./aarch64/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -1002,14 +1094,14 @@ jobs:
 
     - name: Run Demo newtonSquareRoot
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/aarch64/.bashrc
+        BASH_ENV: ${{ github.workspace }}/aarch64/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/aarch64
+        chmod -R +x ./aarch64
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-aarch64
 
 
@@ -1057,8 +1149,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/riscv
+        path: ./riscv/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -1084,14 +1176,14 @@ jobs:
 
     - name: Run Demo newtonSquareRoot
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/riscv/.bashrc
+        BASH_ENV: ${{ github.workspace }}/riscv/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/riscv
+        chmod -R +x ./riscv
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-riscv
 
   demo-NewtonSquareRoot-power:
@@ -1138,8 +1230,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: toolchains
-        path: ./toolchains/
+        name: toolchains/power
+        path: ./power/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
@@ -1165,12 +1257,12 @@ jobs:
 
     - name: Run Demo newtonSquareRoot
       env:
-        BASH_ENV: ${{ github.workspace }}/toolchains/power/.bashrc
+        BASH_ENV: ${{ github.workspace }}/power/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         python -m pip install psycopg2-binary
-        chmod -R +x toolchains/power
+        chmod -R +x ./power
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-power
