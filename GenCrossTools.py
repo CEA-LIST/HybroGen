@@ -377,6 +377,7 @@ def removeInstallDirs(args):
         commande = ["rm", "-rf", args.archprefix+"/"+d[0]]
         cmd (commande, args.verbose, doExec = args.donot)
 
+
 if __name__ == '__main__' :
     import argparse, os, sys, subprocess, multiprocessing
     from SwConfig import SwConfig
