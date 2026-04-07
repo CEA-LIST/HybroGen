@@ -42,24 +42,28 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: riscv
-          key: riscv-${{ hashFiles('GenCrossTools.py') }}
+          path: toolchains/power
+          key: toolchain/power-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        env:
+          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
-          python GenCrossTools.py -a riscv  -p . -w . 
-          python GenCrossTools.py -a riscv  -p . -w . -s
+          mkdir -p "$TOOLCHAIN_DIR"
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
-          test -e ./riscv/.bashrc
+          test -e ./toolchains/riscv/.bashrc
 
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: riscv
-          path: ./riscv
+          path: toolchains/riscv
           include-hidden-files: true
           if-no-files-found: error
   
