@@ -42,8 +42,8 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: toolchains/power
-          key: toolchain/power-${{ hashFiles('GenCrossTools.py') }}
+          path: toolchains/riscv
+          key: toolchain/riscv-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
@@ -51,8 +51,8 @@ jobs:
           TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
           mkdir -p "$TOOLCHAIN_DIR"
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
-          python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
