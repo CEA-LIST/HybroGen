@@ -508,6 +508,7 @@ jobs:
       env:
         BASH_ENV: ${{ github.workspace }}/power/.bashrc
       run: |
+        ls ./power/
         sudo apt update
         sudo apt install -y python3-antlr4
         python -m pip install --upgrade pip
