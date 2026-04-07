@@ -48,8 +48,8 @@ jobs:
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: |
-          python GenCrossTools.py -a riscv  -p . -w ./ 
-          python GenCrossTools.py -a riscv  -p . -w ./ -s
+          python GenCrossTools.py -a riscv  -p . -w . 
+          python GenCrossTools.py -a riscv  -p . -w . -s
 
       - name: Check bashrc
         run: |
