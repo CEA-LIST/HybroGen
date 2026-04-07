@@ -51,8 +51,8 @@ jobs:
           TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
           mkdir -p riscv
-          python GenCrossTools.py -a .  -p ./riscv -w ./ 
-          python GenCrossTools.py -a .  -p ./riscv -w ./ -s
+          python GenCrossTools.py -a riscv  -p . -w ./ 
+          python GenCrossTools.py -a riscv  -p . -w ./ -s
 
       - name: Check bashrc
         run: |
