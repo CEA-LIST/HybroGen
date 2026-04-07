@@ -1,5 +1,7 @@
 # Main Hybrogen makefile
 
+.PHONY: power riscv aarch64 cxram DbPopulate DbArch stats buildGrammar clean doregression
+
 all:
 	@echo "What action do you target ?"
 	@echo "make buildGrammar # Build grammars (need antlr)"
