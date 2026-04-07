@@ -47,10 +47,7 @@ jobs:
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
-        env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
         run: |
-          mkdir -p riscv
           python GenCrossTools.py -a riscv  -p . -w ./ 
           python GenCrossTools.py -a riscv  -p . -w ./ -s
 
