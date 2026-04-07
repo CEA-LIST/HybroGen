@@ -662,6 +662,7 @@ jobs:
 
     - name: Move artifacts
       run: |
+        ls ./aarch64/
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
@@ -1150,7 +1151,7 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: .riscv
+        name: riscv
         path: ./riscv/
 
     - name: Download artifacts
@@ -1231,7 +1232,7 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: .power
+        name: power
         path: ./power/
 
     - name: Download artifacts
