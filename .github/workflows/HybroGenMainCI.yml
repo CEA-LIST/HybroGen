@@ -480,7 +480,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: power
-        path: ./power/
+        path: ./
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
