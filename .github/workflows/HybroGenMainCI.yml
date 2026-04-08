@@ -42,28 +42,27 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: toolchains/riscv
-          key: toolchain/riscv-${{ hashFiles('GenCrossTools.py') }}
+          path: ./riscv
+          key: riscv-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+          TOOLCHAIN_DIR: ${{ github.workspace }}/
         run: |
-          mkdir -p "$TOOLCHAIN_DIR"
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a riscv  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
-          test -e ./toolchains/riscv/.bashrc
+          test -e ./riscv/.bashrc
 
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: riscv
-          path: toolchains/riscv
+          path: ./riscv
           include-hidden-files: true
           if-no-files-found: error
   
@@ -92,28 +91,27 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: toolchains/power
-          key: toolchain/power-${{ hashFiles('GenCrossTools.py') }}
+          path: ./power
+          key: power-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+          TOOLCHAIN_DIR: ${{ github.workspace }}/
         run: |
-          mkdir -p "$TOOLCHAIN_DIR"
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a power  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
-          test -e ./toolchains/power/.bashrc
+          test -e ./power/.bashrc
 
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: power
-          path: toolchains/power
+          path: ./power
           include-hidden-files: true
           if-no-files-found: error
   
@@ -142,28 +140,27 @@ jobs:
         id: toolchain-cache
         uses: actions/cache@v4
         with:
-          path: toolchains/aarch64
-          key: toolchain/aarch64-${{ hashFiles('GenCrossTools.py') }}
+          path: ./aarch64
+          key: aarch64-${{ hashFiles('GenCrossTools.py') }}
 
       - name: Build toolchains
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         env:
-          TOOLCHAIN_DIR: ${{ github.workspace }}/toolchains
+          TOOLCHAIN_DIR: ${{ github.workspace }}/
         run: |
-          mkdir -p "$TOOLCHAIN_DIR"
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" 
           python GenCrossTools.py -a aarch64 -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
         run: |
-          test -e ./toolchains/aarch64/.bashrc
+          test -e ./aarch64/.bashrc
 
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: aarch64
-          path: toolchains/aarch64
+          path: ./aarch64
           include-hidden-files: true
           if-no-files-found: error
 
