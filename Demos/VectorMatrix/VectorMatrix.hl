@@ -162,14 +162,14 @@ int main (int argc, char *argv[])
 #define DO(INSN, REPEAT, TIME) {uint64_t tickCount = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  TIME = h2_getticks() - tickCount;}
 
 #ifdef VERBOSE
-  printVector (in1, "Input  vector");
+  printVector (in[0], "Input vector #0");
 #endif
 
   acc += VectorMatrixProduct (out[0], in[0], m); /* Cold start */
   DO(acc += VectorMatrixProduct (out[i], in[i], m), nXperiment, timeGeneral)
 
 #ifdef VERBOSE
-  printVector (out1, "Output vector   (general)");
+  printVector (out[0], "Output vector #0 (general)");
 #endif
 
 #if 0 // Possible test with a source level unrolled version
@@ -184,6 +184,10 @@ int main (int argc, char *argv[])
   vmProduct = genVectorMatrixProduct (vmProduct, m);
   acc += vmProduct (cout[0], in[0]);
   DO(acc += vmProduct (cout[i], in[i]), nXperiment, timeCompilette);
+
+#ifdef VERBOSE
+  printVector (cout[0], "Output vector #0 (compilette)");
+#endif
 
   resultValid = vectorCompare(out, cout, "Compilette", doPrint, nXperiment);
 
