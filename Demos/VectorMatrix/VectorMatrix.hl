@@ -50,15 +50,12 @@ d_t VectorMatrixProduct (vector_t o, vector_t i, matrix_t m)
   for (int column = 0; column < T; column++)
     {
       o[column] = 0;
-      // printf("o[%d] = ",column);
       for (int line = 0; line < T; line++)
         {
           o[column] += i[line] * m[line][column];
-          //          printf("+ i[%d]*m[%d][%d]", line, line, column);
+
         }
-      //      printf("\n");
     }
-  //     printf("\n");
   return o[3];
 }
 
