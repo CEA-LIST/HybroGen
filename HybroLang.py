@@ -468,6 +468,7 @@ if __name__ == '__main__':
         print(f'HybroLang Compiler {H2_RELEASE} (host={dbIds["host"]} dbname={dbIds["dbname"]} user={dbIds["user"]}')
     elif args.toC:
         outFileName, ext = os.path.splitext(args.inputfile)
+        outFileName += "." + args.arch[0]
         outFileName += ".c"
         # Passe 1 construction de l'arbre
         ids = args.dbIds.split(":")
