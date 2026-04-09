@@ -9,6 +9,11 @@ all:
 	@echo "make aarch64"
 	@echo "make power"
 
+buildAll:
+	make build ARCH=aarch64
+	make build ARCH=riscv
+	make build ARCH=power
+
 power:
 	make build   ARCH=$@
 	make compile ARCH=$@ CC=powerpc64le-linux-gnu-gcc
@@ -29,7 +34,6 @@ riscv:
 
 build:
 	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./VectorMatrix.hl
-	mv VectorMatrix.c VectorMatrix.${ARCH}.c
 
 compile: VectorMatrix.${ARCH}.c
 	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}

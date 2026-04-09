@@ -19,6 +19,12 @@ all:
 	@echo "make allRiscvNative"
 	@echo "make allPowerQemu"
 
+
+buildAll:
+	make build ARCH=aarch64
+	make build ARCH=riscv
+	make build ARCH=power
+
 exec:
 	make compile CC=cc
 	make run RUNNER=x
@@ -127,7 +133,6 @@ plot:
 
 build: Stencil.hl
 	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./Stencil.hl
-	mv Stencil.c Stencil.${ARCH}.c
 
 compile: Stencil.${ARCH}.c
 	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH}
