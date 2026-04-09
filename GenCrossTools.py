@@ -166,11 +166,18 @@ def getEnv(archTriplet, args):
         myEnv['LD_LIBRARY_PATH'] = ld
     return myEnv
 
+def countJobMax():
+    jobs = multiprocessing.cpu_count()*4
+    if jobs > 20:
+        return "20" # Avoid saturating HPC systems
+    else:
+        return str(jobs)
+
 def buildTool(tool, archTriplet, arch, args):
     """Build tools"""
     Step("Build tools ", tool, archTriplet)
     release = urlDataBase[tool]["release"]
-    jobMax = str(multiprocessing.cpu_count()*4)
+    jobMax = countJobMax()
     toolName = tool + '-'+release
     buildDir = "%s/build/%s/%s/"%(args.workingdir, toolName, archTriplet)
     srcdir =   "%s/src/%s/"%(args.workingdir, toolName)
@@ -202,7 +209,7 @@ def installTool(tool, archTriplet, arch, args):
     srcdir =   "%s/src/%s/"%(args.workingdir, toolName)
     myEnv = getEnv(archTriplet, args)
     target = urlDataBase[tool]["targetinstall"]
-    jobMax = str(multiprocessing.cpu_count()*4)
+    jobMax = countJobMax()
     cmd (["make", "-j", jobMax, target],  args.verbose, buildDir, environ=myEnv, doExec = args.donot)
 
 def buildLinuxIncludes(tool, archTriplet, arch, args):
@@ -234,7 +241,7 @@ def buildGlibcAndGcc(tool, archTriplet, arch, args):
     toolName = tool + '-'+release
     srcdir =   "%s/src/%s/"%(args.workingdir, toolName)
     buildDir = "%s/build/%s/%s/"%(args.workingdir, toolName, archTriplet)
-    jobMax = str(multiprocessing.cpu_count()*4)
+    jobMax = countJobMax()
     downloadTool (tool, archTriplet, args)
     cmd (["mkdir", "-p", srcdir, buildDir], args.verbose,   doExec = args.donot)
     cmd (["tar", "xf", getFilename (tool, release, args)], args.verbose, srcdir, doExec = args.donot)
@@ -501,7 +508,7 @@ if __name__ == '__main__' :
                 toolName2 = 'gcc-'+ urlDataBase["gcc"]["release"]
                 buildDir2 = "%s/build/%s/%s/"%(args.workingdir, toolName2, archTriplet)
                 myEnv = getEnv(archTriplet, args)
-                jobMax = str(multiprocessing.cpu_count()*4)
+                jobMax = countJobMax()
                 cmd (("make", "-j", jobMax, "all-target-libgcc"),     args.verbose, buildDir2, environ=myEnv, doExec = args.donot)
                 cmd (("make",               "install-target-libgcc"), args.verbose, buildDir2, environ=myEnv, doExec = args.donot)
             else:

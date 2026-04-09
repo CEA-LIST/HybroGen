@@ -40,17 +40,17 @@ resizeImage: # Works on ImageMagick > 7
 oneXperiment:
 	make build   ARCH=${ARCH}
 	make compile ARCH=${ARCH} CC=${CC}
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm	Filter/Null-3x3.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Blur-3x3.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-3x3.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Synthetic-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Null-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Id-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Blur-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/GaussianFilter-3x3.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Synthetic-3x3.pgm
 
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Null-5x5.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Id-5x5.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Blur-5x5.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
-	${QEMU} Stencil.${ARCH} Image/Sun_11x9.pgm S.pgm H4.pgm Filter/Synthetic-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Null-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Id-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Blur-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/GaussianFilter-5x5.pgm
+	${QEMU} Stencil.${ARCH} Image/Sun_13x10.pgm S.pgm H4.pgm Filter/Synthetic-5x5.pgm
 riscv:
 	make oneXperiment ARCH=riscv CC=riscv32-linux-gnu-gcc QEMU=qemu-riscv32
 
@@ -72,7 +72,8 @@ allPowerQemu:
 	make allQemu ARCH=power CC=powerpc64le-linux-gnu-gcc RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allAarch64Qemu:
-	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
 allRiscvQemu:
 	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
@@ -107,14 +108,16 @@ runAll: # Run on various filters
 	make run ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=Filter/Synthetic-5x5.pgm
 	echo "Results in ${LOG}"
 
-run: # Then on various image sizes
+run: # Then on various image sizes (image ratio 4:3)
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=13x10
+	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=160x120
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=320x240
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=640x480
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=800x600
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1024x768
 	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1280x960
-	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1600x1200
-	-make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=2048x1536
+	# -make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=1600x1200
+	# -make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=2048x1536
 
 xperiment:
 	-${RUNNER} Stencil.${ARCH} Image/Sun_${SIZE}.pgm S.pgm H4.pgm ${FILTER} >> ${LOG}

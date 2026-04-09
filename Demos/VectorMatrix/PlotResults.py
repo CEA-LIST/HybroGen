@@ -20,43 +20,43 @@ def printDict(d):
 
 def mergeCVS(noOptCVSFile, optCVSFile):
 # Log Format :
-# 0  FilterName
-# 1  FilterSize
-# 2  ImageSize
-# 3  StaticTimeExecution
-# 4  DynamicTimeExecution
-# 5  InsnCodeGenerationTime
-# 6  Error Number
-
+# 0  Transformation Matrix Name
+# 1  Vectors Number
+# 2  clockCPU
+# 3  clockCompilette
+# 4  InsnCodeGenerationTime
+# 5  InstructionCount
+# 6  Error (true / false)
     dataSet = {}
     with open (noOptCVSFile, 'r') as csvfile:
         reader = csv.reader (csvfile, delimiter =';')
         for line in reader:
             # breakpoint()
-            if len(line) == 8: # avoid comment & error lines
-                if line[7] != "0": print (f"Warning {line[7]} error for {line[0]}")
-                filterName = line[0]
-                imageSize  = line[2]
+            if len(line) == 7: # avoid comment & error lines
+                if line[6] != "false": print (f"Warning {line[6]} error for {line[0]}")
+                matrixName = line[0]
+                vectorNumber  = line[1]
                 data = {# "imageSize":  line[2],
-                        "clockNoOpt":           line[3],
-                        "clockCompiletteNoOpt": line[4],
-                        "clockCodeGenNoOpt":    line[5],
-                        "insnCount":            line[6],
+                        "matrixName":           line[0],
+                        "clockNoOpt":           line[2],
+                        "clockCompiletteNoOpt": line[3],
+                        "clockCodeGenNoOpt":    line[4],
+                        "insnCount":            line[5],
                         }
-                putInDict2(dataSet, filterName, imageSize, data)
+                putInDict2(dataSet, matrixName, vectorNumber, data)
     with open (optCVSFile, 'r') as csvfile:
         reader = csv.reader (csvfile, delimiter =';')
         for line in reader:
-            if len(line) == 8: # avoid comment & error lines
-                if line[7] != "0": print (f"Warning {line[7]} error for {line[0]}")
-                filterName = line[0]
-                imageSize  = line[2]
+            if len(line) == 7: # avoid comment & error lines
+                if line[6] != "false": print (f"Warning {line[6]} error for {line[0]}")
+                matrixName = line[0]
+                vectorNumber  = line[1]
                 data = {# "imageSize":  line[2],
-                        "clockOpt":           line[3],
-                        "clockCompiletteOpt": line[4],
-                        "clockCodeGenOpt":    line[5],
+                        "clockOpt":           line[2],
+                        "clockCompiletteOpt": line[3],
+                        "clockCodeGenOpt":    line[4],
                         }
-                putInDict2(dataSet, filterName, imageSize, data)
+                putInDict2(dataSet, matrixName, vectorNumber, data)
     return dataSet
 
 if __name__ == "__main__":
@@ -68,26 +68,26 @@ if __name__ == "__main__":
     results = {}
     fileNameNoOpt = sys.argv[1]
     fileNameOpt   = sys.argv[2]
-    imageSize     = sys.argv[3]
-    imageSizeSet = ("13x10", "160x120", "320x240", "1024x768",)
+    vectorNumber     = sys.argv[3]
+    vectorNumberSet = ("10", "100", "1000", "10000", "100000", "1000000")
     if '-O0' not in fileNameNoOpt:
         error (f"No -O0 in {fileNameNoOpt}")
     if '-O3' not in fileNameOpt:
         error (f"No -O3 in {fileNameOpt}")
-    if imageSize not in (imageSizeSet):
-        error (f"Image size should be in {imageSizeSet}")
+    if vectorNumber not in (vectorNumberSet):
+        error (f"Image size should be in {vectorNumberSet}")
     d = mergeCVS (fileNameNoOpt, fileNameOpt)
-    #   printDict(d)
+    printDict(d)
 
     imgSizeListMax = []
     imgSizeListMaxName = []
-    filterNames = [k.split("/")[1] for k in d.keys()]
+    filterNames = [k for k in d.keys()]
     #    print (filterNames)
     r = {}
-    r["O0"]         = [int(d[x][imageSize]["clockNoOpt"])     for x in d.keys()]
-    r["O3"]           = [int(d[x][imageSize]["clockOpt"])       for x in d.keys()]
-    r["Compilette"] = [int(d[x][imageSize]["clockCompiletteOpt"]) for x in d.keys()]
-    r["clockCodeGen"]= [int(d[x][imageSize]["clockCodeGenOpt"]) for x in d.keys()]
+    r["O0"]          = [int(d[x][vectorNumber]["clockNoOpt"])         for x in d.keys()]
+    r["O3"]          = [int(d[x][vectorNumber]["clockOpt"])           for x in d.keys()]
+    r["Compilette"]  = [int(d[x][vectorNumber]["clockCompiletteOpt"]) for x in d.keys()]
+    r["clockCodeGen"]= [int(d[x][vectorNumber]["clockCodeGenOpt"])    for x in d.keys()]
     width = 0.25
     multiplier = 0
     x = [l for l in range(len(filterNames))]
@@ -112,5 +112,5 @@ if __name__ == "__main__":
     ax.legend (ncol=3)
     ax.set_title("Stencil execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
 #    plt.show()
-    print (f"Results in {fileNameOpt}-{imageSize}.png")
-    plt.savefig(f'{fileNameOpt}-{imageSize}.png')
+    print (f"Results in {fileNameOpt}-{vectorNumber}.png")
+    plt.savefig(f'{fileNameOpt}-{vectorNumber}.png')

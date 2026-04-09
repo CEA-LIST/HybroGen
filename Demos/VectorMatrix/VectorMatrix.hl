@@ -103,15 +103,16 @@ void printVector (vector_t v, char msg[])
   printf ("%s\n", msg);
 }
 
-bool vectorCompare(vector_t ref, vector_t other, char * msg, int doPrint)
+bool vectorCompare(vector_t ref[], vector_t other[], char * msg, int doPrint, int nVector)
 {
   int has_differences = false;
-  for (int i = 0; i < T; i++)
-    {
-      if (ref[i] != other[i])
-        has_differences = true;
-      if (doPrint)
-        printf("%4d ", other[i]);
+  for (int line = 0; line < nVector; line++)
+	for (int i = 0; i < T; i++)
+	  {
+		if (ref[line][i] != other[line][i])
+		  has_differences = true;
+		if (doPrint)
+		  printf("%4d ", other[line][i]);
     }
   /* printf("%s : ", msg); */
   /* printf(" %s\n", (has_differences)?"NOT OK":"OK"); */
@@ -122,9 +123,9 @@ int main (int argc, char *argv[])
 {
   matrix_t m;
   char *matrixName;
-  vector_t g0  = {1, 2, 3, 4}, g1  = {5, 6, 7, 8};
-  vector_t tmp0, tmp1, utmp0, utmp1, ctmp0, ctmp1;
-  uint64_t timeGeneral, timeCompilette, timeUnrolled;
+  //  vector_t in0  = {1, 2, 3, 4}, in1  = {5, 6, 7, 8};
+  vector_t *out, *cout, *in;
+  uint64_t timeGeneral, timeCompilette;
   pifvv vmProduct;
   int tmp, doPrint, nXperiment;
   unsigned long acc;
@@ -149,6 +150,14 @@ int main (int argc, char *argv[])
   printMatrix(m, matrixName);
 #endif
 
+  in   = calloc(nXperiment, sizeof (vector_t));
+  out  = calloc(nXperiment, sizeof (vector_t));
+  cout = calloc(nXperiment, sizeof (vector_t));
+
+  for (int line = 0; line < nXperiment; line++)
+	for (int column = 0; column < 4; column++)
+	  in[line][column] = random () % 1000;
+
   tmp = VectorMatrixProductCount (m);
   printf("Operation count Matrix %s : %d theoretical speedup %.1f\n", matrixName, tmp, (0==tmp)?32:32.0/tmp);
 
@@ -156,29 +165,39 @@ int main (int argc, char *argv[])
 #define DO(INSN, REPEAT, TIME) {uint64_t tickCount = h2_getticks();for (int i = 0; i < REPEAT; i++) INSN;  TIME = h2_getticks() - tickCount;}
 
 #ifdef VERBOSE
-  printVector (g1, "Input  vector");
+  printVector (in[0], "Input vector #0");
 #endif
 
-  acc += VectorMatrixProduct (tmp0, g0, m); /* Cold start */
-  DO(acc += VectorMatrixProduct (tmp1, g1, m), nXperiment, timeGeneral)
+  acc += VectorMatrixProduct (out[0], in[0], m); /* Cold start */
+  DO(acc += VectorMatrixProduct (out[i], in[i], m), nXperiment, timeGeneral)
 
 #ifdef VERBOSE
-  printVector (tmp1, "Output vector   (general)");
+  printVector (out[0], "Output vector #0 (general)");
 #endif
 
 #if 0 // Possible test with a source level unrolled version
-  acc += VectorMatrixProductUnrolled (utmp0, g0, m);
-  DO(acc += VectorMatrixProductUnrolled (utmp1, g1, m), nXperiment, timeUnrolled);
-  vectorCompare(tmp1, utmp1, "Unrolled tmp0", doPrint);
+  uint64_t timeUnrolled;
+  vector_t uout0, uout1;
+  acc += VectorMatrixProductUnrolled (uout0, in0, m);
+  DO(acc += VectorMatrixProductUnrolled (uout1, in1, m), nXperiment, timeUnrolled);
+  vectorCompare(out1, uout1, "Unrolled out0", doPrint);
 #endif
 
   vmProduct = (pifvv) h2_malloc(1024);
   vmProduct = genVectorMatrixProduct (vmProduct, m);
-  acc += vmProduct (ctmp0, g0);
-  DO(acc += vmProduct (ctmp1, g1), nXperiment, timeCompilette);
+  acc += vmProduct (cout[0], in[0]);
+  DO(acc += vmProduct (cout[i], in[i]), nXperiment, timeCompilette);
 
-  resultValid = vectorCompare(tmp1, ctmp1, "Compilette tmp1", doPrint);
+#ifdef VERBOSE
+  printVector (cout[0], "Output vector #0 (compilette)");
+#endif
 
-  printf ("%s;%lld;%lld;%lld;%d;%d\n", matrixName, timeGeneral, timeCompilette, h2_codeGenTime, h2_insnGenerated);
+  resultValid = vectorCompare(out, cout, "Compilette", doPrint, nXperiment);
+
+  printf ("%s;%d;%lu;%lu;%lld;%d;%s\n",
+		  matrixName, nXperiment,
+		  timeGeneral, timeCompilette,
+		  h2_codeGenTime, h2_insnGenerated,
+		  resultValid?"true":"false");
   return resultValid;
 }
