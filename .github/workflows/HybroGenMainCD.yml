@@ -33,10 +33,16 @@ jobs:
           rm -rf artifacts/
           ls
 
+      - name: Build C file
+        run: |
+          cd ./Demos/Stencil/ && make buildAll
+          cd ./Demos/VectorMatrix && make buildAll
+          cd ./Demos/Newton-SquareRoot-VariablePrecision && make buildAll
+
       - name: Clean machine
         uses: appleboy/ssh-action@v1
         with:
-          host: home.hpch.net
+          host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ matrix.port }}
@@ -47,9 +53,9 @@ jobs:
       - name: Copy artifacts via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: home.hpch.net
+          host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ matrix.port }}
-          source: "."
+          source: "./Demos"
           target: "~/FromCD/"
