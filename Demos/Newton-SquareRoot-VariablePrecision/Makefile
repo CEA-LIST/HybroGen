@@ -11,7 +11,7 @@ demo-aarch64:
 
 newton:
 	../../HybroLang.py -c -a $(ARCH) -i Newton.hl -g
-	$(CC) Newton.c -o Newton.$(ARCH) ${CFLAGS}
+	$(CC) Newton.$(ARCH).c -o Newton.$(ARCH) ${CFLAGS}
 
 run-newton:
 	make run-demo DEMOCODE=Newton.$(ARCH) DEMOARGS="65536 1e-13"

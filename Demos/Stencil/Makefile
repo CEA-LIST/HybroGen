@@ -127,7 +127,6 @@ plot:
 
 build: Stencil.hl
 	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./Stencil.hl
-	mv Stencil.c Stencil.${ARCH}.c
 
 compile: Stencil.${ARCH}.c
 	${CC} ${CFLAGS} ./Stencil.${ARCH}.c ./ReadPgmImage.c -o ./Stencil.${ARCH}
