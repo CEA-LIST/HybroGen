@@ -1,0 +1,9 @@
+*.so
+*.jar
+*.class
+*.elf
+*.awk
+*.o
+*.log
+dist/
+bin/

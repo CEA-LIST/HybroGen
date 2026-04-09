@@ -1,16 +1,14 @@
-name: CD
+name: HybroGen_CD_Workflow
 
 on:
   workflow_run:
-    workflows: ["CI Test"]
+    workflows: [" HybroGen_CI_Workflow"]
     types: [completed]
 
 jobs:
   deploy:
-
-    if: ${{ github.event.workflow_run.conclusion == 'success'  && github.event.workflow_run.head_branch == 'main' }}
-
-    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success'  && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'HybroGen_CI/CD_Developpment') }}
+    runs-on: ubuntu-24.04
 
     strategy:
         matrix:
@@ -24,16 +22,16 @@ jobs:
       - name: Download artifacts
         run: |
           gh run download ${{ github.event.workflow_run.id }} -n hybrogen-artifacts -D artifacts
-          gh run download ${{ github.event.workflow_run.id }} -n toolchains -D toolchains
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Move artifacts
         run: |
           rm -rf ./HybroGen ./HybroLang
-          mv artifacts/generated/HybroGen ./
-          mv artifacts/generated/HybroLang ./
+          mv artifacts/generated/HybroGen ./HybroGen
+          mv artifacts/generated/HybroLang ./HybroLang
           rm -rf artifacts/
+          ls
 
       - name: Clean machine
         uses: appleboy/ssh-action@v1
