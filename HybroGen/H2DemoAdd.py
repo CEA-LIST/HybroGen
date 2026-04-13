@@ -169,7 +169,7 @@ def themain(argv):
     lArch = ["x86", "riscv", "k1", "power"]
     dIsaDb = {}
     dInsns = {}
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+    db = ProxyDb()
     for a in lArch:
         H2Isa.insertDb(a)
         dIsaDb[a] = IsaDb(db, a)
