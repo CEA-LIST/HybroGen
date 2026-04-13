@@ -2,13 +2,12 @@ name: HybroGen_CI_Workflow
 
 
 # https://docs.github.com/fr/actions
-# test refus de commit on main pour garder une branch main toujours fonctionnel
 on:
-  push: # on push branch main
+  push: # on push branch main and on push CI CD branch developpment
     branches:
       - 'main'
       - 'HybroGen_CI/CD_Developpment'
-  pull_request: # on pull request on all branch
+  pull_request: # on pull request on main branch
     branches:
       - 'main'
 
