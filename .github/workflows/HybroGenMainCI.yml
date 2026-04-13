@@ -7,7 +7,6 @@ on:
     branches:
       - 'main'
       - 'HybroGen_CI/CD_Developpment'
-      - 'migrationFromPostgreToSQLLite' # temporary needed for testing the migration from postgre to sqlite in the CI
   pull_request: # on pull request on main branch
     branches:
       - 'main'
@@ -83,7 +82,7 @@ jobs:
         run: |
           sudo apt update          
           sudo apt install -y antlr4      
-          
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
