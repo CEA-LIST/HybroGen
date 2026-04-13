@@ -74,14 +74,14 @@ allQemu:
 	./InstructionCount.awk      ${LOG}
 	./CyclesPerGeneratedInsn.awk ${LOG}
 
-allPowerQemu:
+allpowerQemu:
 	make allQemu ARCH=power CC=powerpc64le-linux-gnu-gcc RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
-allAarch64Qemu:
+allaarch64Qemu:
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-allRiscvQemu:
+allriscvQemu:
 	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 # Do native experiment i.e. do only CC & run natively, log in LOG file

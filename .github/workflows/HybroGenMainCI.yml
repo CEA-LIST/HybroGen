@@ -493,8 +493,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: aarch64
-        path: ./aarch64/
+        name: ${{matrix.architecture}}
+        path: ./${{matrix.architecture}}/
 
     - name: Download artifacts
       uses: actions/download-artifact@v4
