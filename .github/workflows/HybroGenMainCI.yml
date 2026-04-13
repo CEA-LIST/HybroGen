@@ -72,41 +72,11 @@ jobs:
 
   build-grammar-and-dataBase:
     runs-on: ubuntu-24.04
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: hybrogen
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     steps:
 
       - name: Checkout repo
         uses: actions/checkout@v4
-      
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-
-      - name: Create hybrogen dataBase and schema
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d hybrogen <<EOF
-          CREATE USER hybrogen WITH PASSWORD 'hybrogen';
-          GRANT ALL PRIVILEGES ON DATABASE hybrogen TO hybrogen;
-          CREATE SCHEMA IF NOT EXISTS hybrogen AUTHORIZATION hybrogen;
-          EOF
       
       - name: Install ANTLR4 via apt
         run: |
@@ -128,9 +98,9 @@ jobs:
         run: | # BE CAREFUL antlr4-python3-runtime==4.7.2 Doit etre tenu a jour ou trouver une manière de synchroniser antlr4 version et antlr4 python runtime
           sudo apt update
           sudo apt install -y python3-antlr4
+          sudo apt install -y sqlite3 libsqlite3-dev
           python -m pip install --upgrade pip
           python -m pip install antlr4-python3-runtime==${VERSION}
-          python -m pip install psycopg2-binary
 
       - name: LaunchConstruction
         run: | 
@@ -141,7 +111,6 @@ jobs:
             test -f ./HybroGen/IsaDescriptionLexer.py
             test -f ./HybroGen/IsaDescriptionParser.py
 
-            
       - name: Try import
         run: |
           python -c "from HybroGen.IsaDescriptionLexer import IsaDescriptionLexer"
@@ -150,14 +119,6 @@ jobs:
       - name: make Db
         run: |
           make DbPopulate
-
-      - name: Dump database
-        env:
-          PGUSER: hybrogen
-          PGPASSWORD: hybrogen
-        run: |
-          mkdir -p artifacts
-          pg_dump -h localhost > artifacts/hybrogen.sql
 
       - name: Copy generated code
         run: |
@@ -179,20 +140,7 @@ jobs:
   regression-test:
     runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: hybrogen
-          POSTGRES_PASSWORD: hybrogen
-          POSTGRES_DB: hybrogen
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hybrogen"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -254,9 +202,9 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
+        sudo apt install -y sqlite3 libsqlite3-dev
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
-        python -m pip install psycopg2-binary
         chmod -R +x ./${{matrix.architecture}}/
         make ${{matrix.architecture}}
 
@@ -271,20 +219,7 @@ jobs:
   demo-stencil:
     runs-on: ubuntu-24.04
     needs: [regression-test] 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: hybrogen
-          POSTGRES_PASSWORD: hybrogen
-          POSTGRES_DB: hybrogen
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hybrogen"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -330,25 +265,15 @@ jobs:
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Restore database
-      env:
-        PGPASSWORD: hybrogen
-      run: |
-        until pg_isready -h localhost -p 5432 -U hybrogen; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
-        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
-
     - name: Stencil test on ${{matrix.architecture}}
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
+        sudo apt install -y sqlite3 libsqlite3-dev
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
-        python -m pip install psycopg2-binary
         chmod -R +x ./${{matrix.architecture}}/
         cd ./Demos/Stencil && make all${{matrix.architecture}}Qemu
 
@@ -360,20 +285,7 @@ jobs:
   demo-vectorMatrix:
     runs-on: ubuntu-24.04
     needs: [regression-test] 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: hybrogen
-          POSTGRES_PASSWORD: hybrogen
-          POSTGRES_DB: hybrogen
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hybrogen"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -419,25 +331,15 @@ jobs:
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Restore database
-      env:
-        PGPASSWORD: hybrogen
-      run: |
-        until pg_isready -h localhost -p 5432 -U hybrogen; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
-        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
-
     - name: Test Vector
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
+        sudo apt install -y sqlite3 libsqlite3-dev
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
-        python -m pip install psycopg2-binary
         chmod -R +x ./${{matrix.architecture}}/
         cd ./Demos/VectorMatrix && make ${{matrix.architecture}}
 
@@ -448,20 +350,7 @@ jobs:
   demo-NewtonSquareRoot:
     runs-on: ubuntu-24.04
     needs: [regression-test] 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: hybrogen
-          POSTGRES_PASSWORD: hybrogen
-          POSTGRES_DB: hybrogen
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hybrogen"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -507,24 +396,14 @@ jobs:
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Restore database
-      env:
-        PGPASSWORD: hybrogen
-      run: |
-        until pg_isready -h localhost -p 5432 -U hybrogen; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
-        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
-
     - name: Run Demo newtonSquareRoot
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
         sudo apt update
         sudo apt install -y python3-antlr4
+        sudo apt install -y sqlite3 libsqlite3-dev
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
-        python -m pip install psycopg2-binary
         chmod -R +x ./${{matrix.architecture}}/
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-${{matrix.architecture}}
