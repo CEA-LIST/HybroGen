@@ -25,7 +25,7 @@ jobs:
     steps:
     
       - name: Checkout repo
-        uses: actions/Checkout@v4
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -89,7 +89,7 @@ jobs:
     steps:
 
       - name: Checkout repo
-        uses: actions/Checkout@v4
+        uses: actions/checkout@v4
       
       - name: Wait for PostgreSQL
         run: |
@@ -199,7 +199,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/Checkout@v4
+      uses: actions/checkout@v4
 
     
     - name: Install ANTLR4 via apt
@@ -291,7 +291,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/Checkout@v4
+      uses: actions/checkout@v4
 
     
     - name: Install ANTLR4 via apt
@@ -380,7 +380,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/Checkout@v4
+      uses: actions/checkout@v4
 
     
     - name: Install ANTLR4 via apt
