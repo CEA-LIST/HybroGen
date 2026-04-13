@@ -187,16 +187,6 @@ jobs:
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Restore database
-      env:
-        PGPASSWORD: hybrogen
-      run: |
-        until pg_isready -h localhost -p 5432 -U hybrogen; do
-          echo "Waiting for PostgreSQL..."
-          sleep 2
-        done
-        psql -h localhost -U hybrogen -d hybrogen < artifacts/hybrogen.sql
-
     - name: Regression test on ${{matrix.architecture}}
       env:
         BASH_ENV: ./${{matrix.architecture}}/.bashrc
