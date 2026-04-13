@@ -2,7 +2,7 @@ name: HybroGen_CD_Workflow
 
 on:
   workflow_run:
-    workflows: [" HybroGen_CI_Workflow"]
+    workflows: ["HybroGen_CI_Workflow"]
     types: [completed]
 
 jobs:
