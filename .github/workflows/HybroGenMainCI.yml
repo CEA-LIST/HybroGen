@@ -7,6 +7,7 @@ on:
     branches:
       - 'main'
       - 'HybroGen_CI/CD_Developpment'
+      - 'migrationFromPostgreToSQLLite' # temporary needed for testing the migration from postgre to sqlite in the CI
   pull_request: # on pull request on main branch
     branches:
       - 'main'
