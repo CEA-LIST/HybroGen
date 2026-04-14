@@ -9,6 +9,11 @@ all:
 	@echo "make aarch64"
 	@echo "make power"
 
+buildAll:
+	make build ARCH=aarch64
+	make build ARCH=riscv
+	make build ARCH=power
+
 power:
 	make build   ARCH=$@
 	make compile ARCH=$@ CC=powerpc64le-linux-gnu-gcc
