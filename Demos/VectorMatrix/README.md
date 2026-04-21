@@ -10,4 +10,4 @@ This directory contains a Vector Matrix demonstration
     lower, the better. O0-O3 are compilation option for the static
     compiler, O0-O2 are compilation option for the LLVM JIT
 
-![Figure-Code-Gen-Speed.png](Code Generation Speed)
+![Code Generation Speed](Figure-Code-Gen-Speed.png)
