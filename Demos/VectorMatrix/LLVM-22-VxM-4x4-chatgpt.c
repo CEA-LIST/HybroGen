@@ -11,8 +11,20 @@
 // * Sur quel système d'exploitation est tu basé ?
 // -> réponse qui fait penser à un container
 // * Donne moi ce code 
-// Compilation with : cc -g i.c -o i `llvm-config22  --cflags --ldflags --libs core executionengine native orcjit` -Wl,--export-dynamic
-// 
+// Compilation with : clang22 -g -O3 -o LLVM-22-VxM-4x4-chatgpt  LLVM-22-VxM-4x4-chatgpt.c  `llvm-config22  --cflags --ldflags --libs core executionengine native orcjit` -Wl,--export-dynamic
+// Execute with : <optim level>  <convolution matrix>
+// ./LLVM-22-VxM-4x4-chatgpt 0    4 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 
+// ./LLVM-22-VxM-4x4-chatgpt 2    4 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+// Check compilation output with
+// lldb22 ./LLVM-22-VxM-4x4-chatgpt 0    4 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+// (lldb) breakpoint set --line 246
+// (lldb) run
+// (lldb) disassemble --name matvec4_batch
+// 114 instruction with compilation level 0
+// 73 / 1
+// 73 / 2
+// 73 / 3
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -134,7 +146,8 @@ static LLVMValueRef build_matvec4_batch_function(LLVMModuleRef module, LLVMConte
     return fn;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) 
+{
     LLVMContextRef ctx = NULL;
     LLVMModuleRef module = NULL;
     LLVMExecutionEngineRef engine = NULL;
@@ -181,7 +194,8 @@ int main(void) {
 
     h2_codeGenTime = h2_getticks();
     LLVMInitializeMCJITCompilerOptions(&options, sizeof(options));
-    options.OptLevel = 0;
+    int optLevel = atoi (argv[1]);
+    options.OptLevel = optLevel;
     options.CodeModel = LLVMCodeModelJITDefault;
     options.NoFramePointerElim = 0;
     options.EnableFastISel = 0;
@@ -208,31 +222,31 @@ int main(void) {
 
     matvec4_batch_fn_t matvec4_batch = (matvec4_batch_fn_t)(uintptr_t)fn_addr;
     h2_codeGenTime = h2_getticks() - h2_codeGenTime;
-    printf ("Code Gen Ticks %llu\n", h2_codeGenTime);
+    printf ("Code Gen Ticks %llu : optLevel %d\n", h2_codeGenTime, optLevel);
 
     // Matrice 4x4
-    float M[16] = {
-         1.0f,  2.0f,  3.0f,  4.0f,
-         0.0f,  1.0f,  0.0f,  0.0f,
-         0.0f,  0.0f,  1.0f,  0.0f,
-         0.0f,  0.0f,  0.0f,  1.0f
-    };
-
+    float M[16];
+    for (int line = 0; line < 4; line++)
+      for (int column = 0; column < 4; column++)
+      {
+        M[line*4+column] = atof (argv[2+line*4+column]);
+      }
     // 3 vecteurs d'entrée
-    uint32_t count = 3;
-    float X[12] = {
+    float X[16] = {
       1.0f, 1.0f, 1.0f, 1.0f, 
       1.0f, 0.0f, 0.0f, 0.0f, 
-      0.0f, 1.0f, 0.0f, 0.0f, 
+      0.0f, 0.0f, 0.0f, 1.0f, 
+      1.0f, 2.0f, 3.0f, 4.0f, 
     };
+    uint32_t count = sizeof (X)/(4*sizeof (float));
+    printf("count %d\n", count);
+    float Y[16] = {0};
 
-    float Y[12] = {0};
-
-    printVectors(X, 3, "Input");
-    printVectors(Y, 3, "Before");
+    printVectors(M, 4, "Matrix");
+    printVectors(X, count, "Input");
+    printVectors(Y, count, "Before");
     matvec4_batch(M, X, Y, count);
-    printVectors(Y, 3, "Output");
-
+    printVectors(Y, count, "Output");
 
     LLVMDisposeExecutionEngine(engine);
     LLVMContextDispose(ctx);

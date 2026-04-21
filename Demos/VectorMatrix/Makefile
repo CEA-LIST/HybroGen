@@ -2,7 +2,8 @@ HLFLAGS= -g
 CFLAGS =-Wall -O0 -g  -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
 CFLAGS =-Wall -O3 #   -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER -DVERBOSE
 FILE = VectorMatrix
-FILELIST = VectorMatrix.aarch64.c VectorMatrix.riscv.c VectorMatrix.power.c Makefile
+FILELIST = VectorMatrix.aarch64.c VectorMatrix.riscv.c	\
+VectorMatrix.power.c Makefile LLVM-22-VxM-4x4-chatgpt.c
 # HLFLAGS=-g
 all:
 	@echo "make riscv"
