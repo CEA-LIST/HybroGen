@@ -2,6 +2,11 @@
 
 This directory contains a Vector Matrix demonstration
 
+## Code speed execution
+
+[TBD]
+
+## Code speed generation 
 * HybroLang version [VectorMatrix.hl](VectorMatrix.hl)
 * LLVM JITed version [LLVM-22-VxM-4x4-chatgpt.c](LLVM-22-VxM-4x4-chatgpt.c)
 * Code generation speed values : [LLVM-Code-Gen-Speed-Experiment.ods](LLVM-Code-Gen-Speed-Experiment.ods)
