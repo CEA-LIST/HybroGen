@@ -94,14 +94,15 @@ if __name__ == "__main__":
     # print (x)
     fig, ax = plt.subplots(layout='constrained')
     # print (r)
+    colors = {"O0": "blue", "O3": "green", "Compilette" : '#ff32359e', "CodeGen": "#fff7365f"}
     for key in ("O0", "O3", "Compilette"):
         print (key)
         print (r[key])
         offset = width * multiplier
-        rects = ax.bar([dx+offset for dx in x], r[key], width, label=key)
+        rects = ax.bar([dx+offset for dx in x], r[key], width, label=key, color = colors[key])
         # ax.bar_label(rects, padding=3)
         multiplier += 1
-    rects = ax.bar([dx+offset for dx in x], r["clockCodeGen"], width, bottom = r["Compilette"], label="Code Generation")
+    rects = ax.bar([dx+offset for dx in x], r["clockCodeGen"], width, bottom = r["Compilette"], label="Code Generation", color = colors["CodeGen"])
 
 #    plt.tight_layout()
 #    plt.subplots_adjust(bottom=0.15)
