@@ -54,7 +54,7 @@ jobs:
         env:
           TOOLCHAIN_DIR: ${{ github.workspace }}/
         run: |
-          python GenCrossTools.py -a risc${{matrix.architecture}}v  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
@@ -265,7 +265,7 @@ jobs:
   #######################################################################################
         ###Stand by
 
-        
+
 
   #######################################################################################
   ###################### Demo Stencil ###################################################
