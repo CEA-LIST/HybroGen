@@ -60,7 +60,7 @@ rootDataBase = {
                   'targetinstall': 'install',
     },
     'linux' :  {
-        'url': 'https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-{RELEASE}.tar.gz',
+        'url': 'https://kernel.nic.funet.fi/pub/linux/kernel/v5.x/linux-5.4.60.tar.xz',
         'release': '5.4.60',
         'confargs': '',
         'targetbuild':   'headers_install',
