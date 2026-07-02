@@ -1,3 +1,17 @@
+buildAll:
+	-(cd Stencil; 								make buildAll)
+	-(cd VectorMatrix; 							make buildAll)
+	-(cd Newton-SquareRoot-VariablePrecision; 	make buildAll)
+	-(cd AudioFilter ;     						make buildAll)
+	-(cd C-SRAM_Applications;     				make buildAll)
+	-(cd CelciusFarenheitConversions; 			make buildAll)
+	-(cd ImagePixelSum; 						make buildAll)
+	-(cd IOTWorkerSpecialization; 				make buildAll)
+	-(cd Kahan3Sum;		 						make buildAll)
+	-(cd ReversePolishNotation; 				make buildAll)
+	-(cd Stencil1D; 							make buildAll)
+
+
 clean:
 	-(cd Stencil; 								make clean)
 	-(cd VectorMatrix; 							make clean)
