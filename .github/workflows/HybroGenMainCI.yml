@@ -54,7 +54,7 @@ jobs:
         env:
           TOOLCHAIN_DIR: ${{ github.workspace }}/
         run: |
-          python GenCrossTools.py -a risc${{matrix.architecture}}v  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
+          python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
       - name: Check bashrc
@@ -203,6 +203,8 @@ jobs:
   ###################### Regression Single Op ###########################################
   #######################################################################################
         ###Stand by
+
+
 
   #######################################################################################
   ###################### Demo Stencil ###################################################
@@ -398,3 +400,15 @@ jobs:
         python -m pip install antlr4-python3-runtime==${VERSION}
         chmod -R +x ./${{matrix.architecture}}/
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-${{matrix.architecture}}
+
+
+  #######################################################################################
+  ###################### Launch CD For deployment #######################################
+  #######################################################################################
+
+  launch_CD:
+    needs:
+        - demo-NewtonSquareRoot
+        - demo-stencil
+        - demo-vectorMatrix
+    uses: ./.github/workflows/HybroGenMainCD.yml

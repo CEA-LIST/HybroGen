@@ -61,7 +61,7 @@ rootDataBase = {
     },
     'linux' :  {
         'url': 'https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-{RELEASE}.tar.gz',
-        'release': '5.4.60',
+        'release': '5.4.113',
         'confargs': '',
         'targetbuild':   'headers_install',
         },
