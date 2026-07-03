@@ -43,10 +43,10 @@ jobs:
 
       - name: Build C file
         run: |
-          ls ./Demos
-          cd ./Demos/Stencil/ && make buildAll
-          cd ./Demos/VectorMatrix && make buildAll
-          cd ./Demos/Newton-SquareRoot-VariablePrecision && make buildAll
+          cd ./Demos
+          cd ./Stencil/ && make buildAll
+          cd ../VectorMatrix && make buildAll
+          cd ../Newton-SquareRoot-VariablePrecision && make buildAll
 
       - name: Clean machine
         uses: appleboy/ssh-action@v1
