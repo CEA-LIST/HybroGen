@@ -22,6 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install ANTLR4 via apt
+        run: |
+          sudo apt update          
+          sudo apt install -y antlr4     
+
       - name: Download artifacts
         run: |
           gh run download ${{ github.event.workflow_run.id }} -n hybrogen-artifacts -D artifacts
