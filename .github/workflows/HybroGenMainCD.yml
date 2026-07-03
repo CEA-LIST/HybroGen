@@ -43,6 +43,7 @@ jobs:
 
       - name: Build C file
         run: |
+          ls ./Demos
           cd ./Demos/Stencil/ && make buildAll
           cd ./Demos/VectorMatrix && make buildAll
           cd ./Demos/Newton-SquareRoot-VariablePrecision && make buildAll
