@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 
-import psycopg2
-from psycopg2 import ProgrammingError
+import sqlite3
 # from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT # <-- ADD THIS LINE
 import json
 import datetime
 import sys
 import getpass
+import os
+from datetime import datetime
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "hybrogen.db")
 
 class ProxyDb:
     dbSchema = {
         "insertiondate":{
         	"archname":  		("TEXT", "primary key"),
-                "insertiondate":  	("TIMESTAMP",),
+                "insertiondate":  	("DATETIME",),
         	},
         "insns":{
                 "name":      		("TEXT", "not null"),
@@ -46,9 +50,9 @@ class ProxyDb:
         "register": ("archname", "extension", "name", "arith", "function"),
     }
 
-    def __init__ (self, host, dbname, user, passwd, debug=False):
+    def __init__ (self, debug=False):
         self.queryDebug = debug
-        self.c = psycopg2.connect(f"host={host} dbname={dbname} user={user} password={passwd}")
+        self.c = sqlite3.connect(DB_PATH)
         self.dbCursor = self.c.cursor()
         for i in self.dbSchema:
             query = self.createTable(i)
@@ -160,7 +164,7 @@ Update if the same MacroName exists with different values for another column"""
 
     def setLastInsertDate(self, archName, unixfiletime):
         """Insert into insertiondate isa file date for the architecture defined by archName """
-        fileTS = datetime.datetime.utcfromtimestamp(unixfiletime).strftime('%Y-%m-%d %H:%M:%S')
+        fileTS = datetime.utcfromtimestamp(unixfiletime).strftime('%Y-%m-%d %H:%M:%S')
         query = 'insert into InsertionDate values (\'%s\', \'%s\') on conflict (archname) do update set insertiondate=\'%s\';'%(archName, fileTS, fileTS)
         self.execQueries((query,))
 
@@ -168,7 +172,7 @@ Update if the same MacroName exists with different values for another column"""
         """Return the date of the last isa file in database for the architecture defined by archName """
         query  = self.getSelectSqlReq("insertiondate", "InsertionDate", "archname", "'" + archName + "'", " order by insertiondate desc")
         result = self.execGetQueries(query)
-        r = [i[0].timestamp() for i in result]
+        r = [datetime.fromisoformat(i[0]).timestamp() for i in result]
         return r
 
     def getSelectSqlReq(self, columnName, tableName, columnReqName, value, opt=""):
@@ -190,7 +194,7 @@ Update if the same MacroName exists with different values for another column"""
         query = f"insert into register values ('{archName}', '{extension}', '{number}', '{name}', '{datatype}', '{width}', '{function}');"
         try:
             self.execQueries((query,))
-        except (psycopg2.IntegrityError, psycopg2.InternalError):
+        except (sqlite3.IntegrityError, sqlite3.InternalError):
             pass
 
     def getRegisterList(self, archName, abi, func, arith):
@@ -203,10 +207,9 @@ Update if the same MacroName exists with different values for another column"""
     def execQueries(self, listQuery):
         self.traceQuery(listQuery)
         if isinstance(listQuery, tuple):
-            self.dbCursor.execute("begin;")
             for q in listQuery:
                 self.dbCursor.execute(q)
-            self.dbCursor.execute("commit;")
+            self.c.commit();
         elif isinstance(listQuery, str):
             self.dbCursor.execute(listQuery)
         else:
@@ -238,7 +241,7 @@ Update if the same MacroName exists with different values for another column"""
 
     def dropDb(self):
         for t in self.dbSchema:
-            query = 'drop table %s cascade;'%(t)
+            query = f"DROP TABLE IF EXISTS {t};"
             self.execQueries((query,))
 
 def usage(msg):

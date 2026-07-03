@@ -72,3 +72,4 @@ clean:
 	-rm IsaDescriptionParser.* IsaDescription.interp  IsaDescription.tokens
 	-rm *.java *.class
 	-rm -rf __pycache__
+	-rm hybrogen.db
