@@ -5,8 +5,9 @@ on:
     workflows: HybroGen_CI_Workflow
     types: [completed]
     branches:
-      - main
       - HybroGen_CI/CD_Developpment
+      - main
+
 
 jobs:
   deploy:
