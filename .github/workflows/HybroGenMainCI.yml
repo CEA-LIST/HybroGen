@@ -537,8 +537,5 @@ jobs:
   #######################################################################################
 
   launch_CD:
-    needs:
-        - demo-NewtonSquareRoot
-        - demo-stencil
-        - demo-vectorMatrix
+    needs: [demo-NewtonSquareRoot,demo-stencil,demo-vectorMatrix]
     uses: ./.github/workflows/HybroGenMainCD.yml
