@@ -1,12 +1,7 @@
 name: HybroGen_CD_Workflow
 
 on:
-  workflow_run:
-    workflows: HybroGen_CI_Workflow
-    types: [completed]
-    branches:
-      - HybroGen_CI/CD_Developpment
-      - main
+  workflow_call:
 
 
 jobs:

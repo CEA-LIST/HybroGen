@@ -530,3 +530,15 @@ jobs:
         python -m pip install psycopg2-binary
         chmod -R +x ./${{matrix.architecture}}/
         cd ./Demos/Newton-SquareRoot-VariablePrecision && make demo-${{matrix.architecture}}
+
+
+  #######################################################################################
+  ###################### Launch CD For deployment #######################################
+  #######################################################################################
+
+  launch_CD:
+    needs:
+        - demo-NewtonSquareRoot
+        - demo-stencil
+        - demo-vectorMatrix
+    uses: ./.github/workflows/HybroGenMainCD.yml
