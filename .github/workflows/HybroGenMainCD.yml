@@ -51,7 +51,7 @@ jobs:
 
       - name: Debug secrets
         run: |
-          echo "HOST=${{ secrets.SSH_ADDR_DEST }}"
+          echo "HOST=${{secrets.SSH_ADDR_DEST}}"
       - name: Clean machine
         uses: appleboy/ssh-action@v1
         with:
