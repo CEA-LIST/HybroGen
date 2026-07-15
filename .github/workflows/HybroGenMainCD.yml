@@ -50,8 +50,15 @@ jobs:
 
 
       - name: Debug secrets
+        env:
+          HOST: ${{ secrets.SSH_ADDR_DEST }}
         run: |
-          echo "HOST=${{secrets.SSH_ADDR_DEST}}"
+          if [ -z "$HOST" ]; then
+            echo "SECRET VIDE"
+          else
+            echo "SECRET PRESENT"
+          fi
+
       - name: Clean machine
         uses: appleboy/ssh-action@v1
         with:
