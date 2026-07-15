@@ -409,6 +409,7 @@ jobs:
   launch_CD:
     needs: [demo-NewtonSquareRoot,demo-stencil,demo-vectorMatrix]
     uses: ./.github/workflows/HybroGenMainCD.yml
+    secrets: inherit
     if: success() || failure()
     
 
