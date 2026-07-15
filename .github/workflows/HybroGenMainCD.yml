@@ -48,6 +48,10 @@ jobs:
           cd ../VectorMatrix && make buildAll
           cd ../Newton-SquareRoot-VariablePrecision && make buildAll
 
+
+      - name: Debug secrets
+        run: |
+          echo "HOST=${{ secrets.SSH_ADDR_DEST }}"
       - name: Clean machine
         uses: appleboy/ssh-action@v1
         with:
