@@ -15,7 +15,7 @@ jobs:
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Install ANTLR4 via apt
         run: |
@@ -60,7 +60,7 @@ jobs:
           fi
 
       - name: Clean machine
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
@@ -71,7 +71,7 @@ jobs:
             mkdir ~/FromCD
 
       - name: Copy artifacts via SCP
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
@@ -79,3 +79,15 @@ jobs:
           port: ${{ matrix.port }}
           source: "./Demos"
           target: "~/FromCD/"
+
+      - name: Compile Program and generate Plot
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.SSH_ADDR_DEST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ matrix.port }}
+          script: |
+            cd ~/FromCD
+            cd ./Stencil
+            
