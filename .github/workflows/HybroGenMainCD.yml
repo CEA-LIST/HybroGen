@@ -58,7 +58,7 @@ jobs:
       - name: Build C file
         run: |
           cd ./Demos
-          cd ./Stencil/ && make make build  ARCH=${{  matrix.arch }}
+          cd ./Stencil/ && make build  ARCH=${{  matrix.arch }}
           cd ../VectorMatrix && make build  ARCH=${{  matrix.arch }}
           cd ../Newton-SquareRoot-VariablePrecision && make build  ARCH=${{  matrix.arch }}
 
