@@ -85,12 +85,12 @@ allriscvQemu:
 	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 # Do native experiment i.e. do only CC & run natively, log in LOG file
-allAarch64Native:
+allaarch64Native:
 	make allNative ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allNative ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-allRiscvNative:
-	make allNative ARCH=riscv CC=cc RUNNER= LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+allriscvNative:
+	make allNative ARCH=riscv CC=cc RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
 allNative:
 	make compile ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
@@ -126,7 +126,7 @@ run: # Then on various image sizes (image ratio 4:3)
 	# -make xperiment ARCH=${ARCH} LOG=${LOG} RUNNER=${RUNNER} FILTER=${FILTER} SIZE=2048x1536
 
 xperiment:
-	-${RUNNER} Stencil.${ARCH} Image/Sun_${SIZE}.pgm S.pgm H4.pgm ${FILTER} >> ${LOG}
+	${RUNNER} ./Stencil.${ARCH} Image/Sun_${SIZE}.pgm S.pgm H4.pgm ${FILTER} >> ${LOG}
 
 plot:
 	./generatePlot.py --archi ${ARCH} --output ${ARCH}

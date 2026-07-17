@@ -40,11 +40,11 @@ compile: VectorMatrix.${ARCH}.c
 	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}
 
 
-runAarch64Native:
+runaarch64Native:
 	make buildAndRun ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make buildAndRun ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-runAarch64Qemu:
+runaarch64Qemu:
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
@@ -53,8 +53,8 @@ buildAndRun:
 	make runExperiment ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} LOG=${LOG}
 
 runExperiment:
-	-rm -f ${LOG}
-	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
+	rm -f ${LOG}
+	@echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=10         >> ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100        >> ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=1000       >> ${LOG}
