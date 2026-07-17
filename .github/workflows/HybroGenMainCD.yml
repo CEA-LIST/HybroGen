@@ -95,6 +95,7 @@ jobs:
           target: "~/FromCD/"
 
       - name: Compile Program and generate Plot
+        timeout-minutes: 100
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
