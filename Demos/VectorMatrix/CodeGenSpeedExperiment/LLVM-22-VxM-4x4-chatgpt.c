@@ -146,6 +146,12 @@ static LLVMValueRef build_matvec4_batch_function(LLVMModuleRef module, LLVMConte
     return fn;
 }
 
+void fatalError (char * msg)
+{
+  fprintf(stderr, "%s\n", msg);
+  exit(1);
+}
+
 int main(int argc, char *argv[]) 
 {
     LLVMContextRef ctx = NULL;
@@ -154,26 +160,21 @@ int main(int argc, char *argv[])
     struct LLVMMCJITCompilerOptions options;
     char *error = NULL;
 
-    if (LLVMInitializeNativeTarget() != 0) {
-        fprintf(stderr, "Erreur: LLVMInitializeNativeTarget a échoué.\n");
-        return 1;
-    }
-    if (LLVMInitializeNativeAsmPrinter() != 0) {
-        fprintf(stderr, "Erreur: LLVMInitializeNativeAsmPrinter a échoué.\n");
-        return 1;
-    }
-    if (LLVMInitializeNativeAsmParser() != 0) {
-        fprintf(stderr, "Erreur: LLVMInitializeNativeAsmParser a échoué.\n");
-        return 1;
-    }
+
+    if (argc < 17)
+      fatalError ("Erreur manque argument.\n./Prog <opt level> <16 matrix element>");
+    if (LLVMInitializeNativeTarget() != 0) 
+        fatalError("Erreur: LLVMInitializeNativeTarget a échoué.");
+    if (LLVMInitializeNativeAsmPrinter() != 0)
+        fatalError("Erreur: LLVMInitializeNativeAsmPrinter a échoué.");
+    if (LLVMInitializeNativeAsmParser() != 0)
+        fatalError("Erreur: LLVMInitializeNativeAsmParser a échoué.");
 
     LLVMLinkInMCJIT();
 
     ctx = LLVMContextCreate();
-    if (ctx == NULL) {
-        fprintf(stderr, "Erreur: impossible de créer le contexte LLVM.\n");
-        return 1;
-    }
+    if (ctx == NULL)
+        fatalError("Erreur: impossible de créer le contexte LLVM.");
 
     module = LLVMModuleCreateWithNameInContext("jit_matvec4_batch_module", ctx);
     if (module == NULL) {
