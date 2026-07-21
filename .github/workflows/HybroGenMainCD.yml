@@ -2,12 +2,14 @@ name: HybroGen_CD_Workflow
 
 on:
   workflow_call:
-
+permissions:
+  contents: read
 
 jobs:
   deploy:
     continue-on-error: true
     runs-on: ubuntu-24.04
+
 
     strategy:
       matrix:
