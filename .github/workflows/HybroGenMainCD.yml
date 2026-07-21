@@ -12,8 +12,8 @@ jobs:
     strategy:
       matrix:
         include:
-#          - arch: riscv
-#            port: 60000
+          - arch: riscv
+            port: 60000
 
           - arch: aarch64
             port: 65000
