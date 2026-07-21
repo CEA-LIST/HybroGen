@@ -1,12 +1,8 @@
 name: HybroGen_CD_Workflow
 
 on:
-  workflow_run:
-    workflows: HybroGen_CI_Workflow
-    types: [completed]
-    branches:
-      - main
-      - HybroGen_CI/CD_Developpment
+  workflow_call:
+
 
 jobs:
   deploy:
@@ -21,6 +17,16 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install ANTLR4 via apt
+        run: |
+          sudo apt update          
+          sudo apt install -y antlr4    
+          VERSION=$(antlr4 2>/dev/null | grep 'ANTLR Parser Generator' | awk '{print $5}')
+          sudo apt install -y python3-antlr4
+          python -m pip install --upgrade pip
+          python -m pip install antlr4-python3-runtime==${VERSION}
+          python -m pip install psycopg2-binary 
 
       - name: Download artifacts
         run: |

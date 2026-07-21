@@ -82,11 +82,11 @@ class RegisterListener(RegisterDescriptionListener):
                 self.db.setRegister(self.archname, extension, elem, prefix + str(elem),  width, regType, self.currentReg.getFunction()[i])
 
 def initDb(dbId):
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+    db = ProxyDb()
 
 def insertDb(archName, dbId):
     filename = "HybroGen/arch/%s/h2-%s.register"%(archName, archName)
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+    db = ProxyDb()
     try:
         l = RegisterDescriptionLexer(antlr4.FileStream(filename, "utf8"))
     except FileNotFoundError:
@@ -101,7 +101,7 @@ def insertDb(archName, dbId):
     w.walk(lis, t)
 
 def dropDb(dbIds):
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+    db = ProxyDb()
     db.dropDb()
 
 def usage(msg):

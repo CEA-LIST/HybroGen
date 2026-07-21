@@ -168,17 +168,17 @@ def generateC(archName):
     g = GenGenerator(isa)
     outFile("h2-insn-%s.h"%archName, str(g.genGenerators()))
 
-def initDb(dbId):
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+def initDb():
+    db = ProxyDb()
 
-def insertDb(archName, dbId):
+def insertDb(archName):
     filename = "HybroGen/arch/%s/h2-%s.isa"%(archName, archName)
     try:
         fileDate = os.path.getmtime (filename)
     except FileNotFoundError:
         print("Error : no file HybroGen/arch/%s/h2-%s.isa"%(archName, archName))
         sys.exit(0)
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+    db = ProxyDb()
     lastDbDate = db.getLastInsertDate(archName)
     if len(lastDbDate) == 0  or ( len(lastDbDate) > 0 and (lastDbDate[0] <= fileDate)):
         isa = IsaDb(db, archName, [])
@@ -198,7 +198,7 @@ def insertDb(archName, dbId):
         sys.exit(0)
 
 def testdb(archName):
-    db = ProxyDb("localhost", "hybrogen", "hybrogen", "hybrogen")
+    db = ProxyDb()
     isa = IsaDb(db, archName, [])
     print("Search aDd instruction in %s"%archName)
     print(isa.getInsnListSem("aDd", "rrr"))
@@ -207,8 +207,8 @@ def testdb(archName):
     #print("\nInstruction list for %s"%archName)
     #print(isa.getInsnList())
 
-def dropDb(dbIds):
-    db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+def dropDb():
+    db = ProxyDb()
     db.dropDb()
 
 def outFile(filename, dataToWrite):
@@ -244,11 +244,11 @@ if __name__ == '__main__':
     elif args.genC:
         generateC (archName)
     elif args.initDb:
-        initDb (archName)
+        initDb ()
     elif args.dropDb:
-        dropDb (dbIds)
+        dropDb ()
     elif args.insertDb:
-        insertDb (archName, dbIds)
+        insertDb (archName)
     # "-c":("Generate C code generators",        generateC),
     # "-d":("Delete all database",               dropDb),
     # "-i":("Insert an ISA in the database",     insertDb),
