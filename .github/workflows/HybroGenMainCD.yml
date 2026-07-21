@@ -108,8 +108,8 @@ jobs:
             cd ~/FromCD/Demos/Stencil/ && make allNative ARCH=${{ matrix.arch }} CFLAGS=-O0 CC=cc RUNNER="\"\"" LOG=${{ matrix.arch }}-native-O0.log            
             cd ~/FromCD/Demos/Stencil/ && make allNative ARCH=${{ matrix.arch }} CFLAGS=-O3 CC=cc RUNNER="\"\"" LOG=${{ matrix.arch }}-native-O3.log
             cd ~/FromCD/Demos/Stencil/Results/ && make all DISPLAY=0 DATAFILES="../${{ matrix.arch }}-native-O0.log ../${{ matrix.arch }}-native-O3.log"
-            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=O3 RUNNER="" REPEAT=1000000   >> VectorMatrixLogO3.log
-            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=O0 RUNNER="" REPEAT=1000000   >> VectorMatrixLogO0.log
+            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=O3 CC=cc RUNNER="" REPEAT=1000000   >> VectorMatrixLogO3.log
+            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=O0 CC=cc RUNNER="" REPEAT=1000000   >> VectorMatrixLogO0.log
             cd ~/FromCD/Demos/VectorMatrix/ && python3 PlotResults.py VectorMatrixLogO0.log VectorMatrixLogO3.log 1000000
 #Ajouter l'option de run NewtonSquareRoot en natif et faire un truc avec les logs#cd ~/FromCD/Demos/NewtonSquareRoot/ && make allNative ARCH=$ CC=cc RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
