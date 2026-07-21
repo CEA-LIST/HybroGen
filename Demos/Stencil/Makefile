@@ -142,4 +142,4 @@ send:
 	scp /tmp/a.tgz ${DEST}:/tmp
 
 clean:
-	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.c Stencil.*.c a.out
+	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.power Stencil.c Stencil.*.c a.out
