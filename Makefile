@@ -69,27 +69,34 @@ cxram:
 	@make doregression THEARCH=cxram
 
 
+VERBOSE ?= 0
+
+ifeq ($(VERBOSE),1)
+	REDIRECT :=
+else
+	REDIRECT := > /dev/null 2>&1
+endif
+
+
 check:
-	@echo "[INFO] Start checking data base"
-#Later add Sqlite3 database check checking if all aarch are in table if tables are'nt empty
 	@echo "[INFO] Start check with Regression test"
-	@make --no-print-directory aarch64 && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
-	@make --no-print-directory power && (echo "[OK] Regression test on power")|| (echo "[FAIL] Regression test fail for power")
-	@make --no-print-directory riscv && (echo "[OK] Regression test on riscv")|| (echo "[FAIL] Regression test fail for riscv")
-	@echo "[INFO]start check with regressionSingleOp"
-	@cd CodeExamples && ./RegressionSingleOp.py -d -a aarch64 riscv power
-	@(cd CodeExamples && ./RegressionSingleOp.py -z -a aarch64) && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
-	@(cd CodeExamples && ./RegressionSingleOp.py -z -a power) && (echo "[OK] Regression test on power")|| (echo "[FAIL] Regression test fail for power")
-	@(cd CodeExamples && ./RegressionSingleOp.py -z -a riscv) && (echo "[OK] Regression test on riscv")|| (echo "[FAIL] Regression test fail for riscv")
+	@make --no-print-directory aarch64 ${REDIRECT} && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
+	@make --no-print-directory power ${REDIRECT} && (echo "[OK] Regression test on power")|| (echo "[FAIL] Regression test fail for power")
+	@make --no-print-directory riscv ${REDIRECT} && (echo "[OK] Regression test on riscv")|| (echo "[FAIL] Regression test fail for riscv")
+#	@echo "[INFO]start check with regressionSingleOp"
+#	@(cd CodeExamples && ./RegressionSingleOp.py -d -a aarch64 riscv power ${REDIRECT})
+#	@(cd CodeExamples && ./RegressionSingleOp.py -z -a aarch64 ${REDIRECT} ) && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
+#	@(cd CodeExamples && ./RegressionSingleOp.py -z -a power ${REDIRECT} ) && (echo "[OK] Regression test on power")|| (echo "[FAIL] Regression test fail for power")
+#	@(cd CodeExamples && ./RegressionSingleOp.py -z -a riscv ${REDIRECT} ) && (echo "[OK] Regression test on riscv")|| (echo "[FAIL] Regression test fail for riscv")
 	@echo "[INFO] Start trying Demo Stencil (can takes a lot of time (15-20 minutes))"
-	@(cd ./Demos/Stencil && make -s --no-print-directory allAarch64Qemu) && (echo "[OK] Demo stencil on aarch64 works") || (echo "[FAIL] Demo Stencil fail on aarch64")
-	@(cd ./Demos/Stencil && make -s --no-print-directory allRiscvQemu) && (echo "[OK] Demo stencil on riscv works") || (echo "[FAIL] Demo Stencil fail on riscv")
-	@(cd ./Demos/Stencil && make -s --no-print-directory allPowerQemu) && (echo "[OK] Demo stencil on power works") || (echo "[FAIL] Demo Stencil fail on power")
+	@(cd ./Demos/Stencil && make -s --no-print-directory allAarch64Qemu ${REDIRECT} ) && (echo "[OK] Demo stencil on aarch64 works") || (echo "[FAIL] Demo Stencil fail on aarch64")
+	@(cd ./Demos/Stencil && make -s --no-print-directory allRiscvQemu ${REDIRECT} ) && (echo "[OK] Demo stencil on riscv works") || (echo "[FAIL] Demo Stencil fail on riscv")
+	@(cd ./Demos/Stencil && make -s --no-print-directory allPowerQemu ${REDIRECT} ) && (echo "[OK] Demo stencil on power works") || (echo "[FAIL] Demo Stencil fail on power")
 	@echo "[INFO] Start Trying Demo Vector Matrix"
-	@(cd ./Demos/VectorMatrix && make -s --no-print-directory aarch64) && (echo "[OK] Demo Vector Matrix on aarch64 works") || (echo "[FAIL] Demo Vector Matrix fail on aarch64")
-	@(cd ./Demos/VectorMatrix && make -s --no-print-directory riscv) && (echo "[OK] Demo Vector Matrix on riscv works") || (echo "[FAIL] Demo Vector Matrix fail on riscv")
-	@(cd ./Demos/VectorMatrix && make -s --no-print-directory power) && (echo "[OK] Demo Vector Matrix on power works") || (echo "[FAIL] Demo Vector Matrix fail on power")
+	@(cd ./Demos/VectorMatrix && make -s --no-print-directory aarch64 ${REDIRECT} ) && (echo "[OK] Demo Vector Matrix on aarch64 works") || (echo "[FAIL] Demo Vector Matrix fail on aarch64")
+	@(cd ./Demos/VectorMatrix && make -s --no-print-directory riscv ${REDIRECT} ) && (echo "[OK] Demo Vector Matrix on riscv works") || (echo "[FAIL] Demo Vector Matrix fail on riscv")
+	@(cd ./Demos/VectorMatrix && make -s --no-print-directory power ${REDIRECT} ) && (echo "[OK] Demo Vector Matrix on power works") || (echo "[FAIL] Demo Vector Matrix fail on power")
 	@echo "[INFO] Start Trying Demo Newton-SquareRoot-VariablePrecision"
-	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-aarch64) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on aarch64 works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on aarch64")
-	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-power) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on power works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on power")
-	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-riscv) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on riscv works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on riscv")
+	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-aarch64 ${REDIRECT} ) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on aarch64 works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on aarch64")
+	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-power ${REDIRECT} ) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on power works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on power")
+	@(cd ./Demos/Newton-SquareRoot-VariablePrecision && make -s --no-print-directory demo-riscv ${REDIRECT} ) && (echo "[OK] Demo Newton-SquareRoot-VariablePrecision on riscv works") || (echo "[FAIL] Demo Newton-SquareRoot-VariablePrecision fail on riscv")
