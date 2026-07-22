@@ -15,9 +15,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - arch: riscv
-            port: 60000
-
+        #  - arch: riscv
+        #    port: 60000
+        # set in pause the riscv calculus and deployment
           - arch: aarch64
             port: 65000
 
