@@ -110,7 +110,8 @@ if __name__ == "__main__":
     plt.xticks(rotation=45)
 #    plt.yscale("log")
     ax.legend (ncol=3)
-    ax.set_title("Stencil execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
+    ax.set_title("VectorxMatrix time in clock cycle for {vectorNumber}\n(-O0 versus -O3 versus Compilette + Code Generation time)")
 #    plt.show()
-    print (f"Results in {fileNameOpt}-{vectorNumber}.png")
-    plt.savefig(f'{fileNameOpt}-{vectorNumber}.png')
+    outputFileName = f"{fileNameOpt}-{vectorNumber}.svg"
+    print (f"Results in {outputFileName}")
+    plt.savefig(outputFileName)
