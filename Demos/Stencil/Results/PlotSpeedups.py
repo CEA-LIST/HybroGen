@@ -94,23 +94,25 @@ if __name__ == "__main__":
     # print (x)
     fig, ax = plt.subplots(layout='constrained')
     # print (r)
+    colors = {"O0": "blue", "O3": "green", "Compilette" : '#ff32359e', "CodeGen": "#fff7365f"}
     for key in ("O0", "O3", "Compilette"):
         print (key)
         print (r[key])
         offset = width * multiplier
-        rects = ax.bar([dx+offset for dx in x], r[key], width, label=key)
+        rects = ax.bar([dx+offset for dx in x], r[key], width, label=key, color = colors[key])
         # ax.bar_label(rects, padding=3)
         multiplier += 1
-    rects = ax.bar([dx+offset for dx in x], r["clockCodeGen"], width, bottom = r["Compilette"], label="Code Generation")
+    rects = ax.bar([dx+offset for dx in x], r["clockCodeGen"], width, bottom = r["Compilette"], label="Code Generation", color = colors["CodeGen"])
 
 #    plt.tight_layout()
 #    plt.subplots_adjust(bottom=0.15)
     ax.set_ylabel("Clock cycle")
     ax.set_xticks([d+width for d in x], filterNames)
     plt.xticks(rotation=45)
-#    plt.yscale("log")
+    plt.yscale("log")
     ax.legend (ncol=3)
-    ax.set_title("Stencil execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
+    ax.set_title("Convolution execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
 #    plt.show()
-    print (f"Results in {fileNameOpt}-{imageSize}.png")
-    plt.savefig(f'{fileNameOpt}-{imageSize}.png')
+    outputFileName = f"{fileNameOpt}-{imageSize}.svg"
+    print (f"Results in {outputFileName}")
+    plt.savefig(outputFileName)

@@ -2,12 +2,18 @@ HLFLAGS= -g
 CFLAGS =-Wall -O0 -g  -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER
 CFLAGS =-Wall -O3 #   -DH2_DEBUG_INSN # -DH2_DEBUG_REGISTER -DVERBOSE
 FILE = VectorMatrix
-FILELIST = VectorMatrix.aarch64.c VectorMatrix.riscv.c VectorMatrix.power.c Makefile
+FILELIST = VectorMatrix.aarch64.c VectorMatrix.riscv.c	\
+VectorMatrix.power.c Makefile 
 # HLFLAGS=-g
 all:
 	@echo "make riscv"
 	@echo "make aarch64"
 	@echo "make power"
+
+buildAll:
+	make build ARCH=aarch64
+	make build ARCH=riscv
+	make build ARCH=power
 
 power:
 	make build   ARCH=$@
@@ -29,7 +35,6 @@ riscv:
 
 build:
 	../../HybroLang.py ${HLFLAGS} -a ${ARCH} -c -i ./VectorMatrix.hl
-	mv VectorMatrix.c VectorMatrix.${ARCH}.c
 
 compile: VectorMatrix.${ARCH}.c
 	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}

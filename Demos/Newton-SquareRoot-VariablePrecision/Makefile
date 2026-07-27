@@ -1,5 +1,13 @@
 CFLAGS = -g -DH2_DEBUG -I../../HybroGen/include -lm
 
+buildAll:
+	make build ARCH=aarch64
+	make build ARCH=riscv
+	make build ARCH=power
+build:
+	../../HybroLang.py -c -a $(ARCH) -i Newton.hl -g
+
+
 demo-power:
 	make clean newton run-newton ARCH="power" CC="powerpc64le-linux-gnu-gcc-10.2.0" SIM="qemu-ppc64le"
 
@@ -11,7 +19,7 @@ demo-aarch64:
 
 newton:
 	../../HybroLang.py -c -a $(ARCH) -i Newton.hl -g
-	$(CC) Newton.c -o Newton.$(ARCH) ${CFLAGS}
+	$(CC) Newton.$(ARCH).c -o Newton.$(ARCH) ${CFLAGS}
 
 run-newton:
 	make run-demo DEMOCODE=Newton.$(ARCH) DEMOARGS="65536 1e-13"
@@ -49,4 +57,4 @@ run-demo:
 	$(SIM) -- ${DEMOCODE} ${DEMOARGS}
 
 clean:
-	rm -f Newton.aarch64 Newton.power Newton.riscv Newton.c DivideThreshold.c DivideThreshold.power DivideThreshold.riscv
+	rm -f Newton.aarch64 Newton.power Newton.riscv Newton.power.c Newton.riscv.c Newton.aarch64.c DivideThreshold.c DivideThreshold.power DivideThreshold.riscv DivideThreshold.power.c DivideThreshold.riscv.c

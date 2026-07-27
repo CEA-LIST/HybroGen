@@ -27,6 +27,7 @@ def mergeCVS(noOptCVSFile, optCVSFile):
 # 4  InsnCodeGenerationTime
 # 5  InstructionCount
 # 6  Error (true / false)
+# 7  Dummy value to avoid optimization
     dataSet = {}
     with open (noOptCVSFile, 'r') as csvfile:
         reader = csv.reader (csvfile, delimiter =';')
@@ -88,15 +89,14 @@ if __name__ == "__main__":
     r["O3"]          = [int(d[x][vectorNumber]["clockOpt"])           for x in d.keys()]
     r["Compilette"]  = [int(d[x][vectorNumber]["clockCompiletteOpt"]) for x in d.keys()]
     r["clockCodeGen"]= [int(d[x][vectorNumber]["clockCodeGenOpt"])    for x in d.keys()]
+    print (r)
     width = 0.25
     multiplier = 0
     x = [l for l in range(len(filterNames))]
     # print (x)
     fig, ax = plt.subplots(layout='constrained')
-    # print (r)
     for key in ("O0", "O3", "Compilette"):
-        print (key)
-        print (r[key])
+        print (key, r[key])
         offset = width * multiplier
         rects = ax.bar([dx+offset for dx in x], r[key], width, label=key)
         # ax.bar_label(rects, padding=3)
@@ -110,7 +110,8 @@ if __name__ == "__main__":
     plt.xticks(rotation=45)
 #    plt.yscale("log")
     ax.legend (ncol=3)
-    ax.set_title("Stencil execution time in clock cycle\n(-O0 versus -O3 versus Compilette + Code Generation time)")
+    ax.set_title("VectorxMatrix time in clock cycle for {vectorNumber}\n(-O0 versus -O3 versus Compilette + Code Generation time)")
 #    plt.show()
-    print (f"Results in {fileNameOpt}-{vectorNumber}.png")
-    plt.savefig(f'{fileNameOpt}-{vectorNumber}.png')
+    outputFileName = f"{fileNameOpt}-{vectorNumber}.svg"
+    print (f"Results in {outputFileName}")
+    plt.savefig(outputFileName)

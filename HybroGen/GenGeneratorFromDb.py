@@ -8,7 +8,7 @@ from HybroGen.ProxyDb import *
 class GenGeneratorFromDb:
 
     def __init__(self, archName, extList, abi, dbConf, args):
-        self.db = ProxyDb(dbConf["host"], dbConf["dbname"], dbConf["user"], dbConf["pwd"])
+        self.db = ProxyDb()
         self.isa = IsaDb(self.db, archName, extList)
         self.insnLenList = self.isa.getWordSizeFromDb()
         self.insnLenList.sort()

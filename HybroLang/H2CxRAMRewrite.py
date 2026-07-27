@@ -48,7 +48,7 @@ class H2CxRAMRewrite():
         if self.verbose:
             print("H2CxRAMRewrite pass")
 
-        db = ProxyDb(dbIds["host"], dbIds["dbname"], dbIds["user"], dbIds["pwd"])
+        db = ProxyDb()
         isa = IsaDb(db, "cxram", None)
         self.insnLenList = isa.getWordSizeFromDb()
         self.insnLenList.sort()

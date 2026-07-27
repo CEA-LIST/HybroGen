@@ -465,14 +465,15 @@ if __name__ == '__main__':
     elif args.release:
         ids = args.dbIds.split(":")
         dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
-        print(f'HybroLang Compiler {H2_RELEASE} (host={dbIds["host"]} dbname={dbIds["dbname"]} user={dbIds["user"]}')
+        print(f'HybroLang Compiler {H2_RELEASE}')
     elif args.toC:
         outFileName, ext = os.path.splitext(args.inputfile)
+        outFileName += "." + args.arch[0]
         outFileName += ".c"
         # Passe 1 construction de l'arbre
         ids = args.dbIds.split(":")
         dbIds = {"host": ids[0], "dbname": ids[1], "user": ids[2],"pwd": ids[3]}
-        print('HybroLang Compiler %s (host=%s dbname=%s user=%s)'%(H2_RELEASE, dbIds["host"], dbIds["dbname"], dbIds["user"]))
+        print('HybroLang Compiler %s'%(H2_RELEASE))
         fileIn  = open(args.inputfile, 'r')
         prefixDict, cCode = writeCandParseCompilette(fileIn, platform, args, dbIds)
         fileIn.close()

@@ -109,7 +109,6 @@ def compile (File, Arch, Debug, Verbose):
     o1 = 0
     o2 = 0
     cmdH2 = tuple(["../HybroLang.py", "--toC", "--arch"] + Arch + ["--inputfile", File+".hl"])
-    cmdMv = tuple(["mv", File+".c", cFileName])
     o0 = cmd (["which", compilerAndArg[0]], Verbose)
     if 0 != o0:
         fatalError ("C Compiler not found (environment pb ?)", -1)
@@ -118,7 +117,6 @@ def compile (File, Arch, Debug, Verbose):
     if Verbose:
         cmdH2 += ("--verboseParsing",)
     o1 = cmd(cmdH2, Verbose)
-    cmd(cmdMv, Verbose)
     if 0 != o1:
         fatalError ("Hybrogen compiler error", -2)
     if Debug:
