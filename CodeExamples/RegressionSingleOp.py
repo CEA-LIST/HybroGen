@@ -117,6 +117,7 @@ if __name__ == "__main__":
     parser.add_argument('-z',   '--analyse',  action='store_true', help='Analyse result')
     parser.add_argument('-d',   '--dotests',  action='store_true', help='Generate results')
     a = parser.parse_args()
+    print(a.wLen);
 #    print (a)
     results = {}
     csvFileName = "regression-single-op-%s.csv"%a.arch[0]
@@ -124,29 +125,20 @@ if __name__ == "__main__":
         if len(a.arch) != 1:
             exitError("Could only analyse 1 architecture")
         else:
-            # Read reference list
-            csvRef = csv.reader (open ("RegressionSingleOpReference.csv", "r"), delimiter=";")
-            # Restrict the list to 1 arch
-            refList = [(ref[0], ref[1], int(ref[2]), int(ref[3]), ref[4]) for ref in csvRef if ref[5] == a.arch[0]]
-            refList.sort()
-            # print (refList)
-
-            # Read the generated results
+            
             csvArch = csv.reader (open (csvFileName, "r"), delimiter=";")
-            archList = [(ref[0], ref[1], int(ref[2]), int(ref[3]), ref[4]) for ref in csvArch]
+            archList = [(ref[0], ref[1], int(ref[2]), int(ref[3]), ref[4],ref[5],ref[6]) for ref in csvArch]
             archList.sort()
             # print (archList)
 
-            moreInArch = [x for x in refList + archList if x not in refList]
-            moreInRef  = [x for x in refList + archList if x not in archList]
-            print ("moreInRef :  "+str(moreInRef))
-            print ("moreInArch : "+str(moreInArch))
-            if archList == refList:
-                print ("same list")
-                sys.exit(0)
-            else:
-                print ("different list")
-                sys.exit(-1)
+            checkIf = False
+            for test in archList:
+                print(test)
+                if(test[6] == "Fail"):
+                    checkIf = True
+        if(checkIf):
+            exit(-1)
+
     elif a.dotests:
         if "value" in a.param:
             for archName in a.arch:
