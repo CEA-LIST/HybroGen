@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 {
     int isFloat, iterationNumber;
     double af, precf, precd, value, next, diff;
-    piff fPtr1;
-    pidd fPtr2;
-    h2_insn_t * ptr;
+    piff fPtr32;
+    pidd fPtr64;
+    h2_insn_t * ptr32,* ptr64;
     char input;
     if (argc < 3)
     {
@@ -47,7 +47,8 @@ int main(int argc, char **argv)
     af = atof (argv[1]);
     precd = atof (argv[2]);
     precf = 1; // precd * 1.e14;
-    ptr  = h2_malloc (1024);
+    ptr32  = h2_malloc (10);
+    ptr64  = h2_malloc (10);
     isFloat = True;
     printf ("Compute square root of %f\n", af);
     printf ("With precision of %e (float)\n", precf);
@@ -55,16 +56,16 @@ int main(int argc, char **argv)
     next = 1.0;
     diff = af;
 
-    fPtr1 = (piff) genIterate (ptr, FLOAT);
+    fPtr32 = (piff) genIterate (ptr32, FLOAT);
     do
     {
 	  if ((diff < precf) && isFloat)
 		{ 		/* Code re-generation with double for better precision */
-		  fPtr2 = (pidd) genIterate (ptr, DOUBLE);
 		  isFloat = False;
+		  fPtr64 = (pidd) genIterate (ptr64, DOUBLE);
 		}
 	  value = next;
-	  next = (isFloat)?fPtr1(value, af, 2.0):fPtr2(value, af, 2.0);
+	  next = (isFloat)?fPtr32(value, af, 2.0):fPtr64(value, af, 2.0);
 	  diff = ABS(next - value);
 	  printf("%3d %s : %.20f, %e\n",
 			 iterationNumber++,

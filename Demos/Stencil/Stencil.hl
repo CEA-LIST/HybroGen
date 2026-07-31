@@ -65,26 +65,26 @@ pifc genKernel3x3(pifc ptr, int* Filter, int coeff)
     {
       int 32 1 sum, ni, njp1, njm1, stride;
 
-	  njp1 = column + 1;
-	  njm1 = column - 1;
+      njp1 = column + 1;
+      njm1 = column - 1;
 
       ni  = line-1;
       stride = ni * imgWidth;
-	  sum =       In[stride + njm1]   * #(Filter[0]);
-	  sum = sum + In[stride + column] * #(Filter[1]);
-	  sum = sum + In[stride + njp1]   * #(Filter[2]);
-
-	  ni  = line;
+      sum =       In[stride + njm1]   * #(Filter[0]);
+      sum = sum + In[stride + column] * #(Filter[1]);
+      sum = sum + In[stride + njp1]   * #(Filter[2]);
+      
+      ni  = line;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm1]   * #(Filter[1*3+0]);
-	  sum = sum + In[stride + column] * #(Filter[1*3+1]);
-	  sum = sum + In[stride + njp1]   * #(Filter[1*3+2]);
-
+      sum = sum + In[stride + njm1]   * #(Filter[1*3+0]);
+      sum = sum + In[stride + column] * #(Filter[1*3+1]);
+      sum = sum + In[stride + njp1]   * #(Filter[1*3+2]);
+      
       ni  = line+1;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm1]   * #(Filter[2*3+0]);
-	  sum = sum + In[stride + column] * #(Filter[2*3+1]);
-	  sum = sum + In[stride + njp1]   * #(Filter[2*3+2]);
+      sum = sum + In[stride + njm1]   * #(Filter[2*3+0]);
+      sum = sum + In[stride + column] * #(Filter[2*3+1]);
+      sum = sum + In[stride + njp1]   * #(Filter[2*3+2]);
       return sum/#(coeff);
     }
   ]#
@@ -97,15 +97,15 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
     int 32 1 kernel (int[] 32 1 In, int 32 1 line, int 32 1 column, int 32 1 imgWidth)
     {
       int 32 1 sum, ni, njm2, njm1, njp1, njp2, stride;
-
-	  njm2  = column - 2;
-	  njm1  = column - 1;
-	  njp1  = column + 1;
-	  njp2  = column + 2;
-
+      
+      njm2  = column - 2;
+      njm1  = column - 1;
+      njp1  = column + 1;
+      njp2  = column + 2;
+      
       ni = line-2;
       stride = ni * imgWidth;
-  	  sum =       In[stride + njm2]   * #(Filter[0*5+0]);
+      sum =       In[stride + njm2]   * #(Filter[0*5+0]);
       sum = sum + In[stride + njm1]   * #(Filter[0*5+1]);
       sum = sum + In[stride + column] * #(Filter[0*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[0*5+3]);
@@ -113,7 +113,7 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
 
       ni = line-1;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm2]   * #(Filter[1*5+0]);
+      sum = sum + In[stride + njm2]   * #(Filter[1*5+0]);
       sum = sum + In[stride + njm1]   * #(Filter[1*5+1]);
       sum = sum + In[stride + column] * #(Filter[1*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[1*5+3]);
@@ -121,7 +121,7 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
 
       ni = line;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm2]   * #(Filter[2*5+0]);
+      sum = sum + In[stride + njm2]   * #(Filter[2*5+0]);
       sum = sum + In[stride + njm1]   * #(Filter[2*5+1]);
       sum = sum + In[stride + column] * #(Filter[2*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[2*5+3]);
@@ -129,15 +129,15 @@ pifc genKernel5x5(pifc ptr, int* Filter, int coeff)
 
       ni = line+1;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm2]   * #(Filter[3*5+0]);
+      sum = sum + In[stride + njm2]   * #(Filter[3*5+0]);
       sum = sum + In[stride + njm1]   * #(Filter[3*5+1]);
-	  sum = sum + In[stride + column] * #(Filter[3*5+2]);
+      sum = sum + In[stride + column] * #(Filter[3*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[3*5+3]);
       sum = sum + In[stride + njp2]   * #(Filter[3*5+4]);
 
       ni = line+2;
       stride = ni * imgWidth;
-	  sum = sum + In[stride + njm2]   * #(Filter[4*5+0]);
+      sum = sum + In[stride + njm2]   * #(Filter[4*5+0]);
       sum = sum + In[stride + njm1]   * #(Filter[4*5+1]);
       sum = sum + In[stride + column] * #(Filter[4*5+2]);
       sum = sum + In[stride + njp1]   * #(Filter[4*5+3]);
