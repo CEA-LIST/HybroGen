@@ -100,20 +100,22 @@ void printVector (vector_t v, char msg[])
   printf ("%s\n", msg);
 }
 
-bool vectorCompare(vector_t ref[], vector_t other[], char * msg, int doPrint, int nVector)
+bool vectorIdentical(vector_t ref[], vector_t other[], char * msg, int doPrint, int nVector)
 {
-  int has_differences = false;
+  int identical = true;
   for (int line = 0; line < nVector; line++)
 	for (int i = 0; i < T; i++)
 	  {
 		if (ref[line][i] != other[line][i])
-		  has_differences = true;
-		if (doPrint)
-		  printf("%4d ", other[line][i]);
+          {
+            identical = false;
+            if (doPrint)
+              printf("%4d %4d\n", ref[line][i], other[line][i]);
+          }
     }
   /* printf("%s : ", msg); */
   /* printf(" %s\n", (has_differences)?"NOT OK":"OK"); */
-  return has_differences;
+  return identical; // return true if no differences
 }
 
 int main (int argc, char *argv[])
@@ -177,7 +179,7 @@ int main (int argc, char *argv[])
   vector_t uout0, uout1;
   acc += VectorMatrixProductUnrolled (uout0, in0, m);
   DO(acc += VectorMatrixProductUnrolled (uout1, in1, m), nXperiment, timeUnrolled);
-  vectorCompare(out1, uout1, "Unrolled out0", doPrint);
+  vectorIdentical(out1, uout1, "Unrolled out0", doPrint);
 #endif
 
   vmProduct = (pifvv) h2_malloc(1024);
@@ -189,12 +191,12 @@ int main (int argc, char *argv[])
   printVector (cout[0], "Output vector #0 (compilette)");
 #endif
 
-  resultValid = vectorCompare(out, cout, "Compilette", doPrint, nXperiment);
-
+  resultValid = vectorIdentical(out, cout, "Compilette", doPrint, nXperiment);
+  printf ("MatrixName;NExperiment;timeGeneral;timeCompilette:codeGenTime;insnGenerated;resultsIdentical\n");
   printf ("%s;%d;%lu;%lu;%lld;%d;%s\n",
 		  matrixName, nXperiment,
 		  timeGeneral, timeCompilette,
 		  h2_codeGenTime, h2_insnGenerated,
 		  resultValid?"true":"false");
-  return resultValid;
+  return resultValid?0:1;
 }

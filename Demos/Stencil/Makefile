@@ -77,7 +77,7 @@ allQemu:
 allpowerQemu:
 	make allQemu ARCH=power CC=powerpc64le-linux-gnu-gcc RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
 
-allaarch64Qemu:
+allAarch64Qemu:
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
