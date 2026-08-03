@@ -2,21 +2,42 @@ name: HybroGen_CD_Workflow
 
 on:
   workflow_call:
-
+permissions:
+  contents: read
 
 jobs:
   deploy:
-    if: ${{github.event.workflow_run.conclusion == 'success'}}
+    
+    continue-on-error: true
     runs-on: ubuntu-24.04
 
-    strategy:
-        matrix:
-            port: [60000, 65000, 65001,65002,65003]
 
+    strategy:
+      matrix:
+        include:
+        #  - arch: riscv
+        #    port: 60000
+        # set in pause the riscv calculus and deployment
+          - arch: aarch64
+            port: 65000
+
+          - arch: aarch64
+            port: 65001
+
+          - arch: aarch64
+            port: 65002
+
+          - arch: aarch64
+            port: 65003
+
+    concurrency:
+      group: shared-machines-${{ matrix.arch }}-${{ matrix.port }}
+      cancel-in-progress: false
+#To test concurrency
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Install ANTLR4 via apt
         run: |
@@ -44,12 +65,24 @@ jobs:
 
       - name: Build C file
         run: |
-          cd ./Demos/Stencil/ && make buildAll
-          cd ./Demos/VectorMatrix && make buildAll
-          cd ./Demos/Newton-SquareRoot-VariablePrecision && make buildAll
+          cd ./Demos
+          cd ./Stencil/ && make build  ARCH=${{  matrix.arch }}
+          cd ../VectorMatrix && make build  ARCH=${{  matrix.arch }}
+          cd ../Newton-SquareRoot-VariablePrecision && make build  ARCH=${{  matrix.arch }}
+
+
+      - name: Debug secrets
+        env:
+          HOST: ${{ secrets.SSH_ADDR_DEST }}
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "SECRET VIDE"
+          else
+            echo "SECRET PRESENT"
+          fi
 
       - name: Clean machine
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
@@ -60,7 +93,7 @@ jobs:
             mkdir ~/FromCD
 
       - name: Copy artifacts via SCP
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
           username: ${{ secrets.SSH_USER }}
@@ -68,3 +101,23 @@ jobs:
           port: ${{ matrix.port }}
           source: "./Demos"
           target: "~/FromCD/"
+
+      - name: Compile Program and generate Plot
+        timeout-minutes: 200
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.SSH_ADDR_DEST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ matrix.port }}
+          command_timeout: 40m
+          script: |
+            cd ~/FromCD/Demos/Stencil/ && make allNative ARCH=${{ matrix.arch }} CFLAGS=-O0 CC=cc RUNNER="\"\"" LOG=${{ matrix.arch }}-native-O0.log            
+            cd ~/FromCD/Demos/Stencil/ && make allNative ARCH=${{ matrix.arch }} CFLAGS=-O3 CC=cc RUNNER="\"\"" LOG=${{ matrix.arch }}-native-O3.log
+            cd ~/FromCD/Demos/Stencil/Results/ && make all DATAFILES="../${{ matrix.arch }}-native-O0.log ../${{ matrix.arch }}-native-O3.log"
+            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=-O3 CC=cc RUNNER="\"\"" REPEAT=1000000 LOG=VectorMatrixLog-O3.log
+            cd ~/FromCD/Demos/VectorMatrix/ && 	make buildAndRun  ARCH=${{ matrix.arch}} CFLAGS=-O0 CC=cc RUNNER="\"\"" REPEAT=1000000 LOG=VectorMatrixLog-O0.log
+            cd ~/FromCD/Demos/VectorMatrix/ && python3 PlotResults.py VectorMatrixLog-O0.log VectorMatrixLog-O3.log 1000000
+#Ajouter l'option de run NewtonSquareRoot en natif et faire un truc avec les logs#cd ~/FromCD/Demos/NewtonSquareRoot/ && make allNative ARCH=$ CC=cc RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+
+            

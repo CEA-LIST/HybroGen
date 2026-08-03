@@ -40,21 +40,21 @@ compile: VectorMatrix.${ARCH}.c
 	${CC} ${CFLAGS} ./VectorMatrix.${ARCH}.c -o ./VectorMatrix.${ARCH}
 
 
-runAarch64Native:
+runaarch64Native:
 	make buildAndRun ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make buildAndRun ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-runAarch64Qemu:
+runaarch64Qemu:
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
 buildAndRun:
-	make compile       ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
+	make compile 	   ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
 	make runExperiment ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} LOG=${LOG}
 
 runExperiment:
-	-rm -f ${LOG}
-	echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
+	rm -f ${LOG}
+	@echo "# ${LOG} CFLAGS = ${CFLAGS} HLFLAGS = ${HLFLAGS}" > ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=10         >> ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100        >> ${LOG}
 	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=1000       >> ${LOG}
@@ -65,11 +65,11 @@ runExperiment:
 #	make run  ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} REPEAT=100000000  >> ${LOG}
 
 run:
-	${RUNNER} ${FILE}.${ARCH} ${REPEAT} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
-	${RUNNER} ${FILE}.${ARCH} ${REPEAT} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
-	${RUNNER} ${FILE}.${ARCH} ${REPEAT} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
-	${RUNNER} ${FILE}.${ARCH} ${REPEAT} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
-	${RUNNER} ${FILE}.${ARCH} ${REPEAT} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
+	${RUNNER} ./${FILE}.${ARCH} ${REPEAT} General   4  2  3  4   5  6  7  8   9 10 11 12  13 14 15 16
+	${RUNNER} ./${FILE}.${ARCH} ${REPEAT} Null      0  0  0  0   0  0  0  0   0  0  0  0   0  0  0  0
+	${RUNNER} ./${FILE}.${ARCH} ${REPEAT} Id        1  0  0  0   0  1  0  0   0  0  1  0   0  0  0  1
+	${RUNNER} ./${FILE}.${ARCH} ${REPEAT} Translate 1  0  0  4   0  1  0  5   0  0  1  6   0  0  0  1
+	${RUNNER} ./${FILE}.${ARCH} ${REPEAT} Tran+Scal 4  0  0  4   0  5  0  5   0  0  6  6   0  0  0  1
 
 send:
 	-tar cvf /tmp/a.tgz ${FILELIST}

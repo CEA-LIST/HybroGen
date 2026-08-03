@@ -61,6 +61,8 @@ def mergeCVS(noOptCVSFile, optCVSFile):
 
 if __name__ == "__main__":
     import os, re, sys, csv, pprint
+    import matplotlib
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 # https://matplotlib.org/stable/gallery/lines_bars_and_markers/barchart.html
     if len(sys.argv) < 4:
