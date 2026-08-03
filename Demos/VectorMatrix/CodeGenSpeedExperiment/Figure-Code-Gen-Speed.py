@@ -14,9 +14,9 @@ def error(msg):
 
 dataSet = {
     "O0/O0": {"LLVM":  7610,  "HybroGen":92},
-    "O0/O2": {"LLVM": 44414,  "HybroGen":92},
-    "O3/O0": {"LLVM":  7609,  "HybroGen":46},
-    "O3/O2": {"LLVM": 44867,  "HybroGen":46},
+    "O2/O0": {"LLVM": 44414,  "HybroGen":92},
+    "O0/O3": {"LLVM":  7609,  "HybroGen":46},
+    "O2/O3": {"LLVM": 44867,  "HybroGen":46},
     }
 
 if __name__ == "__main__":
