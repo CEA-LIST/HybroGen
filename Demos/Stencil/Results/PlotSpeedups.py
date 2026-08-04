@@ -85,6 +85,7 @@ if __name__ == "__main__":
     imgSizeListMaxName = []
     filterNames = [k.split("/")[1] for k in d.keys()]
     #    print (filterNames)
+    print (d.keys())
     r = {}
     r["O0"]         = [int(d[x][imageSize]["clockNoOpt"])     for x in d.keys()]
     r["O3"]           = [int(d[x][imageSize]["clockOpt"])       for x in d.keys()]

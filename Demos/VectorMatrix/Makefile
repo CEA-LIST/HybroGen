@@ -48,6 +48,10 @@ runaarch64Qemu:
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make buildAndRun ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
+runpowerQemu:
+	make buildAndRun ARCH=power CC=powerpc64le-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make buildAndRun ARCH=power CC=powerpc64le-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
+
 buildAndRun:
 	make compile 	   ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
 	make runExperiment ARCH=${ARCH} CFLAGS=${CFLAGS} RUNNER=${RUNNER} LOG=${LOG}
