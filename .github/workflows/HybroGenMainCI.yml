@@ -11,6 +11,9 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 jobs:
 
 
@@ -25,10 +28,10 @@ jobs:
     steps:
     
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'  # to change
 
@@ -44,7 +47,7 @@ jobs:
 
       - name: Restore cache
         id: toolchain-cache
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./${{matrix.architecture}}
           key: ${{matrix.architecture}}-${{ hashFiles('GenCrossTools.py') }}
@@ -63,7 +66,7 @@ jobs:
 
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{matrix.architecture}}
           path: ./${{matrix.architecture}}
@@ -76,7 +79,7 @@ jobs:
     steps:
 
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       
       - name: Install ANTLR4 via apt
         run: |
@@ -84,7 +87,7 @@ jobs:
           sudo apt install -y antlr4      
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11'
           
@@ -128,7 +131,7 @@ jobs:
           cp -r ./HybroLang artifacts/generated/
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: hybrogen-artifacts
           path: artifacts/
@@ -148,16 +151,16 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
     
     - name: Install ANTLR4 via apt
       run: |
-        sudo apt update          
+        sudo apt update
         sudo apt install -y antlr4      
         
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.11'
         
@@ -170,13 +173,13 @@ jobs:
   
 
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}
 
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
@@ -219,7 +222,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
     
     - name: Install ANTLR4 via apt
@@ -228,7 +231,7 @@ jobs:
         sudo apt install -y antlr4      
         
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.11'
         
@@ -241,13 +244,13 @@ jobs:
   
 
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
@@ -285,7 +288,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
     
     - name: Install ANTLR4 via apt
@@ -294,7 +297,7 @@ jobs:
         sudo apt install -y antlr4      
         
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.11'
         
@@ -307,13 +310,13 @@ jobs:
   
 
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
@@ -350,7 +353,7 @@ jobs:
     steps:
       
     - name: Checkout repo
-      uses: actions/Checkout@v4
+      uses: actions/Checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
     
     - name: Install ANTLR4 via apt
@@ -359,7 +362,7 @@ jobs:
         sudo apt install -y antlr4      
         
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
         python-version: '3.11'
         
@@ -372,13 +375,13 @@ jobs:
   
 
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
     - name: Download artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
@@ -407,8 +410,9 @@ jobs:
   #######################################################################################
 
   launch_CD:
-    needs:
-        - demo-NewtonSquareRoot
-        - demo-stencil
-        - demo-vectorMatrix
+    needs: [demo-NewtonSquareRoot,demo-stencil,demo-vectorMatrix]
     uses: ./.github/workflows/HybroGenMainCD.yml
+    secrets: inherit
+    if: success() || failure()
+    
+
