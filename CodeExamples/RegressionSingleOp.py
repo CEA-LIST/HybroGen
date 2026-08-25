@@ -3,6 +3,9 @@ import datetime
 import json
 from pathlib import Path
 
+everythingPass : bool = True
+
+
 def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
 #    print (cmdAndArgs)
     if (doPrint):
@@ -201,6 +204,7 @@ def parse_operations(filename,archName,keep):
                         msg = ""
                     else :
                         result = "FAIL"
+                        everythingPass = False
                     print(
                         f"vLen={vLen}, "
                         f"wLen={wLen}, "
@@ -269,4 +273,6 @@ if __name__ == "__main__":
     for archName in a.arch:
         print("try regression single op on " + archName)
         parse_operations("RegressionSingleOp-"+archName+".json",archName,a.keep)
+
+    exit(everythingPass)
 
