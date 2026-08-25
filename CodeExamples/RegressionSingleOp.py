@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import datetime
+import json
+from pathlib import Path
 
 def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
 #    print (cmdAndArgs)
@@ -8,16 +11,16 @@ def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
         print("-->%s"%(" ".join(cmdAndArgs)))
     returncode = 0
     data = ""
-    if doExec:
-        process = subprocess.Popen(cmdAndArgs, cwd=wdir, stdout=subprocess.PIPE,
- stderr=subprocess.STDOUT)
-        data = process.stdout.read()
-        returncode = process.wait()
-        if Verbose:
-            print (data.decode("utf-8"))
-            print ("Return code %s"%returncode)
-        return returncode
-    return 0
+    if not doExec:
+        return 0,""
+    
+    process = subprocess.Popen(cmdAndArgs, cwd=wdir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
+    stdout, _ = process.communicate()
+    returncode = process.returncode
+    if Verbose:
+        print (stdout)
+        print (f"Return code {returncode}")
+    return returncode,stdout
 
 def exitError (errorMsg):
     print (errorMsg)
@@ -32,22 +35,26 @@ def compileAndRun(fileName, arch, dataset, keep=False):
     realExec = True
     realPrint = False
     commH = tuple(["../HybroLang.py", "-g", "-a", arch, "-c", "-i", fileName+".hl"])
-    o = cmd (commH, False, doExec= realExec, doPrint = realPrint)
+    o,stdout = cmd (commH, False, doExec= realExec, doPrint = realPrint)
     if o != 0:
+        print("error HybroLang Compil" + stdout)
         rmFiles (fileName, keep)
-        return False
-    commC = tuple([config.getCompilerForArch(arch), "-g", "-DH2_DEBUG", "-o", fileName, fileName+".c"])
-    o = cmd (commC, False, doExec= realExec, doPrint = realPrint)
+        return False,stdout
+    commC = tuple([config.getCompilerForArch(arch), "-g", "-DH2_DEBUG", "-o", fileName, fileName+"."+arch+".c"])
+
+    o,stdout = cmd (commC, False, doExec= realExec, doPrint = realPrint)
     if o != 0:
+        print("compiler for arch failed" + stdout)
         rmFiles (fileName, keep)
-        return False
+        return False,stdout
     commR = tuple([config.getQemuForArch(arch), fileName]+dataset)
-    o = cmd (commR, False, doExec= realExec, doPrint = realPrint)
+    o,stdout = cmd (commR, False, doExec= realExec, doPrint = realPrint)
     rmFiles (fileName, keep)
     if o != 0:
-        return False
+        print("Fail at runtime bad result" + stdout)
+        return False,stdout
     else:
-        return True
+        return True,stdout
 
 def genAndRunAddress(singleArith, opList, wordLenList, vectorLen, archName, keep=False):
     dataset = [str(i) for i in range (1,34)]
@@ -85,6 +92,23 @@ def genAndRunValue(singleArith, opList, wordLenList, vectorLen, archName, keep):
                     resultDb[op, singleArith, wordLen, vLen, "value", archName] = msg
     return resultDb
 
+
+
+def genAndRunValueOnce(singleArith, op, opName, wordLen, vLen, archName, keep):
+    dataset = [str(i) for i in range (1,34)]
+    resultDb = ""
+    wordLen = str(wordLen);
+    returnCode = 0
+    if wordLen in CTypeArray[singleArith]:
+        fileName = "./Tests/Test-Value-%s-%s-%s-%s"%(opName, singleArith, wordLen, vLen)
+        c = CCodeValue(op, singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
+        c.write(fileName+".hl")
+        returnCode,msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
+        resultDb  = msg
+    else : 
+        print("error")
+    return returnCode,resultDb
+
 opArith = {"add":"+", "mul":"*", "sub":"-", "div":"/"}
 opLogic = {"mod":"%", "or":"|", "xor":"^", "and":"&"}
 opAritmeticalShift = {"sl":"<<", "sr":">>"}
@@ -93,11 +117,128 @@ CTypeArray = {
     'flt': {                               "32": 'float',  "64":'double',},
 }
 
+
+
+
+def check_file_access(filename):
+    path = Path(filename)
+
+    # Vérifie que le fichier existe
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Le fichier '{filename}' n'existe pas."
+        )
+
+    # Vérifie les droits de lecture
+    if not os.access(path, os.R_OK):
+        raise PermissionError(
+            f"Pas de droit de lecture sur '{filename}'."
+        )
+
+    # Vérifie les droits d'écriture
+    if not os.access(path, os.W_OK):
+        raise PermissionError(
+            f"Pas de droit d'écriture sur '{filename}'."
+        )
+
+def clear_result(filename):
+    try:
+            check_file_access(filename)
+            with open(filename, "r") as f:
+                data = json.load(f)
+            operators = data["operator"]
+            for category, operations in operators.items():
+                for operation, tests in operations.items():
+                    for test in tests:
+                        test["results"].clear()
+            with open(filename, "w") as f:
+                json.dump(data, f, indent=2)
+            return 0
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}")
+        return -1
+    except PermissionError as e:
+        print(f"ERROR: {e}")
+        return -2
+    except json.JSONDecodeError as e:
+        print(f"ERROR: JSON invalide : {e}")
+        return -3
+    except Exception as e:
+        print(f"ERROR inattendue : {e}")
+        return -99
+
+def parse_operations(filename,archName,keep):
+    try:
+        check_file_access(filename)
+        with open(filename, "r") as f:
+            data = json.load(f)
+
+        operators = data["operator"]
+
+        for category, operations in operators.items():
+
+            for operation, tests in operations.items():
+
+                print(f"\n===== {category}/{operation} =====")
+
+                for test in tests:
+
+                    vLen = test["vLen"]
+                    wLen = test["wLen"]
+                    result = 0
+                    msg = ""
+                    if category == "arith":
+                        result,msg = genAndRunValueOnce("int",opArith[operation],operation,wLen,vLen,archName,keep)
+                    elif category == "logic":
+                        result,msg = genAndRunValueOnce("int",opLogic[operation],operation,wLen,vLen,archName,keep)
+                    elif category == "shift":
+                        result,msg = genAndRunValueOnce("int",opAritmeticalShift[operation],operation,wLen,vLen,archName,keep)
+                    else :
+                        print("bad category found problem in json file")
+
+                    if result :
+                        result = "SUCCESS"
+                        msg = ""
+                    else :
+                        result = "FAIL"
+                    print(
+                        f"vLen={vLen}, "
+                        f"wLen={wLen}, "
+                        f"result={result}, "
+                        f"msg={msg}"
+                    )
+
+                    commit = subprocess.check_output(
+                        ["git", "rev-parse", "--short", "HEAD"],
+                        text=True
+                    ).strip()
+                    test["results"].append({
+                    "date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "success": result,
+                    "commit": commit,
+                    "message": msg
+                })
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=2)
+        return 0
+    except FileNotFoundError as e:
+        print(f"ERROR: {e}")
+        return -1
+    except PermissionError as e:
+        print(f"ERROR: {e}")
+        return -2
+    except json.JSONDecodeError as e:
+        print(f"ERROR: JSON invalide : {e}")
+        return -3
+    except Exception as e:
+        print(f"ERROR inattendue : {e}")
+        return -99
+
+
 if __name__ == "__main__":
     import sys, subprocess, argparse, os
     from CCode import CCodeValue
     from CCode import CCodeAddress
-    import csv
     sys.path.append("..")
     from SwConfig import SwConfig
     config = SwConfig()
@@ -106,65 +247,26 @@ if __name__ == "__main__":
     if not os.path.exists ("./Tests"):
         cmd(["mkdir", "-p", "./Tests"], True)
 
-    parser.add_argument('-w',   '--wLen',     nargs="+",    default=["8", "16", "32", "64", "128"], help='Word len')
-    parser.add_argument('-v',   '--vLen',     nargs="+",    default=["1", "2", "4", "8", "16", "32", "64", "128"], help='Vector len')
-    parser.add_argument('-o',   '--operator', nargs="+",    default=["add", "mul", "sub", "div"], help='Arithmetiec Operators')
-    parser.add_argument('-l',   '--logic',    nargs="+",    default=["mod", "or", "and", "xor", "and"], help='Logic Operators')
-    parser.add_argument('-s',   '--arithmShift', nargs="+", default=["sl", "sr"], help='Arithmetical Shift Operators')
+    #Liste fichier json ajouter arch: architectureName dans json
     parser.add_argument('-a',   '--arch',     nargs="+",    default=config.getKeys(), help='Architecture name list')
-    parser.add_argument('-p',   '--param',    nargs="+",    default=["value", "address"], help='Passing parameter type')
     parser.add_argument('-k',   '--keep',     action='store_true', help='Keep intermediate files')
-    parser.add_argument('-z',   '--analyse',  action='store_true', help='Analyse result')
-    parser.add_argument('-d',   '--dotests',  action='store_true', help='Generate results')
+    parser.add_argument('-c', '--clean', action='store_true', help="Clear Result json file")
+    parser.add_argument('-v', '--verbose', action='store_true',help='Verbose Mode')
     a = parser.parse_args()
-    print(a.wLen);
-#    print (a)
-    results = {}
-    csvFileName = "regression-single-op-%s.csv"%a.arch[0]
-    if a.analyse :
-        if len(a.arch) != 1:
-            exitError("Could only analyse 1 architecture")
-        else:
-            
-            csvArch = csv.reader (open (csvFileName, "r"), delimiter=";")
-            archList = [(ref[0], ref[1], int(ref[2]), int(ref[3]), ref[4],ref[5],ref[6]) for ref in csvArch]
-            archList.sort()
-            # print (archList)
 
-            checkIf = False
-            for test in archList:
-                print(test)
-                if(test[6] == "Fail"):
-                    checkIf = True
-        if(checkIf):
-            exit(-1)
+    for archName in a.arch:
+        print("Arch " + archName)
 
-    elif a.dotests:
-        if "value" in a.param:
-            for archName in a.arch:
-                for arith in ("int", "flt"):
-                    subList = {i:opArith[i] for i in a.operator}
-                    results.update(genAndRunValue(arith, subList, a.wLen, a.vLen, archName, a.keep))
-                subList = {i:opLogic[i] for i in a.logic}
-                results.update(genAndRunValue("int", subList, a.wLen, a.vLen, archName, a.keep))
-                subList = {i:opAritmeticalShift[i] for i in a.arithmShift}
-                results.update(genAndRunValue("int", subList, a.wLen, a.vLen, archName, a.keep))
-        if "address" in a.param:
-            for archName in a.arch:
-                for arith in ("int", "flt"):
-                    subList = {i:opArith[i] for i in a.operator}
-                    results.update(genAndRunAddress(arith, subList, a.wLen, a.vLen, archName, a.keep))
-                subList = {i:opLogic[i] for i in a.logic}
-                results.update(genAndRunAddress("int", subList, a.wLen, a.vLen, archName, a.keep))
-                subList = {i:opAritmeticalShift[i] for i in a.arithmShift}
-                results.update(genAndRunAddress("int", subList, a.wLen, a.vLen, archName, a.keep))
-        out = ""
-    #    print (results)
-        for k in results:
-            for v in k:
-                out += str(v) +";"
-            out += "Success;" if results[k] else "Fail"
-            out += "\n"
-        with open (csvFileName, "w") as f:
-            f.write (out)
-        print ("Results in "+csvFileName)
+
+    if a.verbose==False:
+        sys.stdout = open(os.devnull, 'w')
+
+    if a.clean:
+        for archName in a.arch:
+            clear_result("RegressionSingleOp-"+archName+".json")    
+        exit(0)
+
+    for archName in a.arch:
+        print("try regression single op on " + archName)
+        parse_operations("RegressionSingleOp-"+archName+".json",archName,a.keep)
+
