@@ -207,6 +207,51 @@ jobs:
   #######################################################################################
         ###Stand by
 
+regression-singleOp-test:
+    runs-on: ubuntu-24.04
+    needs: [build-toolschains,build-grammar-and-dataBase,regression-test] 
+
+    strategy:
+      matrix:
+        architecture: [aarch64, riscv, power]
+    steps:
+      
+    - name: Checkout repo
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
+        
+    - name: Setup Python
+      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+      with:
+        python-version: '3.11'
+
+    - name: Download artifact
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
+      with:
+        name: ${{matrix.architecture}}
+        path: ./${{matrix.architecture}}
+
+    - name: Download artifacts
+      uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
+      with:
+        name: hybrogen-artifacts
+        path: ./artifacts
+
+    - name: Move artifacts
+      run: |
+        rm -rf ./HybroGen ./HybroLang
+        mv artifacts/generated/HybroGen ./
+        mv artifacts/generated/HybroLang ./
+
+    - name: Regression test on ${{matrix.architecture}}
+      env:
+        BASH_ENV: ./${{matrix.architecture}}/.bashrc
+      run: |
+        sudo apt update
+        sudo apt install -y python3-antlr4
+        sudo apt install -y sqlite3 libsqlite3-dev
+        python -m pip install --upgrade pip
+        chmod -R +x ./${{matrix.architecture}}/
+        cd ./CodeExamples/ && python3 RegressionSingleOp.py -a ${{matrix.architecture}}
 
 
   #######################################################################################
