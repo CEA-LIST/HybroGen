@@ -290,7 +290,7 @@ jobs:
 
           gh run download \
             ${{ github.run_id }} \
-            --name "RegressionSingleOp-${{matrix.architecture}}.json" \
+            --name "RegressionSingleOp-$arch.json" \
             --dir "./CodeExamples/json/"
 
           echo "Testing $arch"
