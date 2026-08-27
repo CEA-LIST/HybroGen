@@ -1,0 +1,730 @@
+{
+  "operator": {
+    "arith": {
+      "add": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "mul": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "sub": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "div": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ]
+    },
+    "logic": {
+      "mod": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "or": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "xor": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "and": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ]
+    },
+    "shift": {
+      "sl": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ],
+      "sr": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": []
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": []
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": []
+        }
+      ]
+    }
+  }
+}
