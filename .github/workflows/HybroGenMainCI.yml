@@ -274,10 +274,7 @@ jobs:
     needs: [regression-singleOp-test] 
     permissions:
       contents: write
-
-    strategy:
-      matrix:
-        architecture: [aarch64, riscv, power]
+      
     steps:
 
     - name: Download artefact for each
