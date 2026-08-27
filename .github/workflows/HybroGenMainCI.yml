@@ -210,7 +210,9 @@ jobs:
   regression-singleOp-test:
     runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
-
+    permissions:
+      contents: write
+    
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -218,7 +220,8 @@ jobs:
       
     - name: Checkout repo
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
-        
+      with:           
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Setup Python
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
@@ -254,7 +257,16 @@ jobs:
         python -m pip install --upgrade pip
         chmod -R +x ./${{matrix.architecture}}/
         cd ./CodeExamples/ && python3 RegressionSingleOp.py -v -a ${{matrix.architecture}}
-
+    
+    - name: commit changes and push it on the repository
+      run: |
+          git config user.name "HybroGenCI"
+          git config user.email "hybrogen.ci@users.noreply.github.com"
+          git add ./CodeExamples/RegressionSingleOp-${{matrix.architecture}}.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update for ${{matrix.architecture}} regression results [skip ci]"
+            git push
+          fi
 
   #######################################################################################
   ###################### Demo Stencil ###################################################
