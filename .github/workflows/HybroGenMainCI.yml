@@ -219,8 +219,7 @@ jobs:
       
     - name: Checkout repo
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
-      with:           
-        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Setup Python
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
       with:
@@ -274,8 +273,12 @@ jobs:
     needs: [regression-singleOp-test] 
     permissions:
       contents: write
-      
+
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
+      with:           
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Download artefact for each
       env:
