@@ -287,7 +287,7 @@ jobs:
         for arch in riscv aarch64 powerpc; do
 
           echo "Downloading artifact for $arch"
-
+          rm -f ./CodeExamples/json/RegressionSingleOp-$arch.json
           gh run download \
             ${{ github.run_id }} \
             --name "RegressionSingleOp-$arch.json" \
