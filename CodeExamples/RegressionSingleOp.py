@@ -267,12 +267,12 @@ if __name__ == "__main__":
 
     if a.clean:
         for archName in a.arch:
-            clear_result("RegressionSingleOp-"+archName+".json")    
+            clear_result("./json/RegressionSingleOp-"+archName+".json")    
         exit(0)
 
     for archName in a.arch:
         print("try regression single op on " + archName)
-        parse_operations("RegressionSingleOp-"+archName+".json",archName,a.keep)
+        parse_operations("./json/RegressionSingleOp-"+archName+".json",archName,a.keep)
 
     exit(everythingPass)
 
