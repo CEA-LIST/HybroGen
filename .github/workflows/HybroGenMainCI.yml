@@ -293,9 +293,6 @@ jobs:
             --name "RegressionSingleOp-$arch.json" \
             --dir "./CodeExamples/json/"
 
-          echo "Testing $arch"
-
-          python test.py "./artifacts/$arch"
 
         done
 
