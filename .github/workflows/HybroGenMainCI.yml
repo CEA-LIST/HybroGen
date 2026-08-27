@@ -256,6 +256,7 @@ jobs:
         python -m pip install --upgrade pip
         chmod -R +x ./${{matrix.architecture}}/
         cd ./CodeExamples/ && python3 RegressionSingleOp.py -v -a ${{matrix.architecture}}
+        ls ./CodeExamples/json/
     
 
 
