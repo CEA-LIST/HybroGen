@@ -211,7 +211,10 @@ jobs:
   regression-singleOp-test: #The job of this job is to launch the regressionSingleOp.py and to update the json associated to it. To let the user know which operation are working, not working or not supported on Hybrogen
     runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
-
+    concurrency:
+      group: singleOp-json-${{ github.ref }}
+      cancel-in-progress: false
+      
     #Strategy to launch multiple vm per architecture to launch all regressionSingleOp "simultaniously"
     strategy:
       matrix:
@@ -275,7 +278,7 @@ jobs:
     permissions: #Permission to write into the repo
       contents: write
     concurrency:
-      group: actualise-json-${{ github.ref }}
+      group: singleOp-json-${{ github.ref }}
       cancel-in-progress: false
       
     steps:
