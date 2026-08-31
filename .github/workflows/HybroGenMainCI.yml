@@ -295,7 +295,6 @@ jobs:
             --name "RegressionSingleOp-$arch.json" \
             --dir "./CodeExamples/json/"
 
-
         done
 
     - name: commit changes and push it on the repository # Git add All json commit by the CI and push it with the mention [skip ci] to avoid infinite loop CI
@@ -376,7 +375,7 @@ jobs:
         cd ./Demos/Stencil && make all${{matrix.architecture}}Qemu
 
   #######################################################################################
-  ###################### Demo Vector Matrix ###################################################
+  ###################### Demo Vector Matrix #############################################
   #######################################################################################
 
 
@@ -397,8 +396,8 @@ jobs:
     
     - name: Install ANTLR4 via apt
       run: |
-        sudo apt update          
-        sudo apt install -y antlr4      
+        sudo apt update
+        sudo apt install -y antlr4
         
     - name: Setup Python
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
