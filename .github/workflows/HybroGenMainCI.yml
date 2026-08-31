@@ -11,7 +11,7 @@ on:
     branches:
       - 'main'
 
-permissions:
+permissions: #permission for safety
   contents: read
 
 jobs:
@@ -45,14 +45,14 @@ jobs:
             pkg-config 
             sudo apt install -y libc6
 
-      - name: Restore cache
+      - name: Restore cache #job that use cache to accelerate the CI. The generation of GenCrossTools has a high cost in ressources and time so if GenCrossTools.py has not changed since the last commit we use cache to skip the generation jobs
         id: toolchain-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ./${{matrix.architecture}}
           key: ${{matrix.architecture}}-${{ hashFiles('GenCrossTools.py') }}
 
-      - name: Build toolchains
+      - name: Build toolchains # Build toolchains to use (ex aarch64)
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         env:
           TOOLCHAIN_DIR: ${{ github.workspace }}/
@@ -60,22 +60,22 @@ jobs:
           python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/"
           python GenCrossTools.py -a ${{matrix.architecture}}  -p "$TOOLCHAIN_DIR" -w "$TOOLCHAIN_DIR/" -s
 
-      - name: Check bashrc
+      - name: Check bashrc #check if bashrc is well generated
         run: |
           test -e ./${{matrix.architecture}}/.bashrc
 
       
-      - name: Upload artifact
+      - name: Upload artifact #Upload toolchains has an artefact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{matrix.architecture}}
           path: ./${{matrix.architecture}}
-          include-hidden-files: true
-          if-no-files-found: error
+          include-hidden-files: true # ex .bashrc
+          if-no-files-found: error #generate error if artifact does not exist
 
-  build-grammar-and-dataBase:
+
+  build-grammar-and-dataBase: #jobs that build grammar using the .isa and the sqLite data base of hybrogen
     runs-on: ubuntu-24.04
-
     steps:
 
       - name: Checkout repo
@@ -98,7 +98,7 @@ jobs:
           echo "ANTLR version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
       
-      - name: Install ANTLR4 for H2ISA
+      - name: Install ANTLR4
         run: | # BE CAREFUL antlr4-python3-runtime==4.7.2 Doit etre tenu a jour ou trouver une manière de synchroniser antlr4 version et antlr4 python runtime
           sudo apt update
           sudo apt install -y python3-antlr4
@@ -106,31 +106,31 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install antlr4-python3-runtime==${VERSION}
 
-      - name: LaunchConstruction
+      - name: LaunchConstruction #Build grammar for all arch
         run: | 
             make buildGrammar
       
-      - name: builded file present 
+      - name: builded file present  #test if build file are present
         run: |
             test -f ./HybroGen/IsaDescriptionLexer.py
             test -f ./HybroGen/IsaDescriptionParser.py
 
-      - name: Try import
+      - name: Try import # test import to see if there is an error of version
         run: |
           python -c "from HybroGen.IsaDescriptionLexer import IsaDescriptionLexer"
           python -c "from HybroGen.IsaDescriptionParser import IsaDescriptionParser"
 
-      - name: make Db
+      - name: make Db # Create the database
         run: |
           make DbPopulate
 
-      - name: Copy generated code
+      - name: Copy generated code #Copy the generated file into an artefact for future jobs
         run: |
           mkdir -p artifacts/generated
           cp -r ./HybroGen artifacts/generated/
           cp -r ./HybroLang artifacts/generated/
 
-      - name: Upload artifacts
+      - name: Upload artifacts #Upload the artifact which contains the generated file
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: hybrogen-artifacts
@@ -141,10 +141,11 @@ jobs:
   ###################### Regression test ################################################
   #######################################################################################
 
-  regression-test:
+  regression-test: #jobs that launch regression test to test a lot of cases present in ./CodeExamples
     runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
 
+    #Strategy to launch multiple vm per architecture to launch all regression test "simultaniously"
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -172,25 +173,25 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
   
 
-    - name: Download artifact
+    - name: Download artifact # Download toolchains
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}
 
-    - name: Download artifacts
+    - name: Download artifacts #Download dataBase and build grammar
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Move artifacts
+    - name: Move artifacts #Replace repo old directory by the artifacts
       run: |
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Regression test on ${{matrix.architecture}}
+    - name: Regression test on ${{matrix.architecture}} #Launch regression on each architecture using the .bashrc generate with GencrossTools as environmtent for the VM
       env:
         BASH_ENV: ./${{matrix.architecture}}/.bashrc
       run: |
@@ -207,11 +208,11 @@ jobs:
   #######################################################################################
         ###Stand by
 
-  regression-singleOp-test:
+  regression-singleOp-test: #The job of this job is to launch the regressionSingleOp.py and to update the json associated to it. To let the user know which operation are working, not working or not supported on Hybrogen
     runs-on: ubuntu-24.04
     needs: [build-toolschains,build-grammar-and-dataBase] 
 
-    
+    #Strategy to launch multiple vm per architecture to launch all regressionSingleOp "simultaniously"
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -226,25 +227,25 @@ jobs:
         python-version: '3.11'
 
 
-    - name: Download artifact
+    - name: Download artifact #Download toolchains
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}
 
-    - name: Download artifacts
+    - name: Download artifacts #Download grammar build and DataBase
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Move artifacts
+    - name: Move artifacts #Replace repo old directory by the artifacts
       run: |
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Regression test on ${{matrix.architecture}}
+    - name: Regression Single op test on ${{matrix.architecture}} #Launch regression Single Op
       continue-on-error: true
       env:
         BASH_ENV: ./${{matrix.architecture}}/.bashrc
@@ -259,7 +260,7 @@ jobs:
     
 
 
-    - name: Upload artifacts
+    - name: Upload artifacts #Store the json as an artifact to update it on the repo later
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
       with:
         name: RegressionSingleOp-${{matrix.architecture}}.json
@@ -268,19 +269,19 @@ jobs:
 
 
 
-  actualise-json:
+  actualise-json: #This job has for mission to take the json filled in regression-singleOp-test and push it into the branch to update it
     runs-on: ubuntu-24.04
     needs: [regression-singleOp-test] 
-    permissions:
+    permissions: #Permission to write into the repo
       contents: write
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repo #Checkout repo and use a token for permission to push
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
       with:           
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Download artefact for each
+    - name: Download artefact for each  #Download each json for each architecture
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -296,7 +297,7 @@ jobs:
 
         done
 
-    - name: commit changes and push it on the repository
+    - name: commit changes and push it on the repository # Git add All json commit by the CI and push it with the mention [skip ci] to avoid infinite loop CI
       run: |
           git config user.name "HybroGenCI"
           git config user.email "hybrogen.ci@users.noreply.github.com"
@@ -305,13 +306,17 @@ jobs:
             git commit -m "chore: update for ${{matrix.architecture}} regression results [skip ci]"
             git push
           fi
+
+
   #######################################################################################
   ###################### Demo Stencil ###################################################
   #######################################################################################
-  demo-stencil:
+  
+  demo-stencil: #Job to launch demo stencil and check if result are good on qemu
     runs-on: ubuntu-24.04
     needs: [regression-test] 
 
+    #Strategy to launch multiple vm per architecture to launch all stencil demo on each arch "simultaniously"
     strategy:
       matrix:
         architecture: [aarch64, riscv, power]
@@ -339,25 +344,25 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
   
 
-    - name: Download artifact
+    - name: Download artifact #Download toolchains
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
-    - name: Download artifacts
+    - name: Download artifacts #Download dataBase and Grammar build
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Move artifacts
+    - name: Move artifacts #Replace repo old directory by the artifacts
       run: |
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Stencil test on ${{matrix.architecture}}
+    - name: Stencil test on ${{matrix.architecture}} #Launch demo stencil on qemu matrix.architecture 
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
@@ -374,9 +379,11 @@ jobs:
   #######################################################################################
 
 
-  demo-vectorMatrix:
+  demo-vectorMatrix: #Job to launch demo VectorMatrix and check if result are good on qemu
     runs-on: ubuntu-24.04
     needs: [regression-test] 
+
+    #Strategy to launch multiple vm per architecture to launch all VectorMatrix demo on each arch "simultaniously"
 
     strategy:
       matrix:
@@ -405,25 +412,25 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
   
 
-    - name: Download artifact
+    - name: Download artifact #Download toolchains 
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
-    - name: Download artifacts
+    - name: Download artifacts #Download db and grammarBuild
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Move artifacts
+    - name: Move artifacts #Replace repo old directory by the artifacts
       run: |
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Test Vector
+    - name: Test Vector on ${{matrix.architecture}} #Launch demo VectorMatrix on qemu matrix.architecture 
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
@@ -470,25 +477,25 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
   
 
-    - name: Download artifact
+    - name: Download artifact #Download toolchains
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: ${{matrix.architecture}}
         path: ./${{matrix.architecture}}/
 
-    - name: Download artifacts
+    - name: Download artifacts #Download DataBase and grammar build
       uses: actions/download-artifact@f99b3e3d1560723c9a3e30e653411513bc69cedb
       with:
         name: hybrogen-artifacts
         path: ./artifacts
 
-    - name: Move artifacts
+    - name: Move artifacts #Replace repo old directory by the artifacts
       run: |
         rm -rf ./HybroGen ./HybroLang
         mv artifacts/generated/HybroGen ./
         mv artifacts/generated/HybroLang ./
 
-    - name: Run Demo newtonSquareRoot
+    - name: Run Demo newtonSquareRoot #Launch demo newtonSquareRoot on qemu matrix.architecture 
       env:
         BASH_ENV: ${{ github.workspace }}/${{matrix.architecture}}/.bashrc
       run: |
@@ -505,10 +512,11 @@ jobs:
   ###################### Launch CD For deployment #######################################
   #######################################################################################
 
-  launch_CD:
+  launch_CD: # this Job has to launch CD 
     needs: [demo-NewtonSquareRoot,demo-stencil,demo-vectorMatrix]
     uses: ./.github/workflows/HybroGenMainCD.yml
-    secrets: inherit
-    if: success() || failure()
+    secrets: inherit #Secret Heritage
+    #CD can't make the CI fail
+    if: success() || failure()  
     
 

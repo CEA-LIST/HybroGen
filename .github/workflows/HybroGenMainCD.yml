@@ -1,23 +1,24 @@
 name: HybroGen_CD_Workflow
 
+#the CI call the CD for simplicity
 on:
   workflow_call:
-permissions:
+permissions: #Permission for safety
   contents: read
 
 jobs:
   deploy:
-    
+    # if deploy fail the CI still noted as success
     continue-on-error: true
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04 #Version that we ensure hybrogen work on
 
-
+    #Strategy to launch multiple vm to connect wth ssh to all the MC and run the demo native
     strategy:
       matrix:
         include:
         #  - arch: riscv
         #    port: 60000
-        # set in pause the riscv calculus and deployment
+        # set in pause the riscv calculus and deployment because of segfault on riscv machine
           - arch: aarch64
             port: 65000
 
@@ -30,9 +31,9 @@ jobs:
           - arch: aarch64
             port: 65003
 
-    concurrency:
+    concurrency: # if 2 CD is launch at the same time this concurrency stategy garantee that the last CD will wait until first is finished
       group: shared-machines-${{ matrix.arch }}-${{ matrix.port }}
-      cancel-in-progress: false
+      cancel-in-progress: false # If true the first CD stop everything to let the second run
 #To test concurrency
     steps:
 
@@ -47,15 +48,14 @@ jobs:
           sudo apt install -y python3-antlr4
           python -m pip install --upgrade pip
           python -m pip install antlr4-python3-runtime==${VERSION}
-          python -m pip install psycopg2-binary 
 
-      - name: Download artifacts
+      - name: Download artifacts #Download artifacts generated during the CI
         run: |
           gh run download ${{ github.event.workflow_run.id }} -n hybrogen-artifacts -D artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Move artifacts
+      - name: Move artifacts # Move artefact into current checkout
         run: |
           rm -rf ./HybroGen ./HybroLang
           mv artifacts/generated/HybroGen ./HybroGen
@@ -63,7 +63,7 @@ jobs:
           rm -rf artifacts/
           ls
 
-      - name: Build C file
+      - name: Build C file # Use Hybrolang.py to generate the good C file needed (ex. Stencil.aarch64.c)
         run: |
           cd ./Demos
           cd ./Stencil/ && make build  ARCH=${{  matrix.arch }}
@@ -71,17 +71,7 @@ jobs:
           cd ../Newton-SquareRoot-VariablePrecision && make build  ARCH=${{  matrix.arch }}
 
 
-      - name: Debug secrets
-        env:
-          HOST: ${{ secrets.SSH_ADDR_DEST }}
-        run: |
-          if [ -z "$HOST" ]; then
-            echo "SECRET VIDE"
-          else
-            echo "SECRET PRESENT"
-          fi
-
-      - name: Clean machine
+      - name: Clean machine #Delete last deploy directory to clean machine
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
@@ -92,7 +82,7 @@ jobs:
             rm -rf ~/FromCD
             mkdir ~/FromCD
 
-      - name: Copy artifacts via SCP
+      - name: Copy artifacts via SCP # copy repository into the MC
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345
         with:
           host: ${{ secrets.SSH_ADDR_DEST }}
@@ -102,7 +92,7 @@ jobs:
           source: "./Demos"
           target: "~/FromCD/"
 
-      - name: Compile Program and generate Plot
+      - name: Compile Program and generate Plot #Compile all C file using -O0 and -O3 flag and run it on the machine to generate (in the best case) a plot 
         timeout-minutes: 200
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
