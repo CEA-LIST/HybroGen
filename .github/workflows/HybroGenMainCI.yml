@@ -280,6 +280,7 @@ jobs:
       uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0   
       with:           
         token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.head_ref }}
 
     - name: Download artefact for each  #Download each json for each architecture
       env:
