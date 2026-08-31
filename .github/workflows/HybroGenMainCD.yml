@@ -33,7 +33,7 @@ jobs:
 
     concurrency: # if 2 CD is launch at the same time this concurrency stategy garantee that the last CD will wait until first is finished
       group: shared-machines-${{ matrix.arch }}-${{ matrix.port }}
-      cancel-in-progress: false # If true the first CD stop everything to let the second run
+      cancel-in-progress: true # If true the first CD stop everything to let the second run
 #To test concurrency
     steps:
 
