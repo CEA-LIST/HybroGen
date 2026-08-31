@@ -268,7 +268,7 @@ if __name__ == "__main__":
         )    
     else:
         fig,ax = plt.subplots()
-        generate_figure("RegressionSingleOp-" + a.arch[0] + ".json",a.arch[0],ax)
+        generate_figure("./json/RegressionSingleOp-" + a.arch[0] + ".json",a.arch[0],ax)
         for spine in ax.spines.values():
             spine.set_visible(True)
             spine.set_linewidth(2)
