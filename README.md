@@ -33,22 +33,11 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 * Grammar use ANTLR4 with python4 backend
    * `pip3 install antlr4-python3-runtime==4.7.2`
 
-* Compilation need a postresql database. To install postgresql and configure it you can use this commands :
-   * `sudo apt install postgresql`
+* Compilation need a sqLite database. To verify if sqLite is on your machine type :
+   * `python3 -c "import sqlite3; print(sqlite3.sqlite_version)"`
 
-* Install a python postgresql connector:
-   * `sudo apt install python3-psycopg2`
-
-* Initialize the database
-   * `sudo -i -u postgres`
-   * `createdb hybrogen`
-   * `createuser --pwprompt hybrogen` # the default password in the code is "hybrogen"
-   * Under psql prompt
-       * `GRANT ALL PRIVILEGES ON DATABASE hybrogen TO hybrogen;`
-       * `CREATE SCHEMA hybrogen AUTHORIZATION hybrogen;`  (new in postgresql15)
-
-  It is a good practice to not create the database under your own
-  username. (The database could be multiuser accessible)
+* Install the libsqlite3-dev version if the last command fail:
+   * `sudo apt install libsqlite3-dev`
 
 * Debuging need graphviz https://graphviz.readthedocs.io/en/stable/
 	* sudo apt install python3-pygraphviz
