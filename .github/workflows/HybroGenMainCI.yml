@@ -272,6 +272,7 @@ jobs:
 
   actualise-json: #This job has for mission to take the json filled in regression-singleOp-test and push it into the branch to update it
     runs-on: ubuntu-24.04
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [regression-singleOp-test] 
     permissions: #Permission to write into the repo
       contents: write
