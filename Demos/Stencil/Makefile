@@ -74,7 +74,7 @@ allQemu:
 	./InstructionCount.awk      ${LOG}
 	./CyclesPerGeneratedInsn.awk ${LOG}
 
-allpowerQemu:
+allPowerQemu:
 	make allQemu ARCH=power  CC=powerpc64le-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allQemu ARCH=power  CC=powerpc64le-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-ppc64le LOG=power-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
@@ -82,16 +82,18 @@ allAarch64Qemu:
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allQemu ARCH=aarch64 CC=aarch64-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-aarch64 LOG=aarch-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-allriscvQemu:
-	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S"`.log
+allRiscvQemu:
+	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc CFLAGS=-O0 RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make allQemu ARCH=riscv CC=riscv32-linux-gnu-gcc CFLAGS=-O3 RUNNER=qemu-riscv32 LOG=riscv-qemu-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
 # Do native experiment i.e. do only CC & run natively, log in LOG file
-allaarch64Native:
+allAarch64Native:
 	make allNative ARCH=aarch64 CC=cc CFLAGS=-O0 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
 	make allNative ARCH=aarch64 CC=cc CFLAGS=-O3 RUNNER= LOG=aarch-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
-allriscvNative:
-	make allNative ARCH=riscv CC=cc RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S"`.log
+allRiscvNative:
+	make allNative ARCH=riscv CC=cc CFLAGS=-O0 RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S-O0"`.log
+	make allNative ARCH=riscv CC=cc CFLAGS=-O3 RUNNER="" LOG=riscv-native-`date +"%Y-%m-%d-%H-%M-%S-O3"`.log
 
 allNative:
 	make compile ARCH=${ARCH} CFLAGS=${CFLAGS} CC=${CC}
@@ -140,7 +142,7 @@ compile: Stencil.${ARCH}.c
 
 send:
 	-tar cvf /tmp/a.tgz ${FILELIST}
-	scp /tmp/a.tgz ${DEST}:/tmp
+	scp /tmp/a.tgz ${DEST}:tmp
 
 clean:
 	-rm Stencil Stencil.riscv Stencil.aarch64 Stencil.power Stencil.c Stencil.*.c a.out

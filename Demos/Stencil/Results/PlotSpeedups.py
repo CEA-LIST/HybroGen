@@ -71,7 +71,8 @@ if __name__ == "__main__":
     fileNameNoOpt = sys.argv[1]
     fileNameOpt   = sys.argv[2]
     imageSize     = sys.argv[3]
-    imageSizeSet = ("13x10", "160x120", "320x240", "1024x768",)
+    imageSizeSet = ("13x10", "160x120", "320x240", "1024x768", "1280x960")
+    print (imageSize)
     if '-O0' not in fileNameNoOpt:
         error (f"No -O0 in {fileNameNoOpt}")
     if '-O3' not in fileNameOpt:
