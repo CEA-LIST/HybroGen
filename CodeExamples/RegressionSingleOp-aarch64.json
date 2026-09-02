@@ -1,0 +1,1710 @@
+{
+  "operator": {
+    "arith": {
+      "add": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:13Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:13Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:13Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:13Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 29062 ticks. 9687 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 + 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:14Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 25125 ticks. 8375 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 + 3 = 1\n2 + 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:14Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23687 ticks. 7895 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 + 3 = 1\n2 + 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:14Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 22875 ticks. 7625 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 + 3 = 10\n2 + 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:14Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 32750 ticks. 10916 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 2):\n1 + 3 = 4\n2 + 4 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:14Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 24813 ticks. 8271 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 + 5 = 1\n2 + 6 = 2\n3 + 7 = 3\n4 + 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:15Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 24500 ticks. 8166 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 + 5 = 6\n2 + 6 = 8\n3 + 7 = 0\n4 + 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:15Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 28625 ticks. 9541 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 + 5 = 6\n2 + 6 = 0\n3 + 7 = 0\n4 + 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:15Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 104063 ticks. 52031 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:15Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 111000 ticks. 55500 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:15Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 104687 ticks. 52343 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "mul": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28687 ticks. 9562 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 * 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 24125 ticks. 8041 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 * 3 = 1\n2 * 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:16Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 24000 ticks. 8000 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 * 3 = 1\n2 * 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:17Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 25625 ticks. 8541 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 * 3 = 10\n2 * 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:17Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MUL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/1\nP1: REG/i/64/2/1\nP2: REG/i/64/2/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x41a2a0 to 0x41a2a4\n1 insn generated in 106813 ticks. 106813 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:17Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 26625 ticks. 8875 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 * 5 = 1\n2 * 6 = 2\n3 * 7 = 3\n4 * 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:17Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 25875 ticks. 8625 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 * 5 = 5\n2 * 6 = 12\n3 * 7 = 0\n4 * 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:17Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28500 ticks. 9500 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 * 5 = 5\n2 * 6 = 0\n3 * 7 = 0\n4 * 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:18Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/1\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 108375 ticks. 54187 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:18Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/1\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 106750 ticks. 53375 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:18Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/1\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 105875 ticks. 52937 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "sub": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:18Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:18Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:19Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:19Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 26625 ticks. 8875 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 - 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:19Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23375 ticks. 7791 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 - 3 = 1\n2 - 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:19Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 22250 ticks. 7416 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 - 3 = 1\n2 - 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:19Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 22312 ticks. 7437 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 - 3 = 10\n2 - 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23812 ticks. 7937 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 - 5 = 1\n2 - 6 = 2\n3 - 7 = 3\n4 - 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23563 ticks. 7854 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 - 5 = -4\n2 - 6 = -4\n3 - 7 = 0\n4 - 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 26563 ticks. 8854 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 - 5 = -4\n2 - 6 = 0\n3 - 7 = 0\n4 - 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 104188 ticks. 52094 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:20Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 107000 ticks. 53500 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:21Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 102750 ticks. 51375 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "div": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:21Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:21Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:21Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:21Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 25937 ticks. 8645 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 / 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:22Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 21500 ticks. 7166 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 / 3 = 1\n2 / 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:22Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 21500 ticks. 7166 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 / 3 = 1\n2 / 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:22Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 20750 ticks. 6916 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 / 3 = 10\n2 / 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:22Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 28250 ticks. 9416 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 2):\n1 / 3 = 1431655765\n2 / 4 = 1431655765\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:22Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23625 ticks. 7875 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 / 5 = 1\n2 / 6 = 2\n3 / 7 = 3\n4 / 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 23250 ticks. 7750 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 / 5 = 12902\n2 / 6 = 13653\n3 / 7 = 0\n4 / 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 25750 ticks. 8583 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 / 5 = 1045220557\n2 / 6 = 0\n3 / 7 = 0\n4 / 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 105437 ticks. 52718 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 105063 ticks. 52531 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, DIV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/1\nP2: REG/i/8/16/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 114813 ticks. 114813 ticks / insn\n"
+            }
+          ]
+        }
+      ]
+    },
+    "logic": {
+      "mod": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:23Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "line 5:7 token recognition error at: '%'\nline 5:9 extraneous input 'b' expecting ';'\nHybroLang Compiler v5.1\nFatal error : visitAction : unknown child count 3\n"
+            }
+          ]
+        }
+      ],
+      "or": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:24Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:25Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:25Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:25Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 30500 ticks. 10166 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 | 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:25Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 23875 ticks. 7958 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 | 3 = 1\n2 | 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:25Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 22750 ticks. 7583 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 | 3 = 1\n2 | 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 25750 ticks. 8583 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 | 3 = 4302606\n2 | 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 32938 ticks. 10979 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 2):\n1 | 3 = 3\n2 | 4 = 3\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28250 ticks. 9416 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 | 5 = 1\n2 | 6 = 2\n3 | 7 = 3\n4 | 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28500 ticks. 9500 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 | 5 = 5\n2 | 6 = 6\n3 | 7 = 0\n4 | 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 31687 ticks. 10562 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 | 5 = 5\n2 | 6 = 0\n3 | 7 = 0\n4 | 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:26Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 106250 ticks. 53125 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:27Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 110625 ticks. 55312 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:27Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 107187 ticks. 53593 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "xor": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:27Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:27Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:27Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:28Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 30250 ticks. 10083 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 ^ 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:28Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 23813 ticks. 7937 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 ^ 3 = 1\n2 ^ 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:28Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 23000 ticks. 7666 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 ^ 3 = 1\n2 ^ 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:28Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 27250 ticks. 9083 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 ^ 3 = 4302606\n2 ^ 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:28Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 32688 ticks. 10896 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 2):\n1 ^ 3 = 2\n2 ^ 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:29Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28187 ticks. 9395 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 ^ 5 = 1\n2 ^ 6 = 2\n3 ^ 7 = 3\n4 ^ 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:29Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 27562 ticks. 9187 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 ^ 5 = 4\n2 ^ 6 = 4\n3 ^ 7 = 0\n4 ^ 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:29Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 31500 ticks. 10500 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 ^ 5 = 4\n2 ^ 6 = 0\n3 ^ 7 = 0\n4 ^ 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:29Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 112937 ticks. 56468 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:29Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 111000 ticks. 55500 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:30Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 106188 ticks. 53094 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "and": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:30Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:30Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:30Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:30Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 29937 ticks. 9979 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 & 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 25625 ticks. 8541 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 2):\n1 & 3 = 1\n2 & 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 23688 ticks. 7896 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 2):\n1 & 3 = 1\n2 & 4 = 2\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 24875 ticks. 8291 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 2):\n1 & 3 = 4302606\n2 & 4 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 32125 ticks. 10708 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 2):\n1 & 3 = 1\n2 & 4 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 28375 ticks. 9458 ticks / insn\nSimple operation on 2 variables (wordLen: 8, vectorLen 4):\n1 & 5 = 1\n2 & 6 = 2\n3 & 7 = 3\n4 & 8 = 4\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:31Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 30125 ticks. 10041 ticks / insn\nSimple operation on 2 variables (wordLen: 16, vectorLen 4):\n1 & 5 = 1\n2 & 6 = 2\n3 & 7 = 0\n4 & 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:32Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x41a2a0 to 0x41a2ac\n3 insn generated in 30500 ticks. 10166 ticks / insn\nSimple operation on 2 variables (wordLen: 32, vectorLen 4):\n1 & 5 = 1\n2 & 6 = 0\n3 & 7 = 0\n4 & 8 = 0\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:32Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: REG/i/8/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 106125 ticks. 53062 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:32Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: REG/i/16/8/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 109625 ticks. 54812 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:32Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: REG/i/8/16/0\nFlush data cache from 0x41a2a0 to 0x41a2a8\n2 insn generated in 106812 ticks. 53406 ticks / insn\n"
+            }
+          ]
+        }
+      ]
+    },
+    "shift": {
+      "sl": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:32Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:33Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:33Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:33Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 29875 ticks. 9958 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 << 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:33Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/2/0\nP1: REG/i/8/2/1\nP2: REG/i/8/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 109438 ticks. 54719 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:33Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/2/0\nP1: REG/i/16/2/1\nP2: REG/i/16/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 102625 ticks. 51312 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/32/2/0\nP1: REG/i/32/2/1\nP2: REG/i/32/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 104688 ticks. 52344 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/0\nP1: REG/i/64/2/1\nP2: REG/i/64/2/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 106437 ticks. 106437 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/4/0\nP1: REG/i/8/4/1\nP2: REG/i/8/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 100937 ticks. 50468 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/4/0\nP1: REG/i/16/4/1\nP2: REG/i/16/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 109688 ticks. 54844 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/32/4/0\nP1: REG/i/32/4/1\nP2: REG/i/32/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 101937 ticks. 50968 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:34Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/0\nP1: REG/i/8/8/1\nP2: REG/i/8/8/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 111937 ticks. 111937 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:35Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/0\nP1: REG/i/16/8/1\nP2: REG/i/16/8/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 109188 ticks. 109188 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:35Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SL instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/0\nP1: REG/i/8/16/1\nP2: REG/i/8/16/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 109437 ticks. 109437 ticks / insn\n"
+            }
+          ]
+        }
+      ],
+      "sr": [
+        {
+          "vLen": 1,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:35Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:35Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:35Z",
+              "success": "SUCCESS",
+              "commit": "f7ff664",
+              "message": ""
+            }
+          ]
+        },
+        {
+          "vLen": 1,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "Flush data cache from 0x4192a0 to 0x4192ac\n3 insn generated in 29313 ticks. 9771 ticks / insn\nSimple operation on 2 variables (wordLen: 64, vectorLen 1):\n1 >> 2 = 1\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/2/0\nP1: REG/i/8/2/1\nP2: REG/i/8/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 117563 ticks. 58781 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/2/0\nP1: REG/i/16/2/1\nP2: REG/i/16/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 113500 ticks. 56750 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/32/2/0\nP1: REG/i/32/2/1\nP2: REG/i/32/2/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 105375 ticks. 52687 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 2,
+          "wLen": 64,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/0\nP1: REG/i/64/2/1\nP2: REG/i/64/2/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/64/2/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 106875 ticks. 106875 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:36Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/4/0\nP1: REG/i/8/4/1\nP2: REG/i/8/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 104188 ticks. 52094 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:37Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/4/0\nP1: REG/i/16/4/1\nP2: REG/i/16/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 103438 ticks. 51719 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 4,
+          "wLen": 32,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:37Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/32/4/0\nP1: REG/i/32/4/1\nP2: REG/i/32/4/1\nFlush data cache from 0x4192a0 to 0x4192a8\n2 insn generated in 103125 ticks. 51562 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:37Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/0\nP1: REG/i/8/8/1\nP2: REG/i/8/8/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/8/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 113312 ticks. 113312 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 8,
+          "wLen": 16,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:37Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/0\nP1: REG/i/16/8/1\nP2: REG/i/16/8/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/16/8/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 123063 ticks. 123063 ticks / insn\n"
+            }
+          ]
+        },
+        {
+          "vLen": 16,
+          "wLen": 8,
+          "results": [
+            {
+              "date": "2026-08-25T11:47:37Z",
+              "success": "FAIL",
+              "commit": "f7ff664",
+              "message": "(iflush) Failed code generation\nWarning, SR instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/0\nP1: REG/i/8/16/1\nP2: REG/i/8/16/1\nWarning, MV instruction generation failed\nValOrReg / arith / wLen / vLen / regNro / valueImm\nP0: REG/i/8/16/1\nP1: VAL/i/32/1/0\nFlush data cache from 0x4192a0 to 0x4192a4\n1 insn generated in 110313 ticks. 110313 ticks / insn\n"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

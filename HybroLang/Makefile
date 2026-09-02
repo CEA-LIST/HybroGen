@@ -1,4 +1,4 @@
-FILES = HybroLangLexer.py HybroLangListener.py HybroLangParser.py
+FILES = HybroLangLexer.py HybroLangListener.py HybroLangParser.py HybroLangVisitor.py
 ANTLRP = antlr4 -Dlanguage=Python3
 ANTLRFLAGS = -package HybroLang -no-listener -visitor
 ANTLRJ = antlr4
