@@ -1,36 +1,64 @@
-# Arm 64 bits ISA definition
-#
-# Reference ARM data sheet Document Number: ARM DDI 0596, ID093022
-# https://developer.arm.com/documentation/ddi0602/latest
+# Arm 64 bits ISA definition for HybroGen
+# Extracted from
+# "Arm Architecture Reference Manual for A-profile architecture"
+# Document number : ARM DDI 0487
 
-ARCH arm 32
+ARCH arm 32 # Architecture name + instruction size
 
-#ABS 32
-#0 1 0 11010110 00000 001000 r1[4:0] r0[4:0]         | A64 i 1 32 abs abs r0 r1
-#ABS 64
-#1 1 0 11010110 00000 001000 r1[4:0] r0[4:0]         | A64 i 1 64 abs abs r0 r1
+# C6.2.1 ABS
+# TODO
+# 0 1 0 11010110 00000 001000 r1[4:0] r0[4:0]         | A64 i 1 32 abs abs r0 r1
+# 1 1 0 11010110 00000 001000 r1[4:0] r0[4:0]         | A64 i 1 64 abs abs r0 r1
 
-#ADD 32
+# # C6.2.6 ADD (shifted register)
+# # Add optionally-shifted register
+# # This instruction adds a register value and an optionally-shifted
+# #  register value, and writes the result to the destination register.
+# # r0 = r1 + i0
+# 0 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 32 add add r0 r1 i0
+# 1 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 64 add add r0 r1 i0
+
+# C6.2.2 ADC Add with carry
+# C6.2.3 ADCS Add with carry, setting flags
+# TODO : could be used for long datatypes
+
+
+# C6.2.4 ADD (extended register)
+# Add extended and scaled register
+# This instruction adds a register value and a sign or zero-extended
+# register value, followed by an optional left shift amount, and
+# writes the result to the destination register. The argument that is
+# extended from the <Rm> register can be a byte, halfword, word, or
+# doubleword.
+# r0 = r1 + r2
+#                        opt imm3
+0 0 0 01011 00 0 r2[4:0] 000 000 r1[4:0] r0[4:0]      | A64 i 1 32 add add r0 r1 r2
+1 0 0 01011 00 0 r2[4:0] 000 000 r1[4:0] r0[4:0]      | A64 i 1 64 add add r0 r1 r2
+
+# C6.2.5 ADD (immediate) Add immediate value
+# This instruction adds a register value and an optionally-shifted
+#  immediate value, and writes the result to the destination register.
+# r0 = r1 + i0
 0 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 32 add add r0 r1 i0
-#ADD 64
 1 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 i 1 64 add add r0 r1 i0
-1 0 0 100010 0 i0[11:0] r1[4:0] r0[4:0]              | A64 f 1 64 add fadd r0 r1 i0
-#ADD 32 p21
-0 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 32 add add r0 r1 r2
-#ADD 64 p21
-1 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]      | A64 i 1 64 add add r0 r1 r2
-#ADD (shifted register) 32
-#0 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 32 add add r0 r1 r2
-#ADD (shifted register) 64
-#1 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 64 add add r0 r1 r2
-#ADCS 32
-#0 0 1 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 32 add adcs r0 r1 r2
-#ADCS 64
-#1 0 1 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 64 add adcs r0 r1 r2
-#ADC 32
-#0 0 0 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 32 add adc r0 r1 r2
-#ADC 64
-#1 0 0 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 64 add adc r0 r1 r2
+
+# C6.2.6 ADD (shifted register)
+# Add optionally-shifted register
+# This instruction adds a register value and an optionally-shifted
+# register value, and writes the result to the destination register.
+
+# r0 = r1 + (r2 << imm6)
+#                          imm6
+# 0 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 32 add add r0 r1 r2
+# 1 0 0 01011 00 0 r2[4:0] 000000 r1[4:0] r0[4:0]     | A64 i 1 64 add add r0 r1 r2
+
+#ADCS
+# 0 0 1 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 32 add adcs r0 r1 r2
+# 1 0 1 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 64 add adcs r0 r1 r2
+
+#ADC
+# 0 0 0 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 32 add adc r0 r1 r2
+# 1 0 0 11010000 r2[4:0] 000000 r1[4:0] r0[4:0]       | A64 i 1 64 add adc r0 r1 r2
 #ADDS (shifted register)
 #0 0 1 01011 00 0 r2[4:0] 0000000 r1[4:0] r0[4:0]    | A64 i 1 32 add ads r0 r1 r2
 #ADDS (shifted register)
@@ -80,16 +108,25 @@ ARCH arm 32
 10 111 1 00 01 1 r2[4:0] 110 1 10 r1[4:0] r0[4:0]    | A64 f 1 32 r ldr r0 r1 r2
 11 111 1 00 01 1 r2[4:0] 110 1 10 r1[4:0] r0[4:0]    | A64 i 1 64 r ldr r0 r1 r2
 
-# MOV (wide immediate) 32
+# C6.2.280 MOV (wide immediate)
+# Move wide immediate value
+# This instruction moves a 16-bit immediate value to a register.
 0 10 100101 00 i0[15:0] r0[4:0]                      | A64 i 1 32 mv mov r0 i0
-# MOVN (wide immediate) 32
-# 0 00 100101 00 {~i0}[15:0] r0[4:0] 		     | A64 i 1 32 mv movn r0 i0
-#MOV (wide immediate) 64
 1 10 100101 00 i0[15:0] r0[4:0]                      | A64 i 1 64 mv mov r0 i0
-#MOV (to/from SP) 32
-0 0 0 100010 0 000000000000 r1[4:0] r0[4:0]          | A64 i 1 32 mv mov r0 r1
-#MOV (to/from SP) 64
-1 0 0 100010 0 000000000000 r1[4:0] r0[4:0]          | A64 i 1 64 mv mov r0 r1
+
+# MOVN (wide immediate) 32
+# 0 00 100101 00 {~i0}[15:0] r0[4:0] 		         | A64 i 1 32 mv movn r0 i0
+
+# MOV (to/from SP)
+# 0 0 0 100010 0 000000000000 r1[4:0] r0[4:0]          | A64 i 1 32 mv mov r0 r1
+# 1 0 0 100010 0 000000000000 r1[4:0] r0[4:0]          | A64 i 1 64 mv mov r0 r1
+
+# C6.2.282 MOV (register)
+# Move register value
+# This instruction copies the value in a source register to the
+# destination register. This is an alias of ORR (shifted register).
+0 01 01010 00 0 r1[4:0] 000000 11111 r0[4:0]          | A64 i 1 32 mv mov r0 r1
+1 01 01010 00 0 r1[4:0] 000000 11111 r0[4:0]          | A64 i 1 64 mv mov r0 r1
 
 #MUL 32
 0 00 11011 000 r2[4:0] 0 11111 r1[4:0] r0[4:0]       | A64 i 1 32 mul mul r0 r1 r2
@@ -151,51 +188,62 @@ ARCH arm 32
 #ABS
 #0 0 0 01110 00 10000 01011 10 r1[4:0] r0[4:0]       | A64 i 1 64 abs abs r0 r1
 
-#ADD (Vector) 16
-#0 Q 0 01110 sz 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]    | A64 i 1 16 add add r0 r1 r2
-0 0 0 01110 00 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 8 8 add add r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 16 8 add add r0 r1 r2
-0 0 0 01110 01 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 4 16 add add r0 r1 r2
-0 1 0 01110 01 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 8 16 add add r0 r1 r2
-0 0 0 01110 10 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 2 32 add add r0 r1 r2
-0 1 0 01110 10 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 4 32 add add r0 r1 r2
-0 1 0 01110 11 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 2 64 add add r0 r1 r2
+# C7.2.2 ADD (vector)
+# This instruction adds corresponding elements in the two source
+# SIMD&FP registers, places the results into a vector, and writes the
+# vector to the destination SIMD&FP register.
+# ADD <Vd>.<T>, <Vn>.<T>, <Vm>.<T>
+# 0 Q 0 01110 sz 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 1 16 add add r0 r1 r2
+0 1 0 0 111 0 00 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i 16  8 add add r0 r1 r2
+0 1 0 0 111 0 01 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  8 16 add add r0 r1 r2
+0 1 0 0 111 0 10 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  4 32 add add r0 r1 r2
+0 1 0 0 111 0 11 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  2 64 add add r0 r1 r2
 
-#AND (Vector)
-0 0 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 8 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16 8 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 16 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 4 16 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 16 and and r0 r1 r2
+0 0 0 0 111 0 00 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  8  8 add add r0 r1 r2
+0 0 0 0 111 0 01 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  4 16 add add r0 r1 r2
+0 0 0 0 111 0 10 1 r2[4:0] 10000 1 r1[4:0] r0[4:0]     | A64 i  2 32 add add r0 r1 r2
+
+
+# C7.2.11 AND (vector)
+# Bitwise AND (vector)
+# This instruction performs a bitwise AND between the two source
+# SIMD&FP registers, and writes the result to the destination SIMD&FP
+# register.
+
+0 0 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  8  8 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16  8 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 16 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  4 16 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  8 16 and and r0 r1 r2
 0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16 16 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 32 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 4 32 and and r0 r1 r2
-0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 64 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 32 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  4 32 and and r0 r1 r2
+0 1 0 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 64 and and r0 r1 r2
 
-#EOR (Vector)
-0 0 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 8 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16 8 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 16 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 4 16 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 16 xor eor r0 r1 r2
+# EOR (Vector)
+0 0 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  8  8 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16  8 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 16 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  4 16 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  8 16 xor eor r0 r1 r2
 0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 16 16 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 32 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 4 32 xor eor r0 r1 r2
-0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 2 64 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 32 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  4 32 xor eor r0 r1 r2
+0 1 1 01110 00 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i  2 64 xor eor r0 r1 r2
 
-#FADD (scalar) 32
+# FADD (scalar) 32
 0 0 0 11110 00 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 32 add fadd r0 r1 r2
 0 0 0 11110 00 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 32 add add r0 r1 r2
-#FADD (scalar) 64
+# FADD (scalar) 64
 0 0 0 11110 01 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 64 add fadd r0 r1 r2
-#FADD (vector)
+# FADD (vector)
 0 0 0 01110 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 4 16 add fadd r0 r1 r2
 0 1 0 01110 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 8 16 add fadd r0 r1 r2
 0 0 0 01110 0 0 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 2 32 add fadd r0 r1 r2
 0 1 0 01110 0 0 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 4 32 add fadd r0 r1 r2
 0 1 0 01110 0 1 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 2 64 add fadd r0 r1 r2
 
-#FDIV (vector)
+# FDIV (vector)
 0 0 1 01110 0 10 r2[4:0] 00 111 1 r1[4:0] r0[4:0]    | A64 f 4 16 div fdiv r0 r1 r2
 0 1 1 01110 0 10 r2[4:0] 00 111 1 r1[4:0] r0[4:0]    | A64 f 8 16 div fdiv r0 r1 r2
 0 0 1 01110 0 0 1 r2[4:0] 11111 1 r1[4:0] r0[4:0]    | A64 f 2 32 div fdiv r0 r1 r2
@@ -208,18 +256,16 @@ ARCH arm 32
 0 1 1 01110 0 0 1 r2[4:0] 11111 1 r1[4:0] r0[4:0]    | A64 i 4 32 div fdiv r0 r1 r2
 0 1 1 01110 0 1 1 r2[4:0] 11111 1 r1[4:0] r0[4:0]    | A64 i 2 64 div fdiv r0 r1 r2
 
-#FMOV 32 (register)
+# FMOV (register)
 0 0 0 11110 00 1 0000 00 10000 r1[4:0] r0[4:0]       | A64 f 1 32 mv fmov r0 r1
-#FMOV 64 (register)
 0 0 0 11110 01 1 0000 00 10000 r1[4:0] r0[4:0]       | A64 f 1 64 mv fmov r0 r1
-#FMOV 32 (scalar, immediate)
-0 0 0 11110 00 1 i0[7:0] 100 00000 r0[4:0]           | A64 f 1 32 mv fmov r0 i0
-#FMOV 64 (scalar, immediate)
-0 0 0 11110 01 1 i0[7:0] 100 00000 r0[4:0]           | A64 f 1 64 mv fmov r0 i0
+
+# FMOV (scalar, immediate)
+# 0 0 0 11110 00 1 i0[7:0] 100 00000 r0[4:0]           | A64 f 1 32 mv fmov r0 i0
+# 0 0 0 11110 01 1 i0[7:0] 100 00000 r0[4:0]           | A64 f 1 64 mv fmov r0 i0
 
 #FMUL (scalar)
 0 0 0 11110 00 1 r2[4:0] 0 000 10 r1[4:0] r0[4:0]    | A64 f 1 32 mul fmul r0 r1 r2
-#FMUL (scalar)
 0 0 0 11110 01 1 r2[4:0] 0 000 10 r1[4:0] r0[4:0]    | A64 f 1 64 mul fmul r0 r1 r2
 
 #LDR (immediate, SIMD&FP)
@@ -230,15 +276,16 @@ ARCH arm 32
 #00 111 1 00 11 0 i0[8:0] 01 r1[4:0] r0[4:0]         | A64 i 1 128 r ldr r0 r1 i0
 00 101 1 00 11 i0[6:0] 00000 r1[4:0] r0[4:0]        | A64 i 2 32 r ldp r0 r1 i0
 
-#MOV (vector)
-0 0 0 01110 10 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 8 mv mov r0 r1 r2
+# MOV (vector)
+0 0 0 01110 10 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8  8 mv mov r0 r1 r2
 0 1 0 01110 10 1 r2[4:0] 00011 1 r1[4:0] r0[4:0]     | A64 i 8 16 mv mov r0 r1 r2
-#MOV (from General)
-#0 1 0 01110000 00001 0 0011 1 r1[4:0] r2[4:0]        | A64 i 1 8 mv mov r0 r1
-#0 1 0 01110000 00010 0 0011 1 r1[4:0] r2[4:0]        | A64 i 1 16 mv mov r0 r1
-#0 1 0 01110000 00100 0 0011 1 r1[4:0] r2[4:0]        | A64 i 1 32 mv mov r0 r1
-#0 1 0 01110000 01000 0 0011 1 r1[4:0] r2[4:0]        | A64 i 1 64 mv mov r0 r1
-0 1 0 01110000 01000 0 0011 1 r1[4:0] r0[4:0]        | A64 i 2 32 mv mov r0 r1
+
+# MOV (from General)
+# 0 1 0 01110000 00001 0 0011 1 r1[4:0] r0[4:0]        | A64 i 1  8 mv mov r0 r1
+# 0 1 0 01110000 00010 0 0011 1 r1[4:0] r0[4:0]        | A64 i 1 16 mv mov r0 r1
+# 0 1 0 01110000 00100 0 0011 1 r1[4:0] r0[4:0]        | A64 i 1 32 mv mov r0 r1
+# 0 1 0 01110000 01000 0 0011 1 r1[4:0] r0[4:0]        | A64 i 1 64 mv mov r0 r1
+# 0 1 0 01110000 01000 0 0011 1 r1[4:0] r0[4:0]        | A64 i 2 32 mv mov r0 r1
 
 #FSUB (scalar) 32
 0 0 0 11110 00 1 r2[4:0] 001 1 10 r1[4:0] r0[4:0]    | A64 f 1 32 sub fsub r0 r1 r2
@@ -339,18 +386,47 @@ ARCH arm 32
 0 1 0011000 0 000000 0111 10 r0[4:0] r1[4:0]         | A64 i 4 32 w st1 r0 r1
 0 0 0011000 0 000000 0111 11 r0[4:0] r1[4:0]         | A64 i 2 64 w st1 r0 r1
 
-#DUP (element, scalar)
-01 0 11110000 00100 0 0000 1 r1[4:0] r0[4:0]         | A64 i 1 32 mv dup r0 r1
-01 0 11110000 01000 0 0000 1 r1[4:0] r0[4:0]         | A64 i 1 64 mv dup r0 r1
+# C7.2.40 DUP (element)
+# Duplicate vector element to vector or scalar
+# This instruction duplicates the vector element at the specified
+# element index in the source SIMD&FP register into a scalar or each
+# element in a vector, and writes the result to the destination
+# SIMD&FP register.
+# Encoding DUP <V><d>, <Vn>.<T>[<index>]
+#                imm5    imm4
+# Does not work for mv
+# 01 0 1 111 00 00 00000 0 0000 1 r1[4:0] r0[4:0]         | A64 i 1 64 mv dup r0 r1
+# 01 0 1 111 00 00 00000 0 0000 1 r1[4:0] r0[4:0]         | A64 i 2 32 mv dup r0 r1
 
-#DUP (element, vector)
-0 0 0 01110000 00100 0 0000 1 r1[4:0] r0[4:0]        | A64 i 2 32 mv dup r0 r1
-0 1 0 01110000 01000 0 0000 1 r1[4:0] r0[4:0]        | A64 i 2 64 mv dup r0 r1
+# # DUP (element, vector)
+# # 0 0 0 01110000 00100 0 0000 1 r1[4:0] r0[4:0]        | A64 i 2 32 mv dup r0 r1
+# # 0 1 0 01110000 01000 0 0000 1 r1[4:0] r0[4:0]        | A64 i 2 64 mv dup r0 r1
+
+# C7.2.243 MOV (element)
+# Move vector element to another vector element
+# This instruction copies the vector element of the source SIMD&FP
+# register to the specified vector element of the destination SIMD&FP
+# register.
+#                 imm5    imm4
+# 0 1 1 0 111 00 00 00000 0 0000 1  r1[4:0] r0[4:0]    | A64 i 1 32 mv mov r0 r1
+# 0 1 1 0 111 00 00 00000 0 0000 1  r1[4:0] r0[4:0]    | A64 i 2 32 mv mov r0 r1
+
+# C7.2.245 MOV (vector)
+# Move vector
+# This instruction copies the vector in the source SIMD&FP register
+# into the destination SIMD&FP register
+# MOV <Vd>.<T>, <Vn>.<T>
+# Q = 16b
+0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 1 64 mv mov r0 r1
+0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 2 32 mv mov r0 r1
+0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 4 16 mv mov r0 r1
+0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 8  8 mv mov r0 r1
+
 
 # MLA
 0 1 1 01111 10 10 r2[3:0] 0 0 00 0 0 r1[4:0] r0[4:0] | A64 i 4 32 mla mac r0 r1 r2
 
-#FMLA
+# FMLA
 0 1 0 01110 0 1 1 r2[4:0] 11001 1 r1[4:0] r0[4:0]    | A64 f 4 32 mac fmla r0 r1 r2
 #MADD (Multiply Add)
 0 00 11011 000 r2[4:0] 0 r0[4:0] r1[4:0] r0[4:0]     | A64 i 1 32 mac mad r0 r1 r2

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import datetime
 import json
 from pathlib import Path
@@ -223,7 +225,7 @@ def generate_figure(filename,archName,axToFill):
     except Exception as e:
         print(f"ERROR inattendue : {e}")
         return -99
-    
+
 
 if __name__ == "__main__":
     import sys, subprocess, argparse, os
@@ -235,7 +237,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    
+
     parser.add_argument('-a',   '--arch',     nargs="+",    default=config.getKeys(), help='Architecture name list')
     parser.add_argument('-f',   '--fuse',action='store_true', help='Everything on the same figure')
     parser.add_argument('-o', '--open', help='Open diagram after generating them')
@@ -265,7 +267,7 @@ if __name__ == "__main__":
             shadow=True,
             fancybox=True,
             title="Legend"
-        )    
+        )
     else:
         fig,ax = plt.subplots()
         generate_figure("./json/RegressionSingleOp-" + a.arch[0] + ".json",a.arch[0],ax)
