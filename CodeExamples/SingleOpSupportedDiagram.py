@@ -185,9 +185,10 @@ def display_results_table(data, operations, vLens, wLens,archName,axToFill):
     axToFill.set_title('Supported Operation on ' + archName)
 
 
-def generate_figure(filename,archName,axToFill):
+def generate_figure(fileName, archName, axToFill):
     try:
-        with open(filename, "r") as f:
+        print (fileName)
+        with open(fileName, "r") as f:
             data = json.load(f)
             operators = data["operator"]
 
@@ -198,21 +199,16 @@ def generate_figure(filename,archName,axToFill):
         for category, operations in operators.items():
             for operation, tests in operations.items():
                 opp.append(operation)
-                print(f"\n===== {category}/{operation} =====")
-
+                print(f"=== {archName}/{category}/{operation}")
                 for test in tests:
                     wLens.add(test["wLen"])
                     vLens.add(test["vLen"])
                     result = test["results"][0]
                     results[(operation, (test["wLen"],test["vLen"]))] = result["success"]
-
-
-        opp = sorted(set(opp))
+        opp   = sorted(set(opp))
         wLens = sorted(wLens)
         vLens = sorted(vLens)
-
         display_results_table(results,opp,vLens,wLens,archName,axToFill)
-
     except FileNotFoundError as e:
         print(f"ERROR: {e}")
         return -1
@@ -233,22 +229,26 @@ if __name__ == "__main__":
     from CCode import CCodeAddress
     sys.path.append("..")
     from SwConfig import SwConfig
+
     config = SwConfig()
-
     parser = argparse.ArgumentParser()
-
-
-    parser.add_argument('-a',   '--arch',     nargs="+",    default=config.getKeys(), help='Architecture name list')
-    parser.add_argument('-f',   '--fuse',action='store_true', help='Everything on the same figure')
-    parser.add_argument('-o', '--open', help='Open diagram after generating them')
-    parser.add_argument('-v', '--verbose', help='Verbose mode for every result')
-    #parser.add_argument('',)
+    parser.add_argument('-a',   '--arch',     nargs="+",  default=config.getKeys(), help='Architecture name list')
+    parser.add_argument('-f',   '--fuse',     action='store_true', help='Everything on the same figure')
+    parser.add_argument('-o',   '--open',     help='Open diagram after generating them')
+    parser.add_argument('-v',   '--verbose',  help='Verbose mode for every result')
+    parser.add_argument('-n',   '--fileName', nargs=1, help='Output image file name')
     a = parser.parse_args()
+    print (a)
 
     commit = subprocess.check_output(
         ["git", "rev-parse", "--short", "HEAD"],
         text=True
     ).strip()
+
+    for architectureName in a.arch:
+        if architectureName not in config.getKeys():
+            print (f"{architectureName} not in {config.getKeys()}")
+            sys.exit(-1)
     if len(a.arch) > 1:
         fig,axs = plt.subplots(len(a.arch))
         for i in range(0,len(a.arch)):
@@ -256,18 +256,6 @@ if __name__ == "__main__":
             for spine in axs[i].spines.values():
                 spine.set_visible(True)
                 spine.set_linewidth(2)
-
-        green_patch = mpatches.Patch(color='g',label='Supported')
-        red_patch = mpatches.Patch(color='r',label='Has to be supported but Not working')
-        cyan_patch = mpatches.Patch(color='c',label='Not Supported')
-        fig.legend(
-            handles=[green_patch, red_patch, cyan_patch],
-            loc='lower center',
-            ncols=3,
-            shadow=True,
-            fancybox=True,
-            title="Legend"
-        )
     else:
         fig,ax = plt.subplots()
         generate_figure("./json/RegressionSingleOp-" + a.arch[0] + ".json",a.arch[0],ax)
@@ -275,16 +263,19 @@ if __name__ == "__main__":
             spine.set_visible(True)
             spine.set_linewidth(2)
 
-        green_patch = mpatches.Patch(color='g',label='Supported')
-        red_patch = mpatches.Patch(color='r',label='Has to be supported but Not working')
-        cyan_patch = mpatches.Patch(color='c',label='Not Supported')
-        fig.legend(
-            handles=[green_patch, red_patch, cyan_patch],
-            loc='lower center',
-            ncols=3,
-            shadow=True,
-            fancybox=True,
-            title="Legend"
-        )
+    green_patch = mpatches.Patch(color='g',label='Supported')
+    red_patch = mpatches.Patch(color='r',  label='Has to be supported but Not working')
+    cyan_patch = mpatches.Patch(color='c', label='Not Supported')
+    fig.legend(
+        handles=[green_patch, red_patch, cyan_patch],
+        loc='lower center',
+        ncols=3,
+        shadow=True,
+        fancybox=True,
+        title="Legend"
+    )
 
-    plt.show()
+    if a.fileName :
+        fig.savefig (a.fileName[0])
+    else:
+        plt.show()
