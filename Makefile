@@ -81,8 +81,8 @@ endif
 check:
 	@echo "[INFO] Start check with Regression test"
 	@make --no-print-directory aarch64 ${REDIRECT} && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
-	@make --no-print-directory power ${REDIRECT} && (echo "[OK] Regression test on power")|| (echo "[FAIL] Regression test fail for power")
-	@make --no-print-directory riscv ${REDIRECT} && (echo "[OK] Regression test on riscv")|| (echo "[FAIL] Regression test fail for riscv")
+	@make --no-print-directory power   ${REDIRECT} && (echo "[OK] Regression test on power")  || (echo "[FAIL] Regression test fail for power")
+	@make --no-print-directory riscv   ${REDIRECT} && (echo "[OK] Regression test on riscv")  || (echo "[FAIL] Regression test fail for riscv")
 #	@echo "[INFO]start check with regressionSingleOp"
 #	@(cd CodeExamples && ./RegressionSingleOp.py -d -a aarch64 riscv power ${REDIRECT})
 #	@(cd CodeExamples && ./RegressionSingleOp.py -z -a aarch64 ${REDIRECT} ) && (echo "[OK] Regression test on aarch64")|| (echo "[FAIL] Regression test fail for aarch64")
