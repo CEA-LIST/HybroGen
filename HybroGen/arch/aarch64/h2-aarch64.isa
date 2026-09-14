@@ -417,7 +417,8 @@ ARCH arm 32 # Architecture name + instruction size
 # into the destination SIMD&FP register
 # MOV <Vd>.<T>, <Vn>.<T>
 # Q = 16b
-0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 1 64 mv mov r0 r1
+# TODO : should be diferent from mv from scalar register
+# 0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 1 64 mv mov r0 r1
 0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 2 32 mv mov r0 r1
 0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 4 16 mv mov r0 r1
 0 1 0 0 111 0 10 1 r1[4:0] 00011 1 r1[4:0] r0[4:0]    | A64 i 8  8 mv mov r0 r1
