@@ -16,7 +16,7 @@ def cmd(cmdAndArgs, Verbose, doPrint = True, wdir = None, doExec = True):
     data = ""
     if not doExec:
         return 0,""
-    
+
     process = subprocess.Popen(cmdAndArgs, cwd=wdir, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,text=True)
     stdout, _ = process.communicate()
     returncode = process.returncode
@@ -54,48 +54,10 @@ def compileAndRun(fileName, arch, dataset, keep=False):
     o,stdout = cmd (commR, False, doExec= realExec, doPrint = realPrint)
     rmFiles (fileName, keep)
     if o != 0:
-        print("Fail at runtime bad result" + stdout)
+        # print("Fail at runtime bad result" + stdout)
         return False,stdout
     else:
         return True,stdout
-
-def genAndRunAddress(singleArith, opList, wordLenList, vectorLen, archName, keep=False):
-    dataset = [str(i) for i in range (1,34)]
-    resultDb = {}
-    for op in opList:
-        for wordLen in wordLenList:
-#            print ("%5s : %5s(%03s)"%(singleArith, op, wordLen), end="")
-            for vLen in vectorLen:
-                if wordLen in CTypeArray[singleArith]:
-                    theWordLen = "%03d"%int(wordLen)
-                    theVectorLen = "%03d"%int(vLen)
-                    fileName = "Tests/Test-Address-%s-%s-%s-%s-%s"%(op, singleArith, theWordLen, theVectorLen, archName)
-                    print (fileName)
-                    c = CCodeAddress(opList[op], singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
-                    c.write(fileName+".hl")
-                    msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
-                    resultDb[op, singleArith, wordLen, vLen, "address", archName] = msg
-    return resultDb
-
-def genAndRunValue(singleArith, opList, wordLenList, vectorLen, archName, keep):
-    dataset = [str(i) for i in range (1,34)]
-    resultDb = {}
-    for op in opList:
-        for wordLen in wordLenList:
-#            print ("%5s : %5s(%03s)"%(singleArith, op, wordLen), end="")
-            for vLen in vectorLen:
-                if wordLen in CTypeArray[singleArith]:
-                    theWordLen = "%03d"%int(wordLen)
-                    theVectorLen = "%03d"%int(vLen)
-                    fileName = "Tests/Test-Value-%s-%s-%s-%s-%s"%(op, singleArith, theWordLen, theVectorLen, archName)
-                    print (fileName)
-                    c = CCodeValue(opList[op], singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
-                    c.write(fileName+".hl")
-                    msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
-                    resultDb[op, singleArith, wordLen, vLen, "value", archName] = msg
-    return resultDb
-
-
 
 def genAndRunValueOnce(singleArith, op, opName, wordLen, vLen, archName, keep):
     dataset = [str(i) for i in range (1,34)]
@@ -108,7 +70,7 @@ def genAndRunValueOnce(singleArith, op, opName, wordLen, vLen, archName, keep):
         c.write(fileName+".hl")
         returnCode,msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
         resultDb  = msg
-    else : 
+    else :
         print("error")
     return returnCode,resultDb
 
@@ -120,33 +82,8 @@ CTypeArray = {
     'flt': {                               "32": 'float',  "64":'double',},
 }
 
-
-
-
-def check_file_access(filename):
-    path = Path(filename)
-
-    # Vérifie que le fichier existe
-    if not path.is_file():
-        raise FileNotFoundError(
-            f"Le fichier '{filename}' n'existe pas."
-        )
-
-    # Vérifie les droits de lecture
-    if not os.access(path, os.R_OK):
-        raise PermissionError(
-            f"Pas de droit de lecture sur '{filename}'."
-        )
-
-    # Vérifie les droits d'écriture
-    if not os.access(path, os.W_OK):
-        raise PermissionError(
-            f"Pas de droit d'écriture sur '{filename}'."
-        )
-
 def clear_result(filename):
     try:
-            check_file_access(filename)
             with open(filename, "r") as f:
                 data = json.load(f)
             operators = data["operator"]
@@ -157,43 +94,28 @@ def clear_result(filename):
             with open(filename, "w") as f:
                 json.dump(data, f, indent=2)
             return 0
-    except FileNotFoundError as e:
+    except Exception as e:
         print(f"ERROR: {e}")
         return -1
-    except PermissionError as e:
-        print(f"ERROR: {e}")
-        return -2
-    except json.JSONDecodeError as e:
-        print(f"ERROR: JSON invalide : {e}")
-        return -3
-    except Exception as e:
-        print(f"ERROR inattendue : {e}")
-        return -99
 
 def parse_operations(filename,archName,keep):
     try:
-        check_file_access(filename)
         with open(filename, "r") as f:
             data = json.load(f)
 
         operators = data["operator"]
-
         for category, operations in operators.items():
-
             for operation, tests in operations.items():
-
                 print(f"\n===== {category}/{operation} =====")
-
                 for test in tests:
-
                     vLen = test["vLen"]
                     wLen = test["wLen"]
                     result = 0
                     msg = ""
                     if category == "arith":
-                        result,msg = genAndRunValueOnce("int",opArith[operation],operation,wLen,vLen,archName,keep)
+                        result,msg = genAndRunValueOnce("int",opArith[operation],           operation,wLen,vLen,archName,keep)
                     elif category == "logic":
-                        result,msg = genAndRunValueOnce("int",opLogic[operation],operation,wLen,vLen,archName,keep)
+                        result,msg = genAndRunValueOnce("int",opLogic[operation],           operation,wLen,vLen,archName,keep)
                     elif category == "shift":
                         result,msg = genAndRunValueOnce("int",opAritmeticalShift[operation],operation,wLen,vLen,archName,keep)
                     else :
@@ -205,13 +127,8 @@ def parse_operations(filename,archName,keep):
                     else :
                         result = "FAIL"
                         everythingPass = False
-                    print(
-                        f"vLen={vLen}, "
-                        f"wLen={wLen}, "
-                        f"result={result}, "
-                        f"msg={msg}"
-                    )
-
+                    print(f"vLen={vLen:5}, wLen={wLen:5}, result={result}")
+#                        f"msg={msg}"
                     commit = subprocess.check_output(
                         ["git", "rev-parse", "--short", "HEAD"],
                         text=True
@@ -242,7 +159,6 @@ def parse_operations(filename,archName,keep):
 if __name__ == "__main__":
     import sys, subprocess, argparse, os
     from CCode import CCodeValue
-    from CCode import CCodeAddress
     sys.path.append("..")
     from SwConfig import SwConfig
     config = SwConfig()
@@ -252,27 +168,26 @@ if __name__ == "__main__":
         cmd(["mkdir", "-p", "./Tests"], True)
 
     #Liste fichier json ajouter arch: architectureName dans json
-    parser.add_argument('-a',   '--arch',     nargs="+",    default=config.getKeys(), help='Architecture name list')
-    parser.add_argument('-k',   '--keep',     action='store_true', help='Keep intermediate files')
-    parser.add_argument('-c', '--clean', action='store_true', help="Clear Result json file")
-    parser.add_argument('-v', '--verbose', action='store_true',help='Verbose Mode')
+    parser.add_argument('-a', '--arch',    nargs="+",    help='Architecture name list : %s'%config.getKeys())
+    parser.add_argument('-k', '--keep',    action='store_true', help='Keep intermediate files')
+    parser.add_argument('-c', '--clean',   action='store_true', help="Clear Result json file")
+    parser.add_argument('-d', '--doRegression',   action='store_true', help="Do regression")
+    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
     a = parser.parse_args()
 
-    for archName in a.arch:
-        print("Arch " + archName)
-
-
-    if a.verbose==False:
-        sys.stdout = open(os.devnull, 'w')
-
+    if None == a.arch:
+        print ("Give at least one arch name %s"%config.getKeys())
+        sys.exit(-1)
     if a.clean:
+        print (f"Clean json database for {'/'.join(a.arch)}")
         for archName in a.arch:
-            clear_result("./json/RegressionSingleOp-"+archName+".json")    
-        exit(0)
+            clear_result("./json/RegressionSingleOp-"+archName+".json")
+    elif a.doRegression:
+        print (f"Regression singleop for {'/'.join(a.arch)}")
+        for archName in a.arch:
+            print("try regression single op on " + archName)
+            parse_operations("./json/RegressionSingleOp-"+archName+".json",archName,a.keep)
 
-    for archName in a.arch:
-        print("try regression single op on " + archName)
-        parse_operations("./json/RegressionSingleOp-"+archName+".json",archName,a.keep)
-
-    exit(everythingPass)
-
+        exit(everythingPass)
+    else:
+        print ("Give an action --clean --doRegression")

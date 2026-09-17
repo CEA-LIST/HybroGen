@@ -6,6 +6,7 @@ class CCode():
     """
 
     def __init__(self, op, arith, vLen, wLen, ctype, address=""):
+        # print (f"op : {op}, arith : {arith}, vlen : {vLen}, wLen : {wLen}")
         self.op = op
         self.arith = arith
         self.vLen = vLen
@@ -13,7 +14,7 @@ class CCode():
         self.text = []
         self.add("// -*- c -*-")
         self.addIncludes(("stdio.h", "stdlib.h"))
-        if vLen == '1':
+        if vLen == 1:
             self.ctype = ctype
             self.add("/* C compilette prototype scalar version*/")
         else:
@@ -39,43 +40,60 @@ class CCode():
         for i in includeList:
             self.add("#include <%s>" % i)
 
-    def addMain(self, arith, address=""):
+    def addMain(self, arith, address=None):
+
+        d = {}
         if arith == "int":
-            arithLetter = "i"
-            printLetter = "d"
+            d['arithLetter'] = "i"
+            d['printLetter'] = "d"
         else:
-            arithLetter = "f"
-            printLetter = "f"
-        main = ['int main(int argc, char * argv[])',
-                '{',
-                '  functionPointer fPtr;',
-                '  int i, returnValue;',
-                '  if (argc < %d)' % (2*int(self.vLen)),
-                '    {',
-                '      printf("Give %d values\\n");' % (2*int(self.vLen)),
-                '      exit(-1);',
-                '   }',
-                '  {ctype} in0, in1, res;'.format(ctype=self.ctype, vLen=self.vLen),
-                '  for (int i = 0; i < %s; i++)' % (self.vLen),
-                '  {',
-                '      in0 = ato%s (argv[1]); ' % (arithLetter) if self.vLen == '1' and address == '' else '  in0[i]  = ato%s (argv[1+i]);' % (arithLetter),
-                '      in1 = ato%s (argv[1]); ' % (arithLetter) if self.vLen == '1' and address == '' else '  in1[i]  = ato%s (argv[1+%s+i]);' % (arithLetter, self.vLen),
-                '  }',
-                '  fPtr  = h2_malloc (1024);',
-                '  fPtr = (functionPointer) genSingleOp(fPtr);',
-                '  fPtr(&in0, &in1, &res);' if address == "&" else '  res = fPtr(in0, in1);',
-                '  printf ("Simple operation on 2 variables (wordLen: %s, vectorLen %s):\\n");' % (self.wLen, self.vLen),
-                '  returnValue = 0;',
-                '  for (i= 0; i < {vLen}; i++)'.format(vLen=self.vLen),
-                '     {',
-                '       printf("%{letter} {op} %{letter} = %{letter}\\n", in0, in1, res);'.format(letter=printLetter, op=self.op) if self.vLen == '1' and address == '' else 'printf("%{letter} {op} %{letter} = %{letter}\\n", in0[i], in1[i], res[i]);'.format(letter=printLetter, op=self.op),
-                '       if (res != (in0 {op} in1))'.format(op=self.op) if self.vLen == '1' and address == '' else 'if (res[i] != (in0[i] {op} in1[i]))'.format(op=self.op),
-                '	    returnValue = -1;',
-                '     }',
-                '  return returnValue;',
-                '}',]
-        for line in main:
-            self.add(line)
+            d['arithLetter'] = "f"
+            d['printLetter'] = "f"
+        d['vLen2'] = 2*int(self.vLen) + 1
+        d['vLen']  = self.vLen
+        d['wLen']  = self.wLen
+        d['ctype'] = self.ctype
+        d['op'] = self.op
+        if self.vLen > 1:
+            d['in0indice'] = "[i]"
+            d['in1indice'] = "[i]"
+            d['in0argv']   = "1+i"
+            d['in1argv']   = "1+i+%d"%self.vLen
+        else:
+            d['in0indice'] = ""
+            d['in1indice'] = ""
+            d['in0argv']   = "1"
+            d['in1argv']   = "2"
+        template = '''int main(int argc, char * argv[])
+
+{{
+  functionPointer fPtr;
+  int returnValue;
+  if (argc < {vLen2})
+    {{
+      printf("Give {vLen2} values\\n");
+      exit(-1);
+   }}
+  {ctype} in0, in1, res;
+  for (int i = 0; i < {vLen}; i++)
+  {{
+        in0{in0indice} = ato{arithLetter}(argv[{in0argv}]);
+        in1{in1indice} = ato{arithLetter}(argv[{in1argv}]);
+  }}
+  fPtr  = h2_malloc (1024);
+  fPtr = (functionPointer) genSingleOp(fPtr);
+  res = fPtr(in0, in1);
+  printf ("Simple operation on 2 variables (wordLen: {wLen}, vectorLen {vLen}):\\n");
+  returnValue = 0;
+  for (int i = 0; i < {vLen}; i++)
+  {{
+       printf ("%{printLetter} {op} %{printLetter} = %{printLetter}\\n", in0{in0indice}, in1{in0indice}, res{in0indice});
+       if (res{in0indice} != in0{in0indice} {op} in1{in0indice})
+        returnValue = -1;
+  }}
+  return returnValue;
+}}'''
+        self.add(template.format(**d))
 
 class CCodeAddress(CCode):
     """C code generation which contains a compilette.

@@ -155,21 +155,14 @@ def display_results_table(data, operations, vLens, wLens,archName,axToFill):
         col = 0
 
         for vLen in vLens:
-
             for wLen in wLens:
-
                 x = op_width + col * cell_width
 
-                success = data.get(
-                    (operation, (wLen, vLen))
-                )
+                success = data.get((operation, (wLen, vLen)))
                 color = '0'
-                if success=="SUCCESS":
-                    color = 'g'
-                elif success=="FAIL":
-                    color = 'r'
-                else:
-                    color = 'c'
+                if success   == "SUCCESS": color = 'g'
+                elif success == "FAIL":    color = 'r'
+                else:                      color = 'c'
                 axToFill.add_patch(
                     plt.Rectangle(
                         (x, y),
