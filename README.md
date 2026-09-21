@@ -30,17 +30,17 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 
 # Installation Dependency
 
+* Grammar use ANTLR4 to being generate 
+  * `sudo apt install antlr4`
+
 * Grammar use ANTLR4 with python4 backend
-   * `pip3 install antlr4-python3-runtime==4.7.2`
+   * `pip3 install antlr4-python3-runtime==<versionOfAntlr4>`
 
-* Compilation need a sqLite database. To verify if sqLite is on your machine type :
-   * `python3 -c "import sqlite3; print(sqlite3.sqlite_version)"`
-
-* Install the libsqlite3-dev version if the last command fail:
-   * `sudo apt install libsqlite3-dev`
+* Compilation need a sqlite database. To install sqlite and his dev lib you can use this commands :
+   * `sudo apt install -y sqlite3 libsqlite3-dev`
 
 * Debuging need graphviz https://graphviz.readthedocs.io/en/stable/
-	* sudo apt install python3-pygraphviz
+	* `sudo apt install python3-pygraphviz`
 
 * Qemu build need ninja
   * `sudo apt install ninja-build`
@@ -52,18 +52,18 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 * Clone HybroGen in a directory to extract the source files (with git or fetch / tar)
 * `git clone git@github.com:CEA-LIST/HybroGen.git`
 * or
-  * `wget https://github.com/CEA-LIST/HybroGen/archive/refs/tags/v5.0.tar.gz`
-  * `tar xf v5.0.tar.gz`
-* Choose a target directory to install the release e.g. `/opt/H5.0/`
+  * `wget https://github.com/CEA-LIST/HybroGen/archive/refs/tags/v5.1.tar.gz`
+  * `tar xf v5.1.tar.gz`
+* Choose a target directory to install the release e.g. `/opt/H5.1/`
 * For each platforms riscv, aarch64, powerpc, cxram-linux
 
-  Run `./GenCrossTools.py -a <platform> -p /opt/H5.0/ -w /opt/H5.0/tmp`
+  Run `./GenCrossTools.py -a <platform> -p /opt/H5.1/ -w /opt/H5.1/tmp`
 
   This command will generate the cross-compiler environment (gcc, gdb,
   qemu, linux-headers). This command could take some time to run.
 
 
-  * Run `./GenCrossTools.py -a riscv -p /opt/H5.0/ -w /opt/H5.0/tmp -s`
+  * Run `./GenCrossTools.py -a <platform> -p /opt/H5.1/ -w /opt/H5.1/tmp -s`
     * This will generate the shell environment (csh like or bash like)
     * A full installation could be :
 ```
@@ -73,8 +73,8 @@ Computing through QEMU-based System Emulator"](https://hal.archives-ouvertes.fr/
 ./GenCrossTools.py -a riscv   -p /opt/H5.0/ -w /opt/H5.0/tmp
 ./GenCrossTools.py -a riscv   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
-./GenCrossTools.py -a powerpc   -p /opt/H5.0/ -w /opt/H5.0/tmp
-./GenCrossTools.py -a powerpc   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
+./GenCrossTools.py -a power   -p /opt/H5.0/ -w /opt/H5.0/tmp
+./GenCrossTools.py -a power   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
 
 ./GenCrossTools.py -a cxram-linux   -p /opt/H5.0/ -w /opt/H5.0/tmp
 ./GenCrossTools.py -a cxram-linux   -p /opt/H5.0/ -w /opt/H5.0/tmp -s
@@ -88,13 +88,19 @@ architecture depending on your computing power and bandwith.
 
 HybroGen is mainly written in with python but need some build
 
+* Run `make buildGrammar` to build the ANTLR lexer / parser / visitorBase
 * Run `make DbPopulate` to populate the SQL database with instructions description
 * Congratulation, HybroGen is ready to work !
 
-If you want to play with grammar / lexer / parser, you'll need some more steps:
-* Install
-   * `sudo apt install antlr4`
-   * `make buildGrammar` to build the ANTLR lexer / parser
+
+## Check if installation has work well
+
+Hybrogen has a global check to see if everything is working fine.
+
+* Go to Hybrogen directory and Run `make check`
+* If everything work it's good.
+  * If not Retry the installation
+  * If it's still not work contact us : henri-pierre.charles@cea.fr
 
 ## For Computing in memory platform aka CXRAM
 
@@ -103,19 +109,125 @@ accelerator and give statistics about executed instructions.
 
 Follow instructions on this repository : https://github.com/CEA-LIST/csram-qemu-plugin
 
-## Run some examples / démonstration
+## Run Demo
 
-* Some code examples are located in the this sub directory : `CodeExamples`
+* All of the  Experimentation/Demonstration of application case are in the Demos Directory.
 
-For example to run an demonstration for the power architecture here is
-the command. Adapt for other architectures / demonstrations.
+So for a simplier use you can just go to the Demos directory `cd Demos` 
+Next you can just Run the command `make buildAll`
 
-  * `cd CodeExamples/`
-  * `source /opt/H5.0/powerpc/.cshrc`
-  * `./RunDemo.py -a power -i Array-Mult-Specialization`
+Next i will describe how to run all working Demo
 
-* Regression can be run in the same directory :
-  * `./Regression.py power`
+Note : the cxram-linux architecture is not supported by any Demos.
+
+### Newton-SquareRoot-VariablePrecision
+
+#### How to launch Demo
+
+So to access you just need to go into the Newton-SquareRoot-VariablePrecision Directory using `cd Newton-SquareRoot-VariablePrecision`.
+You can just play the demo on each arch by using the command : `demo-<archName>`
+
+
+#### How to interpret result
+
+
+### VectorMatrix
+
+So to access you just need to go into the VectorMatrix Directory using `cd VectorMatrix`.
+
+Once you are in the `VectorMatrix` demo directory, you can run the experiment on QEMU for the desired architecture.
+
+For AArch64, run:
+
+```bash
+make runaarch64Qemu
+```
+
+For PowerPC, run:
+
+```bash
+make runpowerQemu
+```
+
+The experiment is run with both `-O0` and `-O3`. Two log files will be generated, following this naming format:
+
+```text
+{architecture}-qemu-{date}-O0.log
+{architecture}-qemu-{date}-O3.log
+```
+
+These log files contain the experimental results for each repetition count of the `VectorMatrix` operations.
+
+You can then generate a plot from the two log files using:
+
+```bash
+python3 PlotResults.py file1.log file2.log size
+```
+
+Replace `file1.log` and `file2.log` with the generated `O0` and `O3` log files.
+
+The `size` argument corresponds to the number of repetitions to plot. The available values are:
+
+```text
+10
+100
+1000
+10000
+100000
+1000000
+```
+
+For example:
+
+```bash
+python3 PlotResults.py aarch64-qemu-2026-09-21-O0.log aarch64-qemu-2026-09-21-O3.log 100000
+```
+
+
+### Stencil
+
+Now that you are in the Stencil Demo Matrix, you can run the experiments for each architecture using the following commands:
+
+- `make allAarch64Qemu` runs the AArch64 experiments using QEMU.
+- `make allRiscvQemu` runs the RISC-V experiments using QEMU.
+- `make allPowerQemu` runs the PowerPC experiments using QEMU.
+- `make allAarch64Native` runs the AArch64 experiments natively.
+- `make allRiscvNative` runs the RISC-V experiments natively.
+
+For each architecture, the experiments are run with both `-O0` and `-O3` compiler optimization levels.
+
+The experiment uses several image sizes, from `13x10` up to `1280x960`, and tests five different filters for both `3x3` and `5x5` kernels:
+
+- Null
+- Identity
+- Blur
+- Gaussian Filter
+- Synthetic
+
+The results are stored in log files named according to the architecture, execution mode, optimization level, and timestamp.
+
+Once the experiments are completed, you can generate the plots with:
+
+`make plot ARCH=aarch64`
+
+or:
+
+`make plot ARCH=riscv`
+
+The generated plots will be stored using the architecture name as the output identifier.
+
+To generate the plots from the native experiment results, run:
+
+`cd ./Results/ && make all DATAFILES="../${ARCH}-native-O0.log ../${ARCH}-native-O3.log"`
+
+Replace `${ARCH}` with the architecture you want to process, for example `aarch64` or `riscv`.
+
+
+
+## What vector Operation and on which vector and wordLen size is supported by HybroGen
+
+So HybroGen has a good strategy to show the user what it supported and what is currently working inside of the compiler. With that our user can know what is currently working and which version of our software to take. This take place in the CodeExample Directory so go into it using `cd CodeExample`.
+
 
 # Execution dependencies
 
