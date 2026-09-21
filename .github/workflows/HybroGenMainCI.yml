@@ -324,7 +324,13 @@ jobs:
     #Strategy to launch multiple vm per architecture to launch all stencil demo on each arch "simultaniously"
     strategy:
       matrix:
-        architecture: [aarch64, riscv, power]
+        include:
+          - architecture: aarch64
+            makeArch: Aarch64
+          - architecture: riscv
+            makeArch: Riscv
+          - architecture: power
+            makeArch: Power
     steps:
       
     - name: Checkout repo
@@ -377,7 +383,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install antlr4-python3-runtime==${VERSION}
         chmod -R +x ./${{matrix.architecture}}/
-        cd ./Demos/Stencil && make all${{matrix.architecture}}Qemu
+        cd ./Demos/Stencil && make all${{matrix.makeArch}}Qemu
 
   #######################################################################################
   ###################### Demo Vector Matrix #############################################
