@@ -14,7 +14,7 @@ class CCode():
         self.text = []
         self.add("// -*- c -*-")
         self.addIncludes(("stdio.h", "stdlib.h"))
-        if vLen == 1:
+        if int(vLen) == 1:
             self.ctype = ctype
             self.add("/* C compilette prototype scalar version*/")
         else:
@@ -54,11 +54,11 @@ class CCode():
         d['wLen']  = self.wLen
         d['ctype'] = self.ctype
         d['op'] = self.op
-        if self.vLen > 1:
+        if int(self.vLen) > 1:
             d['in0indice'] = "[i]"
             d['in1indice'] = "[i]"
             d['in0argv']   = "1+i"
-            d['in1argv']   = "1+i+%d"%self.vLen
+            d['in1argv']   = "1+i+%s"%self.vLen
         else:
             d['in0indice'] = ""
             d['in1indice'] = ""
@@ -139,7 +139,7 @@ class CCodeValue(CCode):
     Arguments are passed by value (for all arch exept CxRAM)
     """
 
-    def __init__(self, op, arith, vLen, wLen, ctype):
+    def __init__(self, op, arith, wLen, vLen, ctype):
         super().__init__(op, arith, vLen, wLen, ctype)
         self.addTypeDef()
         self.addCompilette()

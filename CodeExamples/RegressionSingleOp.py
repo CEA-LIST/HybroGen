@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import datetime
-import json
 from pathlib import Path
 
 everythingPass : bool = True
@@ -59,102 +58,30 @@ def compileAndRun(fileName, arch, dataset, keep=False):
     else:
         return True,stdout
 
-def genAndRunValueOnce(singleArith, op, opName, wordLen, vLen, archName, keep):
+def genAndRunValueOnce(testCase, keep):
     dataset = [str(i) for i in range (1,34)]
     resultDb = ""
-    wordLen = str(wordLen);
     returnCode = 0
-    if wordLen in CTypeArray[singleArith]:
-        fileName = "./Tests/Test-Value-%s-%s-%s-%s"%(opName, singleArith, wordLen, vLen)
-        c = CCodeValue(op, singleArith, vLen, wordLen, CTypeArray[singleArith][wordLen])
-        c.write(fileName+".hl")
-        returnCode,msg = compileAndRun(fileName, archName, dataset[0:2*int(vLen)], keep)
-        resultDb  = msg
-    else :
-        print("error")
+    fileName = f'./Tests/Test-{testCase["operator"]}-{testCase["arithmetic"]}-{testCase["wordLen"]}-{testCase["vectorLen"]}'
+    c = CCodeValue(opArith[testCase["operator"]], testCase["arithmetic"],
+                   testCase["wordLen"],  testCase["vectorLen"],
+                   CTypeArray[testCase["arithmetic"]][testCase["wordLen"]])
+    c.write(fileName+".hl")
+    returnCode,msg = compileAndRun(fileName, archName, dataset[0:2*int(testCase["vectorLen"])], keep)
+    resultDb  = msg
     return returnCode,resultDb
 
-opArith = {"add":"+", "mul":"*", "sub":"-", "div":"/"}
-opLogic = {"mod":"%", "or":"|", "xor":"^", "and":"&"}
-opAritmeticalShift = {"sl":"<<", "sr":">>"}
+opArith = {"add":"+", "mul":"*", "sub":"-", "div":"/", "mod":"%", "or":"|", "xor":"^", "and":"&", "sl":"<<", "sr":">>"}
 CTypeArray = {
-    'int': {"8": 'int8_t', "16":'int16_t', "32":'int32_t', "64":'int64_t',},
-    'flt': {                               "32": 'float',  "64":'double',},
+    'int': {"8": 'int8_t',  "16":'int16_t', "32": 'int32_t', "64":'int64_t'},
+    'flt': {"8": '_Float8', "16":'_Float16',"32": 'float',   "64":'double',},
 }
 
-def clear_result(filename):
-    try:
-            with open(filename, "r") as f:
-                data = json.load(f)
-            operators = data["operator"]
-            for category, operations in operators.items():
-                for operation, tests in operations.items():
-                    for test in tests:
-                        test["results"].clear()
-            with open(filename, "w") as f:
-                json.dump(data, f, indent=2)
-            return 0
-    except Exception as e:
-        print(f"ERROR: {e}")
-        return -1
-
-def parse_operations(filename,archName,keep):
-    try:
-        with open(filename, "r") as f:
-            data = json.load(f)
-
-        operators = data["operator"]
-        for category, operations in operators.items():
-            for operation, tests in operations.items():
-                print(f"\n===== {category}/{operation} =====")
-                for test in tests:
-                    vLen = test["vLen"]
-                    wLen = test["wLen"]
-                    result = 0
-                    msg = ""
-                    if category == "arith":
-                        result,msg = genAndRunValueOnce("int",opArith[operation],           operation,wLen,vLen,archName,keep)
-                    elif category == "logic":
-                        result,msg = genAndRunValueOnce("int",opLogic[operation],           operation,wLen,vLen,archName,keep)
-                    elif category == "shift":
-                        result,msg = genAndRunValueOnce("int",opAritmeticalShift[operation],operation,wLen,vLen,archName,keep)
-                    else :
-                        print("bad category found problem in json file")
-
-                    if result :
-                        result = "SUCCESS"
-                        msg = ""
-                    else :
-                        result = "FAIL"
-                        everythingPass = False
-                    print(f"vLen={vLen:5}, wLen={wLen:5}, result={result}")
-#                        f"msg={msg}"
-                    commit = subprocess.check_output(
-                        ["git", "rev-parse", "--short", "HEAD"],
-                        text=True
-                    ).strip()
-                    test["results"].append({
-                    "date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "success": result,
-                    "commit": commit,
-                    "message": msg
-                })
-        with open(filename, "w") as f:
-            json.dump(data, f, indent=2)
-        return 0
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}")
-        return -1
-    except PermissionError as e:
-        print(f"ERROR: {e}")
-        return -2
-    except json.JSONDecodeError as e:
-        print(f"ERROR: JSON invalide : {e}")
-        return -3
-    except Exception as e:
-        print(f"ERROR inattendue : {e}")
-        return -99
-
+def parseDataBase(archName):
+    import csv
+    fileName = f"RegressionSingleOp-{archName}.csv"
+    csvRef = csv.DictReader(open (fileName, "r"), delimiter=";")
+    return csvRef
 
 if __name__ == "__main__":
     import sys, subprocess, argparse, os
@@ -164,30 +91,32 @@ if __name__ == "__main__":
     config = SwConfig()
 
     parser = argparse.ArgumentParser()
-    if not os.path.exists ("./Tests"):
-        cmd(["mkdir", "-p", "./Tests"], True)
-
-    #Liste fichier json ajouter arch: architectureName dans json
-    parser.add_argument('-a', '--arch',    nargs="+",    help='Architecture name list : %s'%config.getKeys())
-    parser.add_argument('-k', '--keep',    action='store_true', help='Keep intermediate files')
-    parser.add_argument('-c', '--clean',   action='store_true', help="Clear Result json file")
-    parser.add_argument('-d', '--doRegression',   action='store_true', help="Do regression")
-    parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+    parser.add_argument('-a', '--arch',        nargs="+",           help='Architecture name list : %s'%config.getKeys())
+    parser.add_argument('-k', '--keep',        action='store_true', help='Keep intermediate files')
+    parser.add_argument('-c', '--clean',       action='store_true', help="Clear Result json file")
+    parser.add_argument('-d', '--doRegression',action='store_true', help="Do regression")
+    parser.add_argument('-v', '--verbose',     action='store_true', help='Verbose Mode')
     a = parser.parse_args()
 
     if None == a.arch:
         print ("Give at least one arch name %s"%config.getKeys())
         sys.exit(-1)
     if a.clean:
-        print (f"Clean json database for {'/'.join(a.arch)}")
+        print (f"Clean database for {'/'.join(a.arch)}")
         for archName in a.arch:
             clear_result("./json/RegressionSingleOp-"+archName+".json")
     elif a.doRegression:
+        if not os.path.exists ("./Tests"):
+            cmd(["mkdir", "-p", "./Tests"], True)
         print (f"Regression singleop for {'/'.join(a.arch)}")
         for archName in a.arch:
             print("try regression single op on " + archName)
-            parse_operations("./json/RegressionSingleOp-"+archName+".json",archName,a.keep)
-
+            dataSet = parseDataBase(archName)
+            for testCase in dataSet:
+                result, msg = genAndRunValueOnce (testCase, a.keep)
+                for k in testCase: print (f"{testCase[k]:8s}  ", end="")
+                print (result)
+                # if not result: print (msg)
         exit(everythingPass)
     else:
         print ("Give an action --clean --doRegression")
