@@ -3,7 +3,6 @@ add;int;8;1;aarch64;True
 add;int;16;1;aarch64;True
 add;int;32;1;aarch64;True
 add;int;64;1;aarch64;True
-
 add;int;16;4;aarch64;True
 add;int;32;2;aarch64;True
 
