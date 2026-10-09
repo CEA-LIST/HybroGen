@@ -28,34 +28,43 @@ def exitError (errorMsg):
     print (errorMsg)
     sys.exit(-1)
 
-def rmFiles (fileName, keep=False):
+def rmFiles (fileName, arch, keep=False):
     if not keep:
-        commR = tuple(["rm", "-f", fileName, fileName+".hl", fileName+".c"])
+        commR = tuple(["rm", "-f", fileName+".hl", fileName+"."+arch+".c", fileName+"."+arch])
         cmd (commR, False, doPrint=False)
 
 def compileAndRun(fileName, arch, dataset, keep=False):
+    """ Compile an hybrogen programm, compile the C output and run it in qemu"""
     realExec = True
     realPrint = False
-    commH = tuple(["../HybroLang.py", "-g", "-a", arch, "-c", "-i", fileName+".hl"])
+
+    hFile = fileName+".hl"
+    bFile = fileName+"."+arch
+    cFile = fileName+"."+arch+".c"
+    # HybroLang compilation
+    commH = tuple(["../HybroLang.py", "-g", "-a", arch, "-c", "-i", hFile])
     o,stdout = cmd (commH, False, doExec= realExec, doPrint = realPrint)
     if o != 0:
         print("error HybroLang Compil" + stdout)
-        rmFiles (fileName, keep)
-        return False,stdout
-    commC = tuple([config.getCompilerForArch(arch), "-g", "-DH2_DEBUG", "-o", fileName, fileName+"."+arch+".c"])
+        return False, stdout # Return fail + HybroLang error message
 
+    # C compilation
+    commC = tuple([config.getCompilerForArch(arch), "-g", "-DH2_DEBUG", "-o", bFile, cFile])
     o,stdout = cmd (commC, False, doExec= realExec, doPrint = realPrint)
     if o != 0:
         print("compiler for arch failed" + stdout)
-        rmFiles (fileName, keep)
-        return False,stdout
-    commR = tuple([config.getQemuForArch(arch), fileName]+dataset)
+        return False, stdout # Return fail + gcc/clang error message
+
+    # Qemu execution
+    commR = tuple([config.getQemuForArch(arch), bFile]+dataset)
     o,stdout = cmd (commR, False, doExec= realExec, doPrint = realPrint)
-    rmFiles (fileName, keep)
+
+    # return result + execution message
     if o != 0:
         # print("Fail at runtime bad result" + stdout)
         return False,stdout
     else:
+        rmFiles (fileName, arch, keep)
         return True,stdout
 
 def genAndRunValueOnce(testCase, keep):
@@ -114,8 +123,10 @@ if __name__ == "__main__":
             dataSet = parseDataBase(archName)
             for testCase in dataSet:
                 result, msg = genAndRunValueOnce (testCase, a.keep)
-                for k in testCase: print (f"{testCase[k]:8s}  ", end="")
-                print (result)
+                # print only results what are different from input CSV
+                if result != bool(testCase["Supported"]):
+                    for k in testCase: print (f"{testCase[k]:8s}  ", end="")
+                    print (result)
                 # if not result: print (msg)
         exit(everythingPass)
     else:
