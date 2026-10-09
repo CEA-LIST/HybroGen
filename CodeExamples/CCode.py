@@ -174,7 +174,7 @@ if __name__ == "__main__":
     opLogic = {"mod": "%", "or": "|", "xor": "^", "and": "&"}
     CTypeArray = {
         'int': {8: 'int8_t', 16: 'int16_t', 32: 'int32_t', 64: 'int64_t', },
-        'flt': {32: 'float', 64: 'double', },
+        'flt': {16: 'float16_t', 32: 'float', 64: 'double', },
     }
 
     wLen = 32
