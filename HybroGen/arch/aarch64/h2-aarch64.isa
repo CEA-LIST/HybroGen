@@ -234,14 +234,25 @@ ARCH arm 32 # Architecture name + instruction size
 # FADD (scalar) 32
 0 0 0 11110 00 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 32 add fadd r0 r1 r2
 0 0 0 11110 00 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 32 add add r0 r1 r2
+
 # FADD (scalar) 64
 0 0 0 11110 01 1 r2[4:0] 001 0 10 r1[4:0] r0[4:0]    | A64 f 1 64 add fadd r0 r1 r2
-# FADD (vector)
-0 0 0 01110 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 4 16 add fadd r0 r1 r2
-0 1 0 01110 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 8 16 add fadd r0 r1 r2
-0 0 0 01110 0 0 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 2 32 add fadd r0 r1 r2
-0 1 0 01110 0 0 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 4 32 add fadd r0 r1 r2
-0 1 0 01110 0 1 1 r2[4:0] 11010 1 r1[4:0] r0[4:0]    | A64 f 2 64 add fadd r0 r1 r2
+
+# C7.2.51 FADD (vector)
+# Floating-point add (vector)
+# This instruction adds corresponding vector elements in the two
+# source SIMD&FP registers, writes the result into a vector, and
+# writes the vector to the destination SIMD&FP register. All the
+# values in this instruction are floating-point values.
+
+# half precision
+0 1 0 0 111 0 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 8 16 add fadd r0 r1 r2
+0 0 0 0 111 0 0 10 r2[4:0] 00 010 1 r1[4:0] r0[4:0]    | A64 f 4 16 add fadd r0 r1 r2
+
+# single precision
+0 0 0 01110 0 0 1 r2[4:0] 11 010 1 r1[4:0] r0[4:0]    | A64 f 2 32 add fadd r0 r1 r2
+0 1 0 01110 0 0 1 r2[4:0] 11 010 1 r1[4:0] r0[4:0]    | A64 f 4 32 add fadd r0 r1 r2
+0 1 0 01110 0 1 1 r2[4:0] 11 010 1 r1[4:0] r0[4:0]    | A64 f 2 64 add fadd r0 r1 r2
 
 # FDIV (vector)
 0 0 1 01110 0 10 r2[4:0] 00 111 1 r1[4:0] r0[4:0]    | A64 f 4 16 div fdiv r0 r1 r2
@@ -256,7 +267,24 @@ ARCH arm 32 # Architecture name + instruction size
 0 1 1 01110 0 0 1 r2[4:0] 11111 1 r1[4:0] r0[4:0]    | A64 i 4 32 div fdiv r0 r1 r2
 0 1 1 01110 0 1 1 r2[4:0] 11111 1 r1[4:0] r0[4:0]    | A64 i 2 64 div fdiv r0 r1 r2
 
-# FMOV (register)
+
+# C7.2.156 FMOV (register)
+# Floating-point move register without conversion
+# This instruction copies the floating-point value in the SIMD&FP
+# source register to the SIMD&FP destination register.
+0 0 0 11110 00 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 1 32 mov fmov r0 r1
+0 0 0 11110 00 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 2 32 mov fmov r0 r1
+0 0 0 11110 00 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 4 32 mov fmov r0 r1
+0 0 0 11110 00 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 1 32 mov fmov r0 r1
+0 0 0 11110 01 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 1 16 mov fmov r0 r1
+0 0 0 11110 11 10000 00 10000 r1[4:0] r0[4:0]        | A64 f 1 64 mov fmov r0 r1
+
+# C7.2.157 FMOV (general)
+# Floating-point move to or from general-purpose register without conversion
+# This instruction transfers the contents of a __SIMD&FP register__ to a
+# __general-purpose register__, or the contents of a general-purpose
+# register to a SIMD&FP register.
+
 0 0 0 11110 00 1 0000 00 10000 r1[4:0] r0[4:0]       | A64 f 1 32 mv fmov r0 r1
 0 0 0 11110 01 1 0000 00 10000 r1[4:0] r0[4:0]       | A64 f 1 64 mv fmov r0 r1
 
